@@ -2,52 +2,46 @@
 
 import { sql } from '@/lib/db';
 
-type CreateReportEntryInput = {
-    task: string;
-    description: string;
-    duration: string;
-    amount: number;
-    date: string;
-};
+export async function getReportEntries(month?: string) {
+    let startDate: string;
+    let endDate: string;
 
-export async function createReportEntry(
-    data: CreateReportEntryInput
-) {
-    try {
-        await sql`
-            INSERT INTO report_entries (
-                task,
-                description,
-                duration,
-                amount,
-                date
-            )
-            VALUES (
-                ${data.task},
-                ${data.description},
-                ${data.duration},
-                ${data.amount},
-                ${data.date}
-            )
-        `;
+    if (month) {
+        const [year, monthNumber] = month.split('-');
 
-        return {
-            success: true,
-        };
-    } catch (error) {
-        console.error(error);
+        startDate = `${year}-${monthNumber}-01`;
 
-        return {
-            success: false,
-            message: 'Erro ao salvar registro',
-        };
+        const nextMonth = new Date(
+            Number(year),
+            Number(monthNumber),
+            0
+        );
+
+        endDate = `${year}-${monthNumber}-${String(
+            nextMonth.getDate()
+        ).padStart(2, '0')}`;
+    } else {
+        const now = new Date();
+
+        startDate = `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, '0')}-01`;
+
+        endDate = `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, '0')}-${String(
+            new Date(
+                now.getFullYear(),
+                now.getMonth() + 1,
+                0
+            ).getDate()
+        ).padStart(2, '0')}`;
     }
-}
 
-export async function getReportEntries() {
     const entries = await sql`
         SELECT *
         FROM report_entries
+        WHERE date BETWEEN ${startDate} AND ${endDate}
         ORDER BY date DESC
     `;
 

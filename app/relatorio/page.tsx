@@ -1,68 +1,146 @@
-type ReportItem = {
-    id: string;
-    date: string;
-    taskCode: string;
-    description: string;
-    duration: string;
-    amount: string;
+import MonthSelect from '@/components/MonthSelect';
+import { getReportEntries } from '@/app/actions/report';
+
+type PageProps = {
+    searchParams: Promise<{
+        month?: string;
+    }>;
 };
 
-type ReportData = {
-    date: string;
-    total: string;
-    amount: string;
-    items: ReportItem[];
-};
+export default async function Relatorio({
+    searchParams,
+}: PageProps) {
+    const params = await searchParams;
 
-const reportMock: ReportData = {
-    date: '01/05/2026 - 31/05/2026',
-    total: '06:30:00',
-    amount: '162,50 USD',
-    items: [],
-};
+    const selectedMonth =
+        params.month ||
+        new Date().toISOString().slice(0, 7);
 
-export default function Relatorio() {
-    const report = reportMock;
+    const items = await getReportEntries(selectedMonth);
+
+    const totalAmount = items.reduce(
+        (acc, item) => acc + Number(item.amount || 0),
+        0
+    );
+
+    const totalDuration = items.reduce(
+        (acc, item) => {
+            if (!item.duration) return acc;
+
+            const parts = item.duration.split(':');
+
+            const hours = Number(parts[0] || 0);
+            const minutes = Number(parts[1] || 0);
+            const seconds = Number(parts[2] || 0);
+
+            return (
+                acc +
+                hours * 3600 +
+                minutes * 60 +
+                seconds
+            );
+        },
+        0
+    );
+
+    const formatDuration = (totalSeconds: number) => {
+        if (!totalSeconds || Number.isNaN(totalSeconds)) {
+            return '00:00:00';
+        }
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor(
+            (totalSeconds % 3600) / 60
+        );
+        const seconds = totalSeconds % 60;
+
+        return `${String(hours).padStart(
+            2,
+            '0'
+        )}:${String(minutes).padStart(
+            2,
+            '0'
+        )}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const now = new Date();
+
+    const availableMonths = [];
+
+    for (let i = 0; i < 24; i++) {
+        const date = new Date(
+            now.getFullYear(),
+            now.getMonth() - i,
+            1
+        );
+
+        availableMonths.push({
+            value: date.toISOString().slice(0, 7),
+            label: date.toLocaleDateString(
+                'pt-BR',
+                {
+                    month: 'long',
+                    year: 'numeric',
+                }
+            ),
+        });
+    }
 
     return (
         <main className="min-h-screen bg-slate-50 p-8">
             <div className="mx-auto max-w-7xl">
                 {/* HEADER */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">
-                        Detailed Report
-                    </h1>
 
-                    <p className="mt-2 text-slate-500">
-                        {report.date}
-                    </p>
+                <div className="mb-8 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900">
+                            Detailed Report
+                        </h1>
+
+                        <p className="mt-2 text-slate-500">
+                            {availableMonths.find(
+                                (m) =>
+                                    m.value === selectedMonth
+                            )?.label}
+                        </p>
+                    </div>
+
+                    <MonthSelect
+                        value={selectedMonth}
+                        months={availableMonths}
+                    />
                 </div>
 
                 {/* SUMMARY */}
-                <div className="mb-8 grid gap-4 md:grid-cols-3">
-                    <div className="rounded-xl border-slate-200 border bg-white p-5 shadow-sm">
+
+                <div className="mb-8 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                         <p className="text-sm text-slate-500">
                             Total Hours
                         </p>
 
                         <h2 className="mt-2 text-2xl font-bold">
-                            {report.total}
+                            {formatDuration(
+                                totalDuration
+                            )}
                         </h2>
                     </div>
 
-                    <div className="rounded-xl border-slate-200 border bg-white p-5 shadow-sm">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                         <p className="text-sm text-slate-500">
                             Total Amount
                         </p>
 
                         <h2 className="mt-2 text-2xl font-bold text-green-600">
-                            {report.amount}
+                            USD{' '}
+                            {totalAmount.toFixed(2)}
                         </h2>
                     </div>
                 </div>
 
                 {/* TABLE */}
-                <div className="overflow-hidden rounded-xl border-slate-200 border bg-white shadow-sm">
+
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[1200px]">
                             <thead className="bg-slate-100">
@@ -90,39 +168,56 @@ export default function Relatorio() {
                             </thead>
 
                             <tbody>
-                                {report.items.length === 0 ? (
+                                {items.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={8}
+                                            colSpan={5}
                                             className="py-12 text-center text-slate-500"
                                         >
                                             No records found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    report.items.map((item) => (
+                                    items.map((item) => (
                                         <tr
                                             key={item.id}
                                             className="border-t hover:bg-slate-50"
                                         >
                                             <td className="px-4 py-4">
-                                                {item.date}
+                                                {new Date(
+                                                    item.date
+                                                ).toLocaleDateString(
+                                                    'pt-BR',
+                                                    {
+                                                        timeZone:
+                                                            'UTC',
+                                                    }
+                                                )}
                                             </td>
 
                                             <td className="px-4 py-4 font-medium">
-                                                {item.taskCode}
+                                                {item.task}
                                             </td>
 
                                             <td className="px-4 py-4">
-                                                {item.description}
+                                                {
+                                                    item.description
+                                                }
                                             </td>
 
                                             <td className="px-4 py-4">
-                                                {item.duration}
+                                                {
+                                                    item.duration
+                                                }
                                             </td>
 
                                             <td className="px-4 py-4 text-right font-medium">
-                                                {item.amount}
+                                                USD{' '}
+                                                {Number(
+                                                    item.amount
+                                                ).toFixed(
+                                                    2
+                                                )}
                                             </td>
                                         </tr>
                                     ))

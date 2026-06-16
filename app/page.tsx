@@ -1,193 +1,239 @@
-'use client';
+import Link from 'next/link';
+import { getReportEntries } from '@/app/actions/report';
+import MonthSelect from '@/components/MonthSelect';
 
-import { useState } from 'react';
-import { createReportEntry } from './actions/report';
-
-type FormData = {
-  task: string;
-  description: string;
-  date: string;
-  duration: string;
-  amount: string;
+type PageProps = {
+  searchParams: Promise<{
+    month?: string;
+  }>;
 };
 
-export default function Home() {
-  const [formData, setFormData] = useState<FormData>({
-    task: '',
-    description: '',
-    date: '',
-    duration: '',
-    amount: '',
-  });
+export default async function Relatorio({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
+  const selectedMonth =
+    params.month ||
+    new Date().toISOString().slice(0, 7);
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const items = await getReportEntries(
+    selectedMonth
+  );
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+  const totalAmount = items.reduce(
+    (acc, item) => acc + Number(item.amount || 0),
+    0
+  );
 
-    const result = await createReportEntry({
-      task: formData.task,
-      description: formData.description,
-      duration: formData.duration,
-      amount: Number(formData.amount),
-      date: formData.date,
-    });
+  const totalDuration = items.reduce(
+    (acc, item) => {
+      if (!item.duration) {
+        return acc;
+      }
 
-    if (result.success) {
-      alert('Registro salvo com sucesso!');
+      const parts = item.duration.split(':');
 
-      setFormData({
-        task: '',
-        description: '',
-        duration: '',
-        amount: '',
-        date: '',
-      });
-    } else {
-      alert(result.message);
+      const hours = Number(parts[0] || 0);
+      const minutes = Number(parts[1] || 0);
+      const seconds = Number(parts[2] || 0);
+
+      return (
+        acc +
+        hours * 3600 +
+        minutes * 60 +
+        seconds
+      );
+    },
+    0
+  );
+
+  const formatDuration = (totalSeconds: number) => {
+    if (!totalSeconds || Number.isNaN(totalSeconds)) {
+      return '00:00:00';
     }
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor(
+      (totalSeconds % 3600) / 60
+    );
+    const seconds = totalSeconds % 60;
+
+    return `${String(hours).padStart(
+      2,
+      '0'
+    )}:${String(minutes).padStart(
+      2,
+      '0'
+    )}:${String(seconds).padStart(2, '0')}`;
   };
+
+  const currentDate = new Date(
+    `${selectedMonth}-01`
+  );
+
+  const previousMonth = new Date(currentDate);
+  previousMonth.setMonth(
+    previousMonth.getMonth() - 1
+  );
+
+  const nextMonth = new Date(currentDate);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+  const now = new Date();
+
+  const availableMonths = [];
+
+  for (let i = 0; i < 24; i++) {
+    const date = new Date(
+      now.getFullYear(),
+      now.getMonth() - i,
+      1
+    );
+
+    availableMonths.push({
+      value: date.toISOString().slice(0, 7),
+      label: date.toLocaleDateString(
+        'pt-BR',
+        {
+          month: 'long',
+          year: 'numeric',
+        }
+      ),
+    });
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 p-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">
-            Meu Clockify
-          </h1>
+      <div className="mx-auto max-w-7xl">
+        {/* HEADER */}
 
-          <p className="mt-2 text-slate-500">
-            Adicione uma nova atividade ao relatório
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">
+              Detailed Report
+            </h1>
+
+            <p className="mt-2 text-slate-500">
+              {selectedMonth}
+            </p>
+          </div>
+
+          <MonthSelect
+            value={selectedMonth}
+            months={availableMonths}
+          />
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6"
-          >
-            <div>
-              <label
-                htmlFor="task"
-                className="mb-2 block text-sm font-medium text-slate-700"
-              >
-                Task
-              </label>
+        {/* SUMMARY */}
 
-              <input
-                id="task"
-                name="task"
-                type="text"
-                value={formData.task}
-                onChange={handleChange}
-                placeholder="wp_0075"
-                required
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-              />
-            </div>
+        <div className="mb-8 grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">
+              Total Hours
+            </p>
 
-            <div>
-              <label
-                htmlFor="description"
-                className="mb-2 block text-sm font-medium text-slate-700"
-              >
-                Description
-              </label>
+            <h2 className="mt-2 text-2xl font-bold">
+              {formatDuration(
+                totalDuration
+              )}
+            </h2>
+          </div>
 
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                required
-                placeholder="Descreva a atividade realizada..."
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-              />
-            </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">
+              Total Amount
+            </p>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              <div>
-                <label
-                  htmlFor="date"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Date
-                </label>
+            <h2 className="mt-2 text-2xl font-bold text-green-600">
+              USD {totalAmount.toFixed(2)}
+            </h2>
+          </div>
+        </div>
 
-                <input
-                  id="date"
-                  name="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                />
-              </div>
+        {/* TABLE */}
 
-              <div>
-                <label
-                  htmlFor="duration"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Duration
-                </label>
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Date
+                  </th>
 
-                <input
-                  id="duration"
-                  name="duration"
-                  type="text"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  required
-                  placeholder="01:30:00"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                />
-              </div>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Task
+                  </th>
 
-              <div>
-                <label
-                  htmlFor="amount"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Amount
-                </label>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Description
+                  </th>
 
-                <input
-                  id="amount"
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  required
-                  placeholder="25.00"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                />
-              </div>
-            </div>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Duration
+                  </th>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="rounded-lg bg-slate-900 px-6 py-3 font-medium text-white transition hover:bg-slate-700"
-              >
-                Salvar Registro
-              </button>
-            </div>
-          </form>
+                  <th className="px-4 py-3 text-right text-sm font-semibold">
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {items.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-12 text-center text-slate-500"
+                    >
+                      No records found.
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="border-t hover:bg-slate-50"
+                    >
+                      <td className="px-4 py-4">
+                        {new Date(
+                          item.date
+                        ).toLocaleDateString(
+                          'pt-BR'
+                        )}
+                      </td>
+
+                      <td className="px-4 py-4 font-medium">
+                        {item.task}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        {
+                          item.description
+                        }
+                      </td>
+
+                      <td className="px-4 py-4">
+                        {
+                          item.duration
+                        }
+                      </td>
+
+                      <td className="px-4 py-4 text-right font-medium">
+                        USD{' '}
+                        {Number(
+                          item.amount
+                        ).toFixed(
+                          2
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>
