@@ -1,65 +1,185 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+
+type FormData = {
+  task: string;
+  description: string;
+  date: string;
+  duration: string;
+  amount: string;
+};
 
 export default function Home() {
+  const [formData, setFormData] = useState<FormData>({
+    task: '',
+    description: '',
+    date: '',
+    duration: '',
+    amount: '',
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    console.log(formData);
+
+    // Futuramente:
+    // await fetch('/api/report', {
+    //   method: 'POST',
+    //   headers: {
+    //      'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify(formData)
+    // });
+
+    alert('Registro salvo com sucesso!');
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-slate-50 p-8">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900">
+            Meu Clockify
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-2 text-slate-500">
+            Adicione uma nova atividade ao relatório
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div>
+              <label
+                htmlFor="task"
+                className="mb-2 block text-sm font-medium text-slate-700"
+              >
+                Task
+              </label>
+
+              <input
+                id="task"
+                name="task"
+                type="text"
+                value={formData.task}
+                onChange={handleChange}
+                placeholder="wp_0075"
+                required
+                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="description"
+                className="mb-2 block text-sm font-medium text-slate-700"
+              >
+                Description
+              </label>
+
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+                required
+                placeholder="Descreva a atividade realizada..."
+                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+              />
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              <div>
+                <label
+                  htmlFor="date"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Date
+                </label>
+
+                <input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="duration"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Duration
+                </label>
+
+                <input
+                  id="duration"
+                  name="duration"
+                  type="text"
+                  value={formData.duration}
+                  onChange={handleChange}
+                  required
+                  placeholder="01:30:00"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="amount"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Amount
+                </label>
+
+                <input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  required
+                  placeholder="25.00"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="rounded-lg bg-slate-900 px-6 py-3 font-medium text-white transition hover:bg-slate-700"
+              >
+                Salvar Registro
+              </button>
+            </div>
+          </form>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
