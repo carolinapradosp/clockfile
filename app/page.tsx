@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createReportEntry } from './actions/report';
 
 type FormData = {
   task: string;
@@ -35,18 +36,27 @@ export default function Home() {
   ) => {
     e.preventDefault();
 
-    console.log(formData);
+    const result = await createReportEntry({
+      task: formData.task,
+      description: formData.description,
+      duration: formData.duration,
+      amount: Number(formData.amount),
+      date: formData.date,
+    });
 
-    // Futuramente:
-    // await fetch('/api/report', {
-    //   method: 'POST',
-    //   headers: {
-    //      'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify(formData)
-    // });
+    if (result.success) {
+      alert('Registro salvo com sucesso!');
 
-    alert('Registro salvo com sucesso!');
+      setFormData({
+        task: '',
+        description: '',
+        duration: '',
+        amount: '',
+        date: '',
+      });
+    } else {
+      alert(result.message);
+    }
   };
 
   return (
