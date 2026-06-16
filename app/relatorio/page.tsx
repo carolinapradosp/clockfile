@@ -64,27 +64,31 @@ export default async function Relatorio({
     };
 
     const now = new Date();
+    const currentYear = now.getFullYear();
 
-    const availableMonths = [];
+    const availableMonths = Array.from(
+        { length: 12 },
+        (_, index) => {
+            const date = new Date(
+                currentYear,
+                index,
+                1
+            );
 
-    for (let i = 0; i < 24; i++) {
-        const date = new Date(
-            now.getFullYear(),
-            now.getMonth() - i,
-            1
-        );
-
-        availableMonths.push({
-            value: date.toISOString().slice(0, 7),
-            label: date.toLocaleDateString(
-                'pt-BR',
-                {
-                    month: 'long',
-                    year: 'numeric',
-                }
-            ),
-        });
-    }
+            return {
+                value: `${currentYear}-${String(
+                    index + 1
+                ).padStart(2, '0')}`,
+                label: date.toLocaleDateString(
+                    'pt-BR',
+                    {
+                        month: 'long',
+                        year: 'numeric',
+                    }
+                ),
+            };
+        }
+    );
 
     return (
         <main className="min-h-screen bg-slate-50 p-8">
