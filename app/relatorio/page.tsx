@@ -80,11 +80,11 @@ export default async function Relatorio({
     );
 
     return (
-        <main className="min-h-screen bg-slate-50 p-8">
+        <main className="min-h-screen p-8">
             <div className="mx-auto max-w-7xl">
                 {/* HEADER */}
 
-                <div className="mb-8 flex items-center justify-between">
+                <div className="mb-2 flex items-center justify-between">
                     <div>
                         <Link href="/" className="text-3xl font-bold text-slate-900">
                             Detailed Report
@@ -106,29 +106,17 @@ export default async function Relatorio({
 
                 {/* SUMMARY */}
 
-                <div className="mb-8 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-slate-500">
-                            Total Hours
-                        </p>
-
-                        <h2 className="mt-2 text-2xl font-bold">
-                            {formatDuration(
-                                totalMinutes
-                            )}
-                        </h2>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-slate-500">
-                            Total Amount
-                        </p>
-
-                        <h2 className="mt-2 text-2xl font-bold text-green-600">
-                            USD{' '}
-                            {totalAmount.toFixed(2)}
-                        </h2>
-                    </div>
+                <div className="mb-4 flex items-center gap-8">
+                    <p className="text-sm text-gray-600">
+                        Total:  <span className="text-xl text-black">{formatDuration(
+                            totalMinutes
+                        )}</span>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                        Amount: <span className="text-xl text-black">
+                            {totalAmount.toFixed(2)} USD
+                        </span>
+                    </p>
                 </div>
 
                 <TableTask items={items as TaskItem[]} />

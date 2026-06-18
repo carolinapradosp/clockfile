@@ -20,30 +20,29 @@ export default function TableTask({
         return taskBNumber - taskANumber;
     });
 
-
     return (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="w-full min-w-300">
-                    <thead className="bg-slate-100">
+                <table className="w-full min-w-300 mt-10">
+                    <thead className="">
                         <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold">
+                            <th className="py-3 text-left text-sm font-semibold text-black">
                                 Date
                             </th>
 
-                            <th className="px-4 py-3 text-left text-sm font-semibold">
+                            <th className="py-3 text-left text-sm font-semibold text-black">
                                 Task
                             </th>
 
-                            <th className="px-4 py-3 text-left text-sm font-semibold">
+                            <th className="py-3 text-left text-sm font-semibold text-black">
                                 Description
                             </th>
 
-                            <th className="px-4 py-3 text-left text-sm font-semibold">
+                            <th className="py-3 text-left text-sm font-semibold text-black">
                                 Duration
                             </th>
 
-                            <th className="px-4 py-3 text-right text-sm font-semibold">
+                            <th className="py-3 text-right text-sm font-semibold text-black">
                                 Amount
                             </th>
                         </tr>
@@ -65,7 +64,7 @@ export default function TableTask({
                                     key={item.id}
                                     className="border-t border-gray-200"
                                 >
-                                    <td className="px-4 py-4">
+                                    <td className="py-4 text-sm text-gray-600">
                                         {new Date(
                                             item.date
                                         ).toLocaleDateString(
@@ -77,23 +76,23 @@ export default function TableTask({
                                         )}
                                     </td>
 
-                                    <td className="px-4 py-4 font-medium">
+                                    <td className="py-4 text-sm text-gray-600">
                                         {item.task}
                                     </td>
 
-                                    <td className="px-4 py-4">
+                                    <td className="py-4 text-sm text-gray-600">
                                         {
                                             item.description
                                         }
                                     </td>
 
-                                    <td className="px-4 py-4">
+                                    <td className="py-4 text-sm text-gray-600">
                                         {
                                             item.duration
                                         }
                                     </td>
 
-                                    <td className="px-4 py-4 text-right font-medium">
+                                    <td className="py-4 text-right text-sm text-gray-600">
                                         USD{' '}
                                         {Number(
                                             item.amount
