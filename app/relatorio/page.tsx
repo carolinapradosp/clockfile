@@ -1,6 +1,8 @@
 import MonthSelect from '@/components/MonthSelect';
 import { getReportEntries } from '@/app/actions/report';
 import Link from 'next/link';
+import TableTask from '@/components/TableTask';
+import { TaskItem } from '@/interfaces/TaskItem';
 
 type PageProps = {
     searchParams: Promise<{
@@ -129,94 +131,7 @@ export default async function Relatorio({
                     </div>
                 </div>
 
-                {/* TABLE */}
-
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[1200px]">
-                            <thead className="bg-slate-100">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Date
-                                    </th>
-
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Task
-                                    </th>
-
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Description
-                                    </th>
-
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Duration
-                                    </th>
-
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">
-                                        Amount
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {items.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={5}
-                                            className="py-12 text-center text-slate-500"
-                                        >
-                                            No records found.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    items.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className="border-t border-gray-200"
-                                        >
-                                            <td className="px-4 py-4">
-                                                {new Date(
-                                                    item.date
-                                                ).toLocaleDateString(
-                                                    'en-US',
-                                                    {
-                                                        timeZone:
-                                                            'UTC',
-                                                    }
-                                                )}
-                                            </td>
-
-                                            <td className="px-4 py-4 font-medium">
-                                                {item.task}
-                                            </td>
-
-                                            <td className="px-4 py-4">
-                                                {
-                                                    item.description
-                                                }
-                                            </td>
-
-                                            <td className="px-4 py-4">
-                                                {
-                                                    item.duration
-                                                }
-                                            </td>
-
-                                            <td className="px-4 py-4 text-right font-medium">
-                                                USD{' '}
-                                                {Number(
-                                                    item.amount
-                                                ).toFixed(
-                                                    2
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <TableTask items={items as TaskItem[]} />
             </div>
         </main>
     );

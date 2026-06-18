@@ -2,16 +2,11 @@
 
 import { useState } from 'react';
 import { createReportEntry } from './actions/report';
+import { durationToMinutes } from '@/lib/time';
+import { calculateAmount } from '@/lib/billing';
+import { FormData } from '@/interfaces/FormData';
+import { HOURLY_RATE, MINIMUM_MINUTES } from '@/lib/constants';
 
-type FormData = {
-  task: string;
-  description: string;
-  date: string;
-  duration: string;
-};
-
-const HOURLY_RATE = 25;
-const MINIMUM_MINUTES = 30;
 
 export default function Home() {
   const [formData, setFormData] = useState<FormData>({
@@ -32,32 +27,6 @@ export default function Home() {
     }));
   };
 
-  const calculateAmount = (duration: string) => {
-    if (!duration) return 0;
-
-    const parts = duration.split(':');
-
-    if (parts.length !== 2) return 0;
-
-    const [hours, minutes] = parts.map(Number);
-
-    const totalHours = hours + minutes / 60;
-
-    return Number((totalHours * HOURLY_RATE).toFixed(2));
-  };
-
-  const getTotalMinutes = (duration: string) => {
-    if (!duration) return 0;
-
-    const parts = duration.split(':');
-
-    if (parts.length !== 2) return 0;
-
-    const [hours, minutes] = parts.map(Number);
-
-    return hours * 60 + minutes;
-  };
-
   const calculatedAmount = calculateAmount(
     formData.duration
   );
@@ -67,13 +36,13 @@ export default function Home() {
   ) => {
     e.preventDefault();
 
-    const totalMinutes = getTotalMinutes(
+    const totalMinutes = durationToMinutes(
       formData.duration
     );
 
     if (totalMinutes < MINIMUM_MINUTES) {
       alert(
-        'O tempo mínimo para registro é de 30 minutos.'
+        `O tempo mínimo para registro é de ${MINIMUM_MINUTES} minutos.`
       );
       return;
     }
