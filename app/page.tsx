@@ -8,8 +8,10 @@ type FormData = {
   description: string;
   date: string;
   duration: string;
-  amount: string;
 };
+
+const HOURLY_RATE = 25;
+const MINIMUM_MINUTES = 30;
 
 export default function Home() {
   const [formData, setFormData] = useState<FormData>({
@@ -17,7 +19,6 @@ export default function Home() {
     description: '',
     date: '',
     duration: '',
-    amount: '',
   });
 
   const handleChange = (
@@ -31,16 +32,57 @@ export default function Home() {
     }));
   };
 
+  const calculateAmount = (duration: string) => {
+    if (!duration) return 0;
+
+    const parts = duration.split(':');
+
+    if (parts.length !== 2) return 0;
+
+    const [hours, minutes] = parts.map(Number);
+
+    const totalHours = hours + minutes / 60;
+
+    return Number((totalHours * HOURLY_RATE).toFixed(2));
+  };
+
+  const getTotalMinutes = (duration: string) => {
+    if (!duration) return 0;
+
+    const parts = duration.split(':');
+
+    if (parts.length !== 2) return 0;
+
+    const [hours, minutes] = parts.map(Number);
+
+    return hours * 60 + minutes;
+  };
+
+  const calculatedAmount = calculateAmount(
+    formData.duration
+  );
+
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
+    const totalMinutes = getTotalMinutes(
+      formData.duration
+    );
+
+    if (totalMinutes < MINIMUM_MINUTES) {
+      alert(
+        'O tempo mínimo para registro é de 30 minutos.'
+      );
+      return;
+    }
+
     const result = await createReportEntry({
       task: formData.task,
       description: formData.description,
       duration: formData.duration,
-      amount: Number(formData.amount),
+      amount: calculatedAmount,
       date: formData.date,
     });
 
@@ -51,7 +93,6 @@ export default function Home() {
         task: '',
         description: '',
         duration: '',
-        amount: '',
         date: '',
       });
     } else {
@@ -67,9 +108,19 @@ export default function Home() {
             Meu Clockify
           </h1>
 
-          <p className="mt-2 text-slate-500">
-            Adicione uma nova atividade ao relatório
-          </p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="mt-2 text-slate-500">
+                Adicione uma nova atividade ao relatório
+              </p>
+            </div>
+
+            <div>
+              <a href="/relatorio">
+                <u>Acessar relatório</u>
+              </a>
+            </div>
+          </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -117,7 +168,7 @@ export default function Home() {
               />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label
                   htmlFor="date"
@@ -144,7 +195,6 @@ export default function Home() {
                 >
                   Duration
                 </label>
-
                 <input
                   id="duration"
                   name="duration"
@@ -152,30 +202,28 @@ export default function Home() {
                   value={formData.duration}
                   onChange={handleChange}
                   required
-                  placeholder="01:30:00"
+                  placeholder="01:30"
+                  pattern="^([0-9]{1,2}):([0-5][0-9])$"
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
                 />
+
+                <p className="mt-2 text-xs text-slate-500">
+                  Formato: HH:MM (mínimo 00:30)
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <div className="text-sm text-slate-600">
+                Valor calculado automaticamente
               </div>
 
-              <div>
-                <label
-                  htmlFor="amount"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Amount
-                </label>
+              <div className="mt-1 text-3xl font-bold text-green-700">
+                US$ {calculatedAmount.toFixed(2)}
+              </div>
 
-                <input
-                  id="amount"
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  required
-                  placeholder="25.00"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                />
+              <div className="mt-1 text-xs text-slate-500">
+                Taxa: US$ {HOURLY_RATE}/hora
               </div>
             </div>
 

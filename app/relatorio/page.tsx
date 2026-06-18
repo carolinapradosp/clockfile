@@ -1,5 +1,6 @@
 import MonthSelect from '@/components/MonthSelect';
 import { getReportEntries } from '@/app/actions/report';
+import Link from 'next/link';
 
 type PageProps = {
     searchParams: Promise<{
@@ -97,9 +98,9 @@ export default async function Relatorio({
 
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">
+                        <Link href="/" className="text-3xl font-bold text-slate-900">
                             Detailed Report
-                        </h1>
+                        </Link>
 
                         <p className="mt-2 text-slate-500">
                             {availableMonths.find(
