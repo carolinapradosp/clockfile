@@ -198,7 +198,7 @@ export default function Home() {
                 <input
                   id="duration"
                   name="duration"
-                  type="text"
+                  type="time"
                   value={formData.duration}
                   onChange={handleChange}
                   required

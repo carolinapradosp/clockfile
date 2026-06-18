@@ -24,44 +24,30 @@ export default async function Relatorio({
         0
     );
 
-    const totalDuration = items.reduce(
+    const totalMinutes = items.reduce(
         (acc, item) => {
             if (!item.duration) return acc;
 
-            const parts = item.duration.split(':');
+            const [hours, minutes] = item.duration
+                .split(':')
+                .map(Number);
 
-            const hours = Number(parts[0] || 0);
-            const minutes = Number(parts[1] || 0);
-            const seconds = Number(parts[2] || 0);
-
-            return (
-                acc +
-                hours * 3600 +
-                minutes * 60 +
-                seconds
-            );
+            return acc + hours * 60 + minutes;
         },
         0
     );
 
-    const formatDuration = (totalSeconds: number) => {
-        if (!totalSeconds || Number.isNaN(totalSeconds)) {
-            return '00:00:00';
-        }
-
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor(
-            (totalSeconds % 3600) / 60
-        );
-        const seconds = totalSeconds % 60;
+    const formatDuration = (minutes: number) => {
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
 
         return `${String(hours).padStart(
             2,
             '0'
-        )}:${String(minutes).padStart(
+        )}:${String(remainingMinutes).padStart(
             2,
             '0'
-        )}:${String(seconds).padStart(2, '0')}`;
+        )}`;
     };
 
     const now = new Date();
@@ -81,7 +67,7 @@ export default async function Relatorio({
                     index + 1
                 ).padStart(2, '0')}`,
                 label: date.toLocaleDateString(
-                    'pt-BR',
+                    'en-US',
                     {
                         month: 'long',
                         year: 'numeric',
@@ -126,7 +112,7 @@ export default async function Relatorio({
 
                         <h2 className="mt-2 text-2xl font-bold">
                             {formatDuration(
-                                totalDuration
+                                totalMinutes
                             )}
                         </h2>
                     </div>
@@ -186,13 +172,13 @@ export default async function Relatorio({
                                     items.map((item) => (
                                         <tr
                                             key={item.id}
-                                            className="border-t hover:bg-slate-50"
+                                            className="border-t border-gray-200"
                                         >
                                             <td className="px-4 py-4">
                                                 {new Date(
                                                     item.date
                                                 ).toLocaleDateString(
-                                                    'pt-BR',
+                                                    'en-US',
                                                     {
                                                         timeZone:
                                                             'UTC',
