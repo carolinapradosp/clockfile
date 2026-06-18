@@ -7,6 +7,20 @@ type TableTaskProps = {
 export default function TableTask({
     items,
 }: TableTaskProps) {
+
+    const sortedItems = [...items].sort((a, b) => {
+        const taskANumber = Number(
+            a.task.match(/\d+/)?.[0] || 0
+        );
+
+        const taskBNumber = Number(
+            b.task.match(/\d+/)?.[0] || 0
+        );
+
+        return taskBNumber - taskANumber;
+    });
+
+
     return (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
@@ -36,7 +50,7 @@ export default function TableTask({
                     </thead>
 
                     <tbody>
-                        {items.length === 0 ? (
+                        {sortedItems.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={5}
@@ -46,7 +60,7 @@ export default function TableTask({
                                 </td>
                             </tr>
                         ) : (
-                            items.map((item) => (
+                            sortedItems.map((item) => (
                                 <tr
                                     key={item.id}
                                     className="border-t border-gray-200"
