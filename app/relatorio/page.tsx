@@ -90,18 +90,22 @@ export default async function Relatorio({
                             Detailed Report
                         </Link>
 
-                        <p className="mt-2 text-slate-500">
+                        {/* <p className="mt-2 text-slate-500">
                             {availableMonths.find(
                                 (m) =>
                                     m.value === selectedMonth
                             )?.label}
+                        </p> */}
+                        <p className="mt-2">
+                            <MonthSelect
+                                value={selectedMonth}
+                                months={availableMonths}
+                            />
                         </p>
+
                     </div>
 
-                    <MonthSelect
-                        value={selectedMonth}
-                        months={availableMonths}
-                    />
+
                 </div>
 
                 {/* SUMMARY */}
