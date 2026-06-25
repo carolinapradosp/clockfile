@@ -86,7 +86,7 @@ export default async function Relatorio({
 
                 <div className="mb-2 flex items-center justify-between">
                     <div>
-                        <Link href="/" className="text-3xl font-bold text-slate-900">
+                        <Link href="/lancamento" className="text-3xl font-bold text-slate-900">
                             Detailed Report
                         </Link>
 
