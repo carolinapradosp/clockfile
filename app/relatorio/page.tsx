@@ -112,13 +112,13 @@ export default async function Relatorio({
 
                 <div className="mb-4 flex items-center gap-8">
                     <p className="text-sm text-gray-600">
-                        Total:  <span className="text-xl text-black">{formatDuration(
+                        Total hours:  <span className="text-xl text-black">{formatDuration(
                             totalMinutes
                         )}</span>
                     </p>
                     <p className="text-sm text-gray-600">
                         Amount: <span className="text-xl text-black">
-                            {totalAmount.toFixed(2)} USD
+                            $ {totalAmount.toFixed(2)}
                         </span>
                     </p>
                 </div>
