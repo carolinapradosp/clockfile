@@ -13,8 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Meu Clockify",
-  description: "Chega de pagar pra gerar relatório de horas!",
+  title: "Detailed Report",
 };
 
 export default function RootLayout({
