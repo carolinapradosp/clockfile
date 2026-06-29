@@ -7,6 +7,9 @@ import { FormData } from '@/interfaces/FormData';
 import { HOURLY_RATE, MINIMUM_MINUTES } from '@/lib/constants';
 import { createReportEntry } from '../actions/report';
 import LogoutButton from '@/components/LogoutButton';
+import Link from 'next/link';
+import Image from 'next/image';
+import logoPV from '../../public/logo-p-v.png';
 
 
 export default function Lancamento() {
@@ -74,11 +77,11 @@ export default function Lancamento() {
         <main className="min-h-screen bg-slate-50 p-8">
             <div className="mx-auto max-w-3xl">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">
-                        Meu Clockify
-                    </h1>
+                    <Link href="/">
+                        <Image src={logoPV} alt="Logo PV" width={250} height={50} />
+                    </Link>
 
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4 mt-8">
                         <div>
                             <p className="mt-2 text-slate-500">
                                 Adicione uma nova atividade ao relatório

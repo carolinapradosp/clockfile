@@ -6,7 +6,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas que exigem autenticação
-  const isProtectedRoute = pathname.startsWith('/lancamento') || pathname.startsWith('/relatorios');
+  const isProtectedRoute = pathname.startsWith('/lancamento') || pathname.startsWith('/relatorios') || pathname.startsWith('/invoice-generator');
 
   // Se for uma rota protegida e o usuário NÃO tiver o cookie, redireciona para a home (login)
   if (isProtectedRoute && !session) {
