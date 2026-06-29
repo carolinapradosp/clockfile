@@ -90,6 +90,10 @@ export default function Lancamento() {
                                 <u>Acessar relatório</u>
                             </a>
                             {' | '}
+                            <a href="/invoice-generator">
+                                <u>Gerar fatura</u>
+                            </a>
+                            {' | '}
                             <LogoutButton />
                         </div>
                     </div>
@@ -191,11 +195,11 @@ export default function Lancamento() {
                             </div>
 
                             <div className="mt-1 text-3xl font-bold text-green-700">
-                                US$ {calculatedAmount.toFixed(2)}
+                                $ {calculatedAmount.toFixed(2)}
                             </div>
 
                             <div className="mt-1 text-xs text-slate-500">
-                                Taxa: US$ {HOURLY_RATE}/hora
+                                Taxa: $ {HOURLY_RATE}/hora
                             </div>
                         </div>
 

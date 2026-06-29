@@ -93,8 +93,7 @@ export default function TableTask({
                                     </td>
 
                                     <td className="py-4 text-right text-sm text-gray-600">
-                                        USD{' '}
-                                        {Number(
+                                        $ {Number(
                                             item.amount
                                         ).toFixed(
                                             2
