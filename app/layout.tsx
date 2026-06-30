@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     default: "Clockfile",
     template: "%s | Clockfile",
   },
+  icons: '/icons/icon-72.png',
+
   description: "Controle de horas trabalhadas",
   applicationName: "Clockfile",
   appleWebApp: {
