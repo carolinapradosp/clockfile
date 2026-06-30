@@ -17,7 +17,7 @@ export default function NotFound() {
                 href="/"
                 className="underline"
             >
-                Voltar para o login
+                Voltar para a página inicial
             </Link>
         </div>
     );

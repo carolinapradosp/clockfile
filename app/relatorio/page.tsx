@@ -1,6 +1,5 @@
 import MonthSelect from '@/components/MonthSelect';
 import { getReportEntries } from '@/app/actions/report';
-import Link from 'next/link';
 import TableTask from '@/components/TableTask';
 import { TaskItem } from '@/interfaces/TaskItem';
 import Logo from '@/components/Logo';
@@ -81,16 +80,12 @@ export default async function Relatorio({
     );
 
     return (
-        <main className="min-h-screen p-8">
+        <main className="min-h-screen p-4 md:p-8">
             <div className="mx-auto max-w-7xl">
 
                 <div className="mb-2 flex items-center justify-between">
                     <div className="flex gap-4 items-center justify-between flex-col md:flex-row w-full">
-                        <div>
-                            <Link href="/">
-                                <Logo />
-                            </Link>
-                        </div>
+                        <Logo />
                         <div className="flex items-end flex-col w-full">
                             <h1 className="lg:text-3xl text-2xl font-light text-slate-700 tracking-wide uppercase">
                                 Detailed Report

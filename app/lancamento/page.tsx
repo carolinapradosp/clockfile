@@ -7,7 +7,6 @@ import { FormData } from '@/interfaces/FormData';
 import { HOURLY_RATE, MINIMUM_MINUTES } from '@/lib/constants';
 import { createReportEntry } from '../actions/report';
 import LogoutButton from '@/components/LogoutButton';
-import Link from 'next/link';
 import Logo from '@/components/Logo';
 
 
@@ -76,9 +75,7 @@ export default function Lancamento() {
         <main className="min-h-screen bg-slate-50 p-4 md:p-8">
             <div className="mx-auto max-w-3xl">
                 <div className="mb-8">
-                    <Link href="/">
-                        <Logo />
-                    </Link>
+                    <Logo />
 
                     <div className="flex items-center justify-between gap-4 mt-8">
                         <div>
