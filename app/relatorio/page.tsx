@@ -85,14 +85,14 @@ export default async function Relatorio({
             <div className="mx-auto max-w-7xl">
 
                 <div className="mb-2 flex items-center justify-between">
-                    <div className="flex gap-4 items-center justify-between w-full">
+                    <div className="flex gap-4 items-center justify-between flex-col md:flex-row w-full">
                         <div>
                             <Link href="/">
                                 <Logo />
                             </Link>
                         </div>
-                        <div>
-                            <h1 className="text-3xl font-light text-slate-700 tracking-wide uppercase">
+                        <div className="flex items-end flex-col w-full">
+                            <h1 className="lg:text-3xl text-2xl font-light text-slate-700 tracking-wide uppercase">
                                 Detailed Report
                             </h1>
 

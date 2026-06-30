@@ -24,7 +24,7 @@ export default function MonthSelect({
                     `/relatorio?month=${e.target.value}`
                 )
             }
-            className="text-slate-500 appearance-none"
+            className="text-slate-500 appearance-none text-right"
         >
             {months.map((month) => (
                 <option
