@@ -82,7 +82,7 @@ export default function InvoiceGenerator() {
                     {/* Datas e Balanço */}
                     <div className="w-full md:w-auto md:text-right flex flex-col items-end gap-2">
                         <div className="flex gap-4 text-sm">
-                            <span className="text-slate-400 font-medium">Date:</span>
+                            <span className="text-slate-600 font-medium">Date:</span>
                             <span className="text-slate-800 font-semibold">{invoiceData.date}</span>
                         </div>
 
@@ -100,7 +100,7 @@ export default function InvoiceGenerator() {
                 <div className="overflow-x-auto mb-8">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-[#3a3a3a] text-white text-sm font-medium">
+                            <tr className="bg-black text-white text-sm font-medium">
                                 <th className="p-3 rounded-l">Item</th>
                                 <th className="p-3 text-right">Quantity</th>
                                 <th className="p-3 text-right">Rate</th>
@@ -116,7 +116,7 @@ export default function InvoiceGenerator() {
                                             href={`https://${item.link}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-xs text-slate-400 hover:underline"
+                                            className="text-xs text-slate-600 hover:underline"
                                         >
                                             {item.link}
                                         </a>

@@ -22,27 +22,27 @@ export default function TableTask({
 
     return (
         <div className="overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full min-w-300 mt-10">
-                    <thead className="">
-                        <tr>
-                            <th className="py-3 text-left text-sm font-semibold text-black">
+            <div className="overflow-x-auto my-12">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-black text-white text-sm font-medium">
+                            <th className="p-3 rounded-l">
                                 Date
                             </th>
 
-                            <th className="py-3 text-left text-sm font-semibold text-black">
+                            <th className="p-3 text-left">
                                 Task
                             </th>
 
-                            <th className="py-3 text-left text-sm font-semibold text-black">
+                            <th className="p-3 text-left">
                                 Description
                             </th>
 
-                            <th className="py-3 text-left text-sm font-semibold text-black">
+                            <th className="p-3 text-right">
                                 Duration
                             </th>
 
-                            <th className="py-3 text-right text-sm font-semibold text-black">
+                            <th className="p-3 text-right rounded-r">
                                 Amount
                             </th>
                         </tr>
@@ -64,7 +64,7 @@ export default function TableTask({
                                     key={item.id}
                                     className="border-t border-gray-200"
                                 >
-                                    <td className="py-4 text-sm text-gray-600">
+                                    <td className="p-3 text-sm text-gray-600">
                                         {new Date(
                                             item.date
                                         ).toLocaleDateString(
@@ -76,23 +76,23 @@ export default function TableTask({
                                         )}
                                     </td>
 
-                                    <td className="py-4 text-sm text-gray-600">
+                                    <td className="p-3 text-sm text-gray-600">
                                         {item.task}
                                     </td>
 
-                                    <td className="py-4 text-sm text-gray-600">
+                                    <td className="p-3 text-sm text-gray-600">
                                         {
                                             item.description
                                         }
                                     </td>
 
-                                    <td className="py-4 text-sm text-gray-600">
+                                    <td className="p-3 text-sm text-gray-600 text-right">
                                         {
                                             item.duration
                                         }
                                     </td>
 
-                                    <td className="py-4 text-right text-sm text-gray-600">
+                                    <td className="p-3 text-right text-sm text-gray-600">
                                         $ {Number(
                                             item.amount
                                         ).toFixed(
