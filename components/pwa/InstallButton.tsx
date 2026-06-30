@@ -6,7 +6,6 @@ import { usePWA } from "@/hooks/usePWA";
 export default function InstallButton() {
     const { canInstall, install } = usePWA();
 
-    // O estado sempre começa como true. Ao recarregar a tela, ele volta a ser true automaticamente.
     const [isVisible, setIsVisible] = useState(true);
 
     const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -32,7 +31,6 @@ export default function InstallButton() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Se o hook do PWA disser que não pode instalar ou se o usuário clicou em fechar nesta sessão, esconde.
     if (!canInstall || !isVisible) return null;
 
     const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -87,8 +85,8 @@ export default function InstallButton() {
             }}
             className="
         fixed
-        bottom-4
-        right-4
+        bottom-12
+        right-12
         z-50
         flex
         cursor-grab
@@ -126,10 +124,10 @@ export default function InstallButton() {
                 <span>Instalar App</span>
             </button>
 
-            <span className="h-4 w-[1px] bg-white/20" aria-hidden="true" />
+            <span className="h-4 w-px bg-white/20" aria-hidden="true" />
 
             <button
-                onClick={() => setIsVisible(false)} // Apenas seta como false em memória
+                onClick={() => setIsVisible(false)}
                 className="
           close-btn
           rounded-full

@@ -3,6 +3,7 @@ import { getReportEntries } from '@/app/actions/report';
 import Link from 'next/link';
 import TableTask from '@/components/TableTask';
 import { TaskItem } from '@/interfaces/TaskItem';
+import Logo from '@/components/Logo';
 
 type PageProps = {
     searchParams: Promise<{
@@ -82,35 +83,33 @@ export default async function Relatorio({
     return (
         <main className="min-h-screen p-8">
             <div className="mx-auto max-w-7xl">
-                {/* HEADER */}
 
                 <div className="mb-2 flex items-center justify-between">
-                    <div>
-                        <Link href="/lancamento" className="text-3xl font-bold text-slate-900">
-                            Detailed Report
-                        </Link>
+                    <div className="flex gap-4 items-center justify-between w-full">
+                        <div>
+                            <Link href="/">
+                                <Logo />
+                            </Link>
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-light text-slate-700 tracking-wide uppercase">
+                                Detailed Report
+                            </h1>
 
-                        {/* <p className="mt-2 text-slate-500">
-                            {availableMonths.find(
-                                (m) =>
-                                    m.value === selectedMonth
-                            )?.label}
-                        </p> */}
-                        <p className="mt-2">
-                            <MonthSelect
-                                value={selectedMonth}
-                                months={availableMonths}
-                            />
-                        </p>
+                            <p className="mt-2">
+                                <MonthSelect
+                                    value={selectedMonth}
+                                    months={availableMonths}
+                                />
+                            </p>
+                        </div>
 
                     </div>
-
-
                 </div>
 
                 {/* SUMMARY */}
 
-                <div className="mb-4 flex items-center gap-8">
+                <div className="mt-8 flex items-center gap-8 justify-end">
                     <p className="text-sm text-gray-600">
                         Total hours:  <span className="text-xl text-black">{formatDuration(
                             totalMinutes

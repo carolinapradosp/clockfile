@@ -8,8 +8,7 @@ import { HOURLY_RATE, MINIMUM_MINUTES } from '@/lib/constants';
 import { createReportEntry } from '../actions/report';
 import LogoutButton from '@/components/LogoutButton';
 import Link from 'next/link';
-import Image from 'next/image';
-import logoPV from '../../public/logo-p-v.png';
+import Logo from '@/components/Logo';
 
 
 export default function Lancamento() {
@@ -78,7 +77,7 @@ export default function Lancamento() {
             <div className="mx-auto max-w-3xl">
                 <div className="mb-8">
                     <Link href="/">
-                        <Image src={logoPV} alt="Logo PV" width={250} height={50} />
+                        <Logo />
                     </Link>
 
                     <div className="flex items-center justify-between gap-4 mt-8">
@@ -209,7 +208,7 @@ export default function Lancamento() {
                         <div className="flex justify-end">
                             <button
                                 type="submit"
-                                className="rounded-lg bg-slate-900 px-6 py-3 font-medium text-white transition hover:bg-slate-700"
+                                className="cursor-pointer rounded-full bg-[#42AE39] px-6 py-3 font-medium text-white transition hover:bg-[#36932C]"
                             >
                                 Salvar Registro
                             </button>
