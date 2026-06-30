@@ -73,7 +73,7 @@ export default function Lancamento() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-50 p-8">
+        <main className="min-h-screen bg-slate-50 p-4 md:p-8">
             <div className="mx-auto max-w-3xl">
                 <div className="mb-8">
                     <Link href="/">
@@ -82,17 +82,17 @@ export default function Lancamento() {
 
                     <div className="flex items-center justify-between gap-4 mt-8">
                         <div>
-                            <p className="mt-2 text-slate-500">
+                            <p className="mt-2 text-slate-500 md:text-base text-sm">
                                 Adicione uma nova atividade ao relatório
                             </p>
                         </div>
 
                         <div>
-                            <a href="/relatorio">
+                            <a href="/relatorio" className="md:text-base text-sm">
                                 <u>Acessar relatório</u>
                             </a>
                             {' | '}
-                            <a href="/invoice-generator">
+                            <a href="/invoice-generator" className="md:text-base text-sm">
                                 <u>Gerar fatura</u>
                             </a>
                             {' | '}
@@ -101,7 +101,7 @@ export default function Lancamento() {
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-white p-3 md:p-6 shadow-sm">
                     <form
                         onSubmit={handleSubmit}
                         className="space-y-6"
