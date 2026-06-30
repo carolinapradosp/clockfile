@@ -10,7 +10,7 @@ export default function LogoutButton() {
         <button
             onClick={() => startTransition(() => handleLogout())}
             disabled={isPending}
-            className="underline cursor-pointer"
+            className="md:text-base text-sm underline cursor-pointer"
         >
             {isPending ? 'Saindo...' : 'Sair'}
         </button>

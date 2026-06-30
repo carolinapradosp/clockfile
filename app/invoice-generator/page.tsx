@@ -1,7 +1,6 @@
-"use client";
 
 import Logo from '@/components/Logo';
-import Link from 'next/link';
+import Title from '@/components/Title';
 
 const invoiceData = {
     invoiceNumber: "14",
@@ -48,20 +47,17 @@ export default function InvoiceGenerator() {
     const total = subtotal + taxAmount;
 
     return (
-        <main className="min-h-screen p-8">
+        <main className="min-h-screen p-4 md:p-8">
             <div className="mx-auto max-w-7xl">
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-12">
                     <div className="flex items-center gap-4">
-                        <Link href="/">
-                            <Logo />
-                        </Link>
-
+                        <Logo />
                     </div>
                     <div className="text-left md:text-right">
-                        <h1 className="text-3xl font-light text-slate-700 tracking-wide uppercase">
+                        <Title>
                             Invoice
-                        </h1>
-                        <span className="text-slate-500 font-medium text-lg block mt-1">
+                        </Title>
+                        <span className="text-slate-500 appearance-none text-right mt-1">
                             # {invoiceData.invoiceNumber}
                         </span>
                     </div>
@@ -71,7 +67,7 @@ export default function InvoiceGenerator() {
                 <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
                     {/* Bill To */}
                     <div>
-                        <span className="text-sm font-semibold text-slate-400 block mb-2">
+                        <span className="text-sm font-semibold text-slate-600 block mb-2">
                             Bill To:
                         </span>
                         <div className="text-slate-800 space-y-0.5">
@@ -86,14 +82,14 @@ export default function InvoiceGenerator() {
                     {/* Datas e Balanço */}
                     <div className="w-full md:w-auto md:text-right flex flex-col items-end gap-2">
                         <div className="flex gap-4 text-sm">
-                            <span className="text-slate-400 font-medium">Date:</span>
+                            <span className="text-slate-600 font-medium">Date:</span>
                             <span className="text-slate-800 font-semibold">{invoiceData.date}</span>
                         </div>
 
                         {/* Bloco de Destaque do Total Due */}
-                        <div className="bg-slate-100/80 rounded px-6 py-3 flex justify-between md:justify-end items-center gap-12 w-full md:w-auto">
-                            <span className="text-sm font-bold text-slate-700">Balance Due:</span>
-                            <span className="text-xl font-bold text-slate-900">
+                        <div className="bg-slate-100/80 rounded px-2 md:px-6 py-2 flex justify-between md:justify-end items-center gap-12 w-full md:w-auto">
+                            <span className="text-sm font-bold text-slate-700 text-nowrap">Balance Due:</span>
+                            <span className="text-xl font-bold text-slate-900 text-nowrap">
                                 $ {total.toFixed(2)}
                             </span>
                         </div>
@@ -104,34 +100,34 @@ export default function InvoiceGenerator() {
                 <div className="overflow-x-auto mb-8">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-[#3a3a3a] text-white text-sm font-medium">
-                                <th className="py-2.5 px-4 rounded-l">Item</th>
-                                <th className="py-2.5 px-4 text-right">Quantity</th>
-                                <th className="py-2.5 px-4 text-right">Rate</th>
-                                <th className="py-2.5 px-4 text-right rounded-r">Amount</th>
+                            <tr className="bg-black text-white text-sm font-medium">
+                                <th className="p-3 rounded-l">Item</th>
+                                <th className="p-3 text-right">Quantity</th>
+                                <th className="p-3 text-right">Rate</th>
+                                <th className="p-3 text-right rounded-r">Amount</th>
                             </tr>
                         </thead>
                         <tbody className="text-slate-700 text-sm">
                             {invoiceData.items.map((item) => (
                                 <tr key={item.id} className="border-b border-slate-100">
-                                    <td className="py-4 px-4 max-w-xs md:max-w-none">
+                                    <td className="p-3 max-w-xs md:max-w-none">
                                         <p className="font-bold text-slate-800">{item.description}</p>
                                         <a
                                             href={`https://${item.link}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-xs text-slate-400 hover:underline"
+                                            className="text-xs text-slate-600 hover:underline"
                                         >
                                             {item.link}
                                         </a>
                                     </td>
-                                    <td className="py-4 px-4 text-right align-top text-slate-600 font-medium">
+                                    <td className="p-3 text-right align-top text-slate-600 font-medium text-nowrap">
                                         {item.quantity}
                                     </td>
-                                    <td className="py-4 px-4 text-right align-top text-slate-600 font-medium">
+                                    <td className="p-3 text-right align-top text-slate-600 font-medium text-nowrap">
                                         {item.rate !== null ? `$ ${item.rate.toFixed(2)}` : "-"}
                                     </td>
-                                    <td className="py-4 px-4 text-right align-top text-slate-800 font-semibold">
+                                    <td className="p-3 text-right align-top text-slate-800 font-semibold text-nowrap">
                                         $ {item.amount.toFixed(2)}
                                     </td>
                                 </tr>

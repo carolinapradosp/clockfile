@@ -7,7 +7,6 @@ import { FormData } from '@/interfaces/FormData';
 import { HOURLY_RATE, MINIMUM_MINUTES } from '@/lib/constants';
 import { createReportEntry } from '../actions/report';
 import LogoutButton from '@/components/LogoutButton';
-import Link from 'next/link';
 import Logo from '@/components/Logo';
 
 
@@ -73,26 +72,23 @@ export default function Lancamento() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-50 p-8">
-            <div className="mx-auto max-w-3xl">
+        <main className="min-h-screen p-4 md:p-8">
+            <div className="mx-auto max-w-7xl">
                 <div className="mb-8">
-                    <Link href="/">
-                        <Logo />
-                    </Link>
-
+                    <Logo />
                     <div className="flex items-center justify-between gap-4 mt-8">
                         <div>
-                            <p className="mt-2 text-slate-500">
+                            <p className="mt-2 text-slate-500 md:text-base text-sm">
                                 Adicione uma nova atividade ao relatório
                             </p>
                         </div>
 
                         <div>
-                            <a href="/relatorio">
+                            <a href="/relatorio" className="md:text-base text-sm">
                                 <u>Acessar relatório</u>
                             </a>
                             {' | '}
-                            <a href="/invoice-generator">
+                            <a href="/invoice-generator" className="md:text-base text-sm">
                                 <u>Gerar fatura</u>
                             </a>
                             {' | '}
@@ -101,11 +97,10 @@ export default function Lancamento() {
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <form
-                        onSubmit={handleSubmit}
-                        className="space-y-6"
-                    >
+                <form
+                    onSubmit={handleSubmit}
+                    className=""
+                >   <div className="grid gap-4 md:grid-cols-3">
                         <div>
                             <label
                                 htmlFor="task"
@@ -125,96 +120,96 @@ export default function Lancamento() {
                                 className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
                             />
                         </div>
-
                         <div>
                             <label
-                                htmlFor="description"
+                                htmlFor="date"
                                 className="mb-2 block text-sm font-medium text-slate-700"
                             >
-                                Description
+                                Date
                             </label>
 
-                            <textarea
-                                id="description"
-                                name="description"
-                                value={formData.description}
+                            <input
+                                id="date"
+                                name="date"
+                                type="date"
+                                value={formData.date}
                                 onChange={handleChange}
-                                rows={4}
                                 required
-                                placeholder="Descreva a atividade realizada..."
                                 className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
                             />
                         </div>
 
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <div>
-                                <label
-                                    htmlFor="date"
-                                    className="mb-2 block text-sm font-medium text-slate-700"
-                                >
-                                    Date
-                                </label>
-
-                                <input
-                                    id="date"
-                                    name="date"
-                                    type="date"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label
-                                    htmlFor="duration"
-                                    className="mb-2 block text-sm font-medium text-slate-700"
-                                >
-                                    Duration
-                                </label>
-                                <input
-                                    id="duration"
-                                    name="duration"
-                                    type="time"
-                                    value={formData.duration}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="01:30"
-                                    pattern="^([0-9]{1,2}):([0-5][0-9])$"
-                                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                                />
-
-                                <p className="mt-2 text-xs text-slate-500">
-                                    Formato: HH:MM (mínimo 00:30)
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                            <div className="text-sm text-slate-600">
-                                Valor calculado automaticamente
-                            </div>
-
-                            <div className="mt-1 text-3xl font-bold text-green-700">
-                                $ {calculatedAmount.toFixed(2)}
-                            </div>
-
-                            <div className="mt-1 text-xs text-slate-500">
-                                Taxa: $ {HOURLY_RATE}/hora
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <button
-                                type="submit"
-                                className="cursor-pointer rounded-full bg-[#42AE39] px-6 py-3 font-medium text-white transition hover:bg-[#36932C]"
+                        <div>
+                            <label
+                                htmlFor="duration"
+                                className="mb-2 block text-sm font-medium text-slate-700"
                             >
-                                Salvar Registro
-                            </button>
+                                Duration
+                            </label>
+                            <input
+                                id="duration"
+                                name="duration"
+                                type="time"
+                                value={formData.duration}
+                                onChange={handleChange}
+                                required
+                                placeholder="01:30"
+                                pattern="^([0-9]{1,2}):([0-5][0-9])$"
+                                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                            />
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                Formato: HH:MM (mínimo 00:30)
+                            </p>
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+
+                    <div>
+                        <label
+                            htmlFor="description"
+                            className="mt-4 mb-2 block text-sm font-medium text-slate-700"
+                        >
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            rows={4}
+                            required
+                            placeholder="Descreva a atividade realizada..."
+                            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        />
+                    </div>
+
+
+
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-4 my-4">
+                        <div className="text-sm text-slate-600">
+                            Valor calculado automaticamente
+                        </div>
+
+                        <div className="mt-1 text-3xl font-bold text-green-700">
+                            $ {calculatedAmount.toFixed(2)}
+                        </div>
+
+                        <div className="mt-1 text-xs text-slate-500">
+                            Taxa: $ {HOURLY_RATE}/hora
+                        </div>
+                    </div>
+
+                    <div className="flex justify-start">
+                        <button
+                            type="submit"
+                            className="cursor-pointer rounded-xl bg-gray-900 px-6 py-3 font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2  disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Salvar Registro
+                        </button>
+                    </div>
+                </form>
             </div>
         </main>
     );
