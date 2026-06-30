@@ -111,7 +111,7 @@ export default async function Relatorio({
                         )}</span>
                     </p>
                     <p className="text-sm text-gray-600">
-                        Amount: <span className="text-xl text-black">
+                        Amount: <span className="text-xl text-black text-nowrap">
                             $ {totalAmount.toFixed(2)}
                         </span>
                     </p>

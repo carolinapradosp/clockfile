@@ -205,7 +205,7 @@ export default function Lancamento() {
                         <div className="flex justify-end">
                             <button
                                 type="submit"
-                                className="cursor-pointer rounded-full bg-[#42AE39] px-6 py-3 font-medium text-white transition hover:bg-[#36932C]"
+                                className="cursor-pointer rounded-xl bg-gray-900 px-6 py-3 font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2  disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Salvar Registro
                             </button>
