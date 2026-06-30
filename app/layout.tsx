@@ -1,6 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
+
+import {
+  InstallButton,
+  OfflineIndicator,
+  PWAProvider,
+} from "@/components/pwa";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +20,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Detailed Report",
+  title: {
+    default: "Clockfile",
+    template: "%s | Clockfile",
+  },
+  description: "Controle de horas trabalhadas",
+  applicationName: "Clockfile",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Clockfile",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({
@@ -23,10 +44,18 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en-US"
+      lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-slate-50">
+        <PWAProvider>
+          <OfflineIndicator />
+          <InstallButton />
+
+          {children}
+        </PWAProvider>
+      </body>
     </html>
   );
 }
