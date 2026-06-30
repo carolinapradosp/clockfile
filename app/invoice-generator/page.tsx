@@ -67,7 +67,7 @@ export default function InvoiceGenerator() {
                 <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
                     {/* Bill To */}
                     <div>
-                        <span className="text-sm font-semibold text-slate-400 block mb-2">
+                        <span className="text-sm font-semibold text-slate-600 block mb-2">
                             Bill To:
                         </span>
                         <div className="text-slate-800 space-y-0.5">

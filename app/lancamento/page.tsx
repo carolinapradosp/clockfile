@@ -72,8 +72,8 @@ export default function Lancamento() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-50 p-4 md:p-8">
-            <div className="mx-auto max-w-3xl">
+        <main className="min-h-screen p-4 md:p-8">
+            <div className="mx-auto max-w-7xl">
                 <div className="mb-8">
                     <Logo />
 
@@ -98,26 +98,65 @@ export default function Lancamento() {
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3 md:p-6 shadow-sm">
-                    <form
-                        onSubmit={handleSubmit}
-                        className="space-y-6"
-                    >
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                >
+                    <div>
+                        <label
+                            htmlFor="task"
+                            className="mb-2 block text-sm font-medium text-slate-700"
+                        >
+                            Task
+                        </label>
+
+                        <input
+                            id="task"
+                            name="task"
+                            type="text"
+                            value={formData.task}
+                            onChange={handleChange}
+                            placeholder="wp_0075"
+                            required
+                            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="description"
+                            className="mb-2 block text-sm font-medium text-slate-700"
+                        >
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            rows={4}
+                            required
+                            placeholder="Descreva a atividade realizada..."
+                            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        />
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-2">
                         <div>
                             <label
-                                htmlFor="task"
+                                htmlFor="date"
                                 className="mb-2 block text-sm font-medium text-slate-700"
                             >
-                                Task
+                                Date
                             </label>
 
                             <input
-                                id="task"
-                                name="task"
-                                type="text"
-                                value={formData.task}
+                                id="date"
+                                name="date"
+                                type="date"
+                                value={formData.date}
                                 onChange={handleChange}
-                                placeholder="wp_0075"
                                 required
                                 className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
                             />
@@ -125,93 +164,52 @@ export default function Lancamento() {
 
                         <div>
                             <label
-                                htmlFor="description"
+                                htmlFor="duration"
                                 className="mb-2 block text-sm font-medium text-slate-700"
                             >
-                                Description
+                                Duration
                             </label>
-
-                            <textarea
-                                id="description"
-                                name="description"
-                                value={formData.description}
+                            <input
+                                id="duration"
+                                name="duration"
+                                type="time"
+                                value={formData.duration}
                                 onChange={handleChange}
-                                rows={4}
                                 required
-                                placeholder="Descreva a atividade realizada..."
+                                placeholder="01:30"
+                                pattern="^([0-9]{1,2}):([0-5][0-9])$"
                                 className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
                             />
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                Formato: HH:MM (mínimo 00:30)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                        <div className="text-sm text-slate-600">
+                            Valor calculado automaticamente
                         </div>
 
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <div>
-                                <label
-                                    htmlFor="date"
-                                    className="mb-2 block text-sm font-medium text-slate-700"
-                                >
-                                    Date
-                                </label>
-
-                                <input
-                                    id="date"
-                                    name="date"
-                                    type="date"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label
-                                    htmlFor="duration"
-                                    className="mb-2 block text-sm font-medium text-slate-700"
-                                >
-                                    Duration
-                                </label>
-                                <input
-                                    id="duration"
-                                    name="duration"
-                                    type="time"
-                                    value={formData.duration}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="01:30"
-                                    pattern="^([0-9]{1,2}):([0-5][0-9])$"
-                                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                                />
-
-                                <p className="mt-2 text-xs text-slate-500">
-                                    Formato: HH:MM (mínimo 00:30)
-                                </p>
-                            </div>
+                        <div className="mt-1 text-3xl font-bold text-green-700">
+                            $ {calculatedAmount.toFixed(2)}
                         </div>
 
-                        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                            <div className="text-sm text-slate-600">
-                                Valor calculado automaticamente
-                            </div>
-
-                            <div className="mt-1 text-3xl font-bold text-green-700">
-                                $ {calculatedAmount.toFixed(2)}
-                            </div>
-
-                            <div className="mt-1 text-xs text-slate-500">
-                                Taxa: $ {HOURLY_RATE}/hora
-                            </div>
+                        <div className="mt-1 text-xs text-slate-500">
+                            Taxa: $ {HOURLY_RATE}/hora
                         </div>
+                    </div>
 
-                        <div className="flex justify-end">
-                            <button
-                                type="submit"
-                                className="cursor-pointer rounded-xl bg-gray-900 px-6 py-3 font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2  disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Salvar Registro
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div className="flex justify-end">
+                        <button
+                            type="submit"
+                            className="cursor-pointer rounded-xl bg-gray-900 px-6 py-3 font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2  disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Salvar Registro
+                        </button>
+                    </div>
+                </form>
             </div>
         </main>
     );
