@@ -1,8 +1,12 @@
+import Logo from "@/components/Logo";
 import Link from "next/link";
 
 export default function NotFound() {
     return (
         <div className="flex h-screen flex-col items-center justify-center gap-4">
+            <div>
+                <Logo />
+            </div>
             <h1 className="text-3xl font-bold text-slate-900">
                 Página não encontrada
             </h1>

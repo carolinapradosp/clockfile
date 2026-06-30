@@ -1,8 +1,7 @@
 "use client";
 
+import Logo from '@/components/Logo';
 import Link from 'next/link';
-import logoPV from '../../public/logo-p-v.png';
-import Image from 'next/image';
 
 const invoiceData = {
     invoiceNumber: "14",
@@ -54,7 +53,7 @@ export default function InvoiceGenerator() {
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-12">
                     <div className="flex items-center gap-4">
                         <Link href="/">
-                            <Image src={logoPV} alt="Logo PV" width={250} height={50} />
+                            <Logo />
                         </Link>
 
                     </div>

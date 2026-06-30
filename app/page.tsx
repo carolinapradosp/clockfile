@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { ActionState, handleLogin } from './actions/auth';
+import Logo from '@/components/Logo';
 
 export default function Home() {
   const initialState: ActionState = null;
@@ -9,9 +10,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 p-8 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-
-        {/* Header do Card */}
         <div className="mb-6 text-center">
+          <div className='flex items-center justify-center pb-8'>
+            <Logo />
+
+          </div>
+
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
             Área Restrita
           </h1>
