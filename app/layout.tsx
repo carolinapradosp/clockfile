@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import {
-  InstallPrompt,
+  InstallButton,
   OfflineIndicator,
   PWAProvider,
 } from "@/components/pwa";
@@ -51,7 +51,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-slate-50">
         <PWAProvider>
           <OfflineIndicator />
-          <InstallPrompt />
+          <InstallButton />
 
           {children}
         </PWAProvider>

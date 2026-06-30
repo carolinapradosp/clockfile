@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { registerServiceWorker } from '@/lib/register-sw';
+
+import { PWAContextProvider } from './PWAContext';
 
 export default function PWAProvider({
     children,
@@ -12,5 +15,9 @@ export default function PWAProvider({
         registerServiceWorker();
     }, []);
 
-    return <>{children}</>;
+    return (
+        <PWAContextProvider>
+            {children}
+        </PWAContextProvider>
+    );
 }
