@@ -1,5 +1,6 @@
 
 import Logo from '@/components/Logo';
+import Title from '@/components/Title';
 
 const invoiceData = {
     invoiceNumber: "14",
@@ -53,10 +54,10 @@ export default function InvoiceGenerator() {
                         <Logo />
                     </div>
                     <div className="text-left md:text-right">
-                        <h1 className="lg:text-3xl text-2xl font-light text-slate-700 tracking-wide uppercase">
+                        <Title>
                             Invoice
-                        </h1>
-                        <span className="text-slate-500 font-medium text-lg block mt-1">
+                        </Title>
+                        <span className="text-slate-500 appearance-none text-right mt-1">
                             # {invoiceData.invoiceNumber}
                         </span>
                     </div>
