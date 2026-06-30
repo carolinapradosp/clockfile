@@ -76,7 +76,6 @@ export default function Lancamento() {
             <div className="mx-auto max-w-7xl">
                 <div className="mb-8">
                     <Logo />
-
                     <div className="flex items-center justify-between gap-4 mt-8">
                         <div>
                             <p className="mt-2 text-slate-500 md:text-base text-sm">
@@ -100,49 +99,27 @@ export default function Lancamento() {
 
                 <form
                     onSubmit={handleSubmit}
-                    className="space-y-6"
-                >
-                    <div>
-                        <label
-                            htmlFor="task"
-                            className="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Task
-                        </label>
+                    className=""
+                >   <div className="grid gap-4 md:grid-cols-3">
+                        <div>
+                            <label
+                                htmlFor="task"
+                                className="mb-2 block text-sm font-medium text-slate-700"
+                            >
+                                Task
+                            </label>
 
-                        <input
-                            id="task"
-                            name="task"
-                            type="text"
-                            value={formData.task}
-                            onChange={handleChange}
-                            placeholder="wp_0075"
-                            required
-                            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="description"
-                            className="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Description
-                        </label>
-
-                        <textarea
-                            id="description"
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            rows={4}
-                            required
-                            placeholder="Descreva a atividade realizada..."
-                            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
-                        />
-                    </div>
-
-                    <div className="grid gap-6 md:grid-cols-2">
+                            <input
+                                id="task"
+                                name="task"
+                                type="text"
+                                value={formData.task}
+                                onChange={handleChange}
+                                placeholder="wp_0075"
+                                required
+                                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                            />
+                        </div>
                         <div>
                             <label
                                 htmlFor="date"
@@ -187,7 +164,30 @@ export default function Lancamento() {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+
+                    <div>
+                        <label
+                            htmlFor="description"
+                            className="mt-4 mb-2 block text-sm font-medium text-slate-700"
+                        >
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            rows={4}
+                            required
+                            placeholder="Descreva a atividade realizada..."
+                            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        />
+                    </div>
+
+
+
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-4 my-4">
                         <div className="text-sm text-slate-600">
                             Valor calculado automaticamente
                         </div>
@@ -201,7 +201,7 @@ export default function Lancamento() {
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-start">
                         <button
                             type="submit"
                             className="cursor-pointer rounded-xl bg-gray-900 px-6 py-3 font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2  disabled:opacity-50 disabled:cursor-not-allowed"
