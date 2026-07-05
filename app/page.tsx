@@ -15,7 +15,6 @@ export default function Home() {
             <div>
               <Logo />
             </div>
-
           </div>
 
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
@@ -27,8 +26,6 @@ export default function Home() {
         </div>
 
 
-
-        {/* Formulário usando Server Action */}
         <form action={formAction} className="space-y-4">
           <div>
             <label
