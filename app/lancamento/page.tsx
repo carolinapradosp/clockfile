@@ -87,10 +87,7 @@ export default function Lancamento() {
                             <a href="/relatorio" className="md:text-base text-sm">
                                 <u>Acessar relatório</u>
                             </a>
-                            {' | '}
-                            <a href="/invoice-generator" className="md:text-base text-sm">
-                                <u>Gerar fatura</u>
-                            </a>
+
                             {' | '}
                             <LogoutButton />
                         </div>
