@@ -12,7 +12,7 @@ export default function LogoutButton() {
             disabled={isPending}
             className="md:text-base text-sm underline cursor-pointer"
         >
-            {isPending ? 'Saindo...' : 'Sair'}
+            {isPending ? 'Leaving...' : 'Log out'}
         </button>
     );
 }
