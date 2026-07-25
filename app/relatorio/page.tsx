@@ -4,6 +4,7 @@ import TableTask from '@/components/TableTask';
 import { TaskItem } from '@/interfaces/TaskItem';
 import Logo from '@/components/Logo';
 import Title from '@/components/Title';
+import Link from 'next/link';
 
 type PageProps = {
     searchParams: Promise<{
@@ -98,6 +99,11 @@ export default async function Relatorio({
                                     months={availableMonths}
                                 />
                             </p>
+                            <div className="mt-2">
+                                <Link href="/relatorio/invoice-generator" className="">
+                                    <span className='text-sm underline font-bold'>Generate Invoice</span>
+                                </Link>
+                            </div>
                         </div>
 
                     </div>
