@@ -100,8 +100,14 @@ export default async function Relatorio({
                                 />
                             </p>
                             <div className="mt-2">
-                                <Link href="/relatorio/invoice-generator" className="">
-                                    <span className='text-sm underline font-bold'>Generate Invoice</span>
+                                <Link
+                                    href={`/relatorio/invoice-generator?month=${encodeURIComponent(
+                                        selectedMonth
+                                    )}`}
+                                >
+                                    <span className="text-sm font-bold underline">
+                                        Generate Invoice
+                                    </span>
                                 </Link>
                             </div>
                         </div>
