@@ -1,6 +1,6 @@
-import LogoutButton from '@/components/LogoutButton';
-import Logo from '@/components/Logo';
-import CreateTask from '@/components/CreateTask';
+import LogoutButton from '@/components/auth/LogoutButton';
+import Logo from '@/components/layout/Logo';
+import CreateTask from '@/components/reports/CreateTask';
 
 export default function Lancamento() {
     return (

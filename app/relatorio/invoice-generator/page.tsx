@@ -8,7 +8,7 @@ import {
     getReportEntries,
 } from '@/app/actions/report';
 
-import InvoiceBuilder from '@/components/InvoiceBuilder';
+import InvoiceBuilder from '@/components/invoices/InvoiceBuilder';
 
 import type {
     InvoiceInitialData,

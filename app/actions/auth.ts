@@ -1,35 +1,74 @@
+// app/actions/auth.ts
+
 'use server';
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-export type ActionState = {
-  error: string | null;
-} | null;
+export type ActionState =
+  | {
+      error: string;
+    }
+  | null;
 
-export async function handleLogin(prevState: ActionState, formData: FormData): Promise<ActionState> {
+const COOKIE_NAME = 'auth_session';
+
+export async function handleLogin(
+  _previousState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
   const password = formData.get('password');
-  const expectedPassword = process.env.AREA_LOGADA;
 
-  if (password === expectedPassword) {
-    // Define o cookie de sessão (expira em 1 dia, HTTP-only para segurança básica)
-    const cookieStore = await cookies();
-    cookieStore.set('auth_session', 'true', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 horas
-      path: '/',
-    });
-
-    redirect('/lancamento'); 
+  if (
+    typeof password !== 'string' ||
+    !password
+  ) {
+    return {
+      error: 'Informe a senha de acesso.',
+    };
   }
 
-  return { error: 'Senha incorreta. Tente novamente.' };
+  const expectedPassword =
+    process.env.AREA_LOGADA;
+
+  if (!expectedPassword) {
+    console.error(
+      'A variável AREA_LOGADA não foi configurada.'
+    );
+
+    return {
+      error: 'Não foi possível validar o acesso.',
+    };
+  }
+
+  if (password !== expectedPassword) {
+    return {
+      error: 'Senha inválida.',
+    };
+  }
+
+  const cookieStore = await cookies();
+
+  cookieStore.set(
+    COOKIE_NAME,
+    'authenticated',
+    {
+      httpOnly: true,
+      secure:
+        process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    }
+  );
+
+  redirect('/dashboard');
 }
 
-export async function handleLogout() {
+export async function handleLogout(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete('auth_session');
-  redirect('/'); // Redireciona para a home após o logout
+
+  cookieStore.delete(COOKIE_NAME);
+
+  redirect('/');
 }

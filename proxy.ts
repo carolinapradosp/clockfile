@@ -1,27 +1,62 @@
+// proxy.ts
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const PROTECTED_ROUTE_PREFIXES = [
+  '/dashboard',
+  '/clientes',
+  '/projetos',
+  '/relatorios',
+  '/faturas',
+  '/configuracoes',
+];
+
+function isProtectedRoute(pathname: string) {
+  return PROTECTED_ROUTE_PREFIXES.some(
+    (route) =>
+      pathname === route ||
+      pathname.startsWith(`${route}/`)
+  );
+}
+
 export function proxy(request: NextRequest) {
-  const session = request.cookies.get('auth_session')?.value;
   const { pathname } = request.nextUrl;
 
-  // Rotas que exigem autenticação
-  const isProtectedRoute = pathname.startsWith('/lancamento') || pathname.startsWith('/relatorios') || pathname.startsWith('/invoice-generator');
+  const session =
+    request.cookies.get('auth_session')?.value;
 
-  // Se for uma rota protegida e o usuário NÃO tiver o cookie, redireciona para a home (login)
-  if (isProtectedRoute && !session) {
-    return NextResponse.redirect(new URL('/', request.url));
+  /*
+   * Usuário não autenticado tentando acessar
+   * uma página interna.
+   */
+  if (isProtectedRoute(pathname) && !session) {
+    const loginUrl = new URL('/', request.url);
+
+    return NextResponse.redirect(loginUrl);
   }
 
-  // Se o usuário já estiver logado e tentar ir para a Home (tela de login), manda direto para os lançamentos
+  /*
+   * Usuário autenticado tentando acessar
+   * a página de login.
+   */
   if (pathname === '/' && session) {
-    return NextResponse.redirect(new URL('/lancamento', request.url));
+    return NextResponse.redirect(
+      new URL('/dashboard', request.url)
+    );
   }
 
   return NextResponse.next();
 }
 
-// Configura quais caminhos o middleware deve avaliar (evita rodar em arquivos estáticos/imagens)
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/',
+    '/dashboard/:path*',
+    '/clientes/:path*',
+    '/projetos/:path*',
+    '/relatorios/:path*',
+    '/faturas/:path*',
+    '/configuracoes/:path*',
+  ],
 };

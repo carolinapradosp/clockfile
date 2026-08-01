@@ -1,5 +1,5 @@
-import FormLogin from '@/components/FormLogin';
-import Logo from '@/components/Logo';
+import FormLogin from '@/components/auth/FormLogin';
+import Logo from '@/components/layout/Logo';
 
 export default function Home() {
 

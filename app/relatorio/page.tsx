@@ -1,9 +1,9 @@
-import MonthSelect from '@/components/MonthSelect';
+import MonthSelect from '@/components/reports/MonthSelect';
 import { getReportEntries } from '@/app/actions/report';
-import TableTask from '@/components/TableTask';
+import TableTask from '@/components/reports/TableTask';
 import { TaskItem } from '@/interfaces/TaskItem';
-import Logo from '@/components/Logo';
-import Title from '@/components/Title';
+import Logo from '@/components/layout/Logo';
+import Title from '@/components/ui/Title';
 import Link from 'next/link';
 
 type PageProps = {

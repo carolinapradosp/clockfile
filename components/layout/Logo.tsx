@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import logoPV from '../public/logo-p-v.png';
+import logoPV from '@/public/logo-p-v.png';
 import Image from 'next/image';
 
 export default function Logo() {

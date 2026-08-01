@@ -11,9 +11,9 @@ import {
 } from 'lucide-react';
 
 import { saveInvoice } from '@/app/actions/invoice';
-import InvoiceItemRow from '@/components/InvoiceItemRow';
-import Logo from '@/components/Logo';
-import Title from '@/components/Title';
+import InvoiceItemRow from '@/components/invoices/InvoiceItemRow';
+import Logo from '@/components/layout/Logo';
+import Title from '@/components/ui/Title';
 
 import type {
     InvoiceInitialData,
@@ -359,8 +359,8 @@ export default function InvoiceBuilder({
                                 <p
                                     role="status"
                                     className={`mt-3 text-sm font-medium ${saveSucceeded
-                                            ? 'text-emerald-700'
-                                            : 'text-red-600'
+                                        ? 'text-emerald-700'
+                                        : 'text-red-600'
                                         }`}
                                 >
                                     {saveMessage}
