@@ -1,16 +1,28 @@
-// components/InvoiceItemRow.tsx
+// components/invoices/InvoiceItemRow.tsx
 
 'use client';
 
-import type { InvoiceItem } from '@/interfaces/Invoice';
 import { Trash2 } from 'lucide-react';
+
+import type {
+    InvoiceItem,
+    InvoiceItemSource,
+} from '@/interfaces/Invoice';
+
+type EditableInvoiceItemField =
+    | 'description'
+    | 'link'
+    | 'quantity'
+    | 'rate'
+    | 'amount'
+    | 'source';
 
 type InvoiceItemRowProps = {
     item: InvoiceItem;
 
     onChange: (
         id: string,
-        field: keyof InvoiceItem,
+        field: EditableInvoiceItemField,
         value: string
     ) => void;
 
@@ -20,19 +32,32 @@ type InvoiceItemRowProps = {
 };
 
 const inputClassName = `
+  h-11
   w-full
+  rounded-xl
   border
   border-slate-200
   bg-white
   px-3
-  py-2
   text-sm
   text-slate-800
   outline-none
-  transition-colors
+  transition-all
   placeholder:text-slate-400
-  focus:border-slate-500
+  focus:border-blue-500
+  focus:ring-4
+  focus:ring-blue-500/10
 `;
+
+const SOURCE_LABELS: Record<
+    InvoiceItemSource,
+    string
+> = {
+    'monthly-report': 'Horas do relatório',
+    manual: 'Item manual',
+    expense: 'Despesa',
+    adjustment: 'Ajuste',
+};
 
 export default function InvoiceItemRow({
     item,
@@ -40,16 +65,49 @@ export default function InvoiceItemRow({
     onRemove,
     canRemove,
 }: InvoiceItemRowProps) {
+    const isReportItem =
+        item.source === 'monthly-report';
+
     return (
-        <div className="border-b border-slate-200 py-5">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(260px,1fr)_120px_120px_140px_44px]">
-                {/* ITEM */}
-                <div className="space-y-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Item
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+            <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-sm font-bold text-slate-900">
+                        {SOURCE_LABELS[item.source]}
+                    </p>
+
+                    {isReportItem && (
+                        <p className="mt-1 text-xs text-slate-500">
+                            {item.reportEntryIds.length}{' '}
+                            {item.reportEntryIds.length === 1
+                                ? 'lançamento vinculado'
+                                : 'lançamentos vinculados'}
+                        </p>
+                    )}
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => onRemove(item.id)}
+                    disabled={!canRemove}
+                    title="Remover item"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <Trash2 size={17} />
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-5">
+                    <label
+                        htmlFor={`description-${item.id}`}
+                        className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                        Descrição
                     </label>
 
                     <input
+                        id={`description-${item.id}`}
                         type="text"
                         value={item.description}
                         onChange={(event) =>
@@ -59,7 +117,7 @@ export default function InvoiceItemRow({
                                 event.target.value
                             )
                         }
-                        placeholder="Item description"
+                        placeholder="Descrição do item"
                         className={inputClassName}
                     />
 
@@ -73,18 +131,21 @@ export default function InvoiceItemRow({
                                 event.target.value
                             )
                         }
-                        placeholder="Link or project URL (optional)"
-                        className={inputClassName}
+                        placeholder="Link ou URL do projeto"
+                        className={`${inputClassName} mt-3`}
                     />
                 </div>
 
-                {/* QUANTITY */}
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Quantity
+                <div className="lg:col-span-2">
+                    <label
+                        htmlFor={`quantity-${item.id}`}
+                        className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                        Quantidade
                     </label>
 
                     <input
+                        id={`quantity-${item.id}`}
                         type="number"
                         min="0"
                         step="0.01"
@@ -97,17 +158,20 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="0"
-                        className={`${inputClassName} mt-2 text-right`}
+                        className={`${inputClassName} text-right`}
                     />
                 </div>
 
-                {/* RATE */}
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="lg:col-span-2">
+                    <label
+                        htmlFor={`rate-${item.id}`}
+                        className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
                         Rate
                     </label>
 
                     <input
+                        id={`rate-${item.id}`}
                         type="number"
                         min="0"
                         step="0.01"
@@ -119,18 +183,21 @@ export default function InvoiceItemRow({
                                 event.target.value
                             )
                         }
-                        placeholder="Optional"
-                        className={`${inputClassName} mt-2 text-right`}
+                        placeholder="0.00"
+                        className={`${inputClassName} text-right`}
                     />
                 </div>
 
-                {/* AMOUNT */}
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Amount
+                <div className="lg:col-span-3">
+                    <label
+                        htmlFor={`amount-${item.id}`}
+                        className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                        Valor
                     </label>
 
                     <input
+                        id={`amount-${item.id}`}
                         type="number"
                         min="0"
                         step="0.01"
@@ -143,45 +210,46 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="0.00"
-                        className={`${inputClassName} mt-2 text-right font-semibold`}
+                        className={`${inputClassName} text-right font-semibold`}
                     />
                 </div>
 
-                {/* REMOVE */}
-                <div className="flex items-end">
-                    <button
-                        type="button"
-                        disabled={!canRemove}
-                        onClick={() => onRemove(item.id)}
-                        title="Remove item"
-                        aria-label="Remove item"
-                        className="
-              flex
-              h-10
-              w-10
-              items-center
-              justify-center
-              border
-              border-slate-200
-              text-slate-500
-              transition-colors
-              hover:border-red-300
-              hover:bg-red-50
-              hover:text-red-600
-              disabled:cursor-not-allowed
-              disabled:opacity-30
-            "
-                    >
-                        <Trash2 size={17} />
-                    </button>
-                </div>
-            </div>
+                {!isReportItem && (
+                    <div className="lg:col-span-4">
+                        <label
+                            htmlFor={`source-${item.id}`}
+                            className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                        >
+                            Tipo
+                        </label>
 
-            {item.source === 'monthly-report' && (
-                <p className="mt-2 text-xs text-slate-400">
-                    Suggested automatically from the selected monthly report.
-                </p>
-            )}
-        </div>
+                        <select
+                            id={`source-${item.id}`}
+                            value={item.source}
+                            onChange={(event) =>
+                                onChange(
+                                    item.id,
+                                    'source',
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        >
+                            <option value="manual">
+                                Item manual
+                            </option>
+
+                            <option value="expense">
+                                Despesa
+                            </option>
+
+                            <option value="adjustment">
+                                Ajuste
+                            </option>
+                        </select>
+                    </div>
+                )}
+            </div>
+        </article>
     );
 }
