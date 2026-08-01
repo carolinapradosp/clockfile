@@ -1,0 +1,477 @@
+// components/projects/ProjectForm.tsx
+
+'use client';
+
+import Link from 'next/link';
+import { Save } from 'lucide-react';
+import {
+    useActionState,
+    useEffect,
+} from 'react';
+import { useRouter } from 'next/navigation';
+
+import {
+    createProject,
+    updateProject,
+    type ProjectClientOption,
+} from '@/app/actions/projects';
+
+import type {
+    Project,
+    ProjectActionState,
+    ProjectStatus,
+} from '@/interfaces/Project';
+
+type ProjectFormProps = {
+    project?: Project;
+    clients: ProjectClientOption[];
+    initialClientId?: string;
+};
+
+const initialState: ProjectActionState = null;
+
+const inputClassName = `
+  h-12
+  w-full
+  rounded-xl
+  border
+  border-slate-200
+  bg-white
+  px-4
+  text-sm
+  text-slate-900
+  outline-none
+  transition-all
+  placeholder:text-slate-400
+  focus:border-blue-500
+  focus:ring-4
+  focus:ring-blue-500/10
+`;
+
+const textareaClassName = `
+  min-h-36
+  w-full
+  resize-y
+  rounded-xl
+  border
+  border-slate-200
+  bg-white
+  px-4
+  py-3
+  text-sm
+  text-slate-900
+  outline-none
+  transition-all
+  placeholder:text-slate-400
+  focus:border-blue-500
+  focus:ring-4
+  focus:ring-blue-500/10
+`;
+
+function FieldError({
+    message,
+}: {
+    message?: string;
+}) {
+    if (!message) {
+        return null;
+    }
+
+    return (
+        <p className="mt-1 text-xs font-medium text-red-600">
+            {message}
+        </p>
+    );
+}
+
+export default function ProjectForm({
+    project,
+    clients,
+    initialClientId,
+}: ProjectFormProps) {
+    const router = useRouter();
+
+    const action = project
+        ? updateProject.bind(
+            null,
+            project.id
+        )
+        : createProject;
+
+    const [
+        state,
+        formAction,
+        isPending,
+    ] = useActionState(
+        action,
+        initialState
+    );
+
+    useEffect(() => {
+        if (!state?.success) {
+            return;
+        }
+
+        router.replace(
+            `/projetos/${state.projectId}`
+        );
+
+        router.refresh();
+    }, [router, state]);
+
+    const selectedClientId =
+        project?.clientId ??
+        initialClientId ??
+        '';
+
+    const selectedStatus: ProjectStatus =
+        project?.status ?? 'active';
+
+    return (
+        <form
+            action={formAction}
+            className="space-y-8"
+        >
+            {state && !state.success && (
+                <div
+                    role="alert"
+                    className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
+                >
+                    {state.message}
+                </div>
+            )}
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">
+                        Informações principais
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Defina o cliente e os dados básicos do projeto.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="clientId"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Cliente *
+                        </label>
+
+                        <select
+                            id="clientId"
+                            name="clientId"
+                            required
+                            defaultValue={
+                                selectedClientId
+                            }
+                            className={inputClassName}
+                        >
+                            <option value="">
+                                Selecione um cliente
+                            </option>
+
+                            {clients.map((client) => (
+                                <option
+                                    key={client.id}
+                                    value={client.id}
+                                >
+                                    {client.companyName
+                                        ? `${client.companyName} — ${client.name}`
+                                        : client.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state?.fieldErrors
+                                        ?.clientId
+                                    : undefined
+                            }
+                        />
+
+                        {clients.length === 0 && (
+                            <p className="mt-2 text-sm text-amber-700">
+                                Nenhum cliente disponível. Cadastre um cliente antes de criar o projeto.
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="name"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Nome do projeto *
+                        </label>
+
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            required
+                            defaultValue={
+                                project?.name ?? ''
+                            }
+                            placeholder="Ex.: Website institucional"
+                            className={inputClassName}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state?.fieldErrors
+                                        ?.name
+                                    : undefined
+                            }
+                        />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="description"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Descrição
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            defaultValue={
+                                project?.description ?? ''
+                            }
+                            placeholder="Descreva o escopo, objetivos e informações importantes do projeto."
+                            className={textareaClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="status"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Status
+                        </label>
+
+                        <select
+                            id="status"
+                            name="status"
+                            defaultValue={
+                                selectedStatus
+                            }
+                            className={inputClassName}
+                        >
+                            <option value="draft">
+                                Rascunho
+                            </option>
+
+                            <option value="active">
+                                Ativo
+                            </option>
+
+                            <option value="paused">
+                                Pausado
+                            </option>
+
+                            <option value="completed">
+                                Concluído
+                            </option>
+
+                            {project?.status ===
+                                'archived' && (
+                                    <option value="archived">
+                                        Arquivado
+                                    </option>
+                                )}
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">
+                        Cobrança
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Configure o valor padrão utilizado nos lançamentos de horas.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <label
+                            htmlFor="defaultHourlyRate"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Valor por hora
+                        </label>
+
+                        <input
+                            id="defaultHourlyRate"
+                            name="defaultHourlyRate"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            defaultValue={
+                                project
+                                    ?.defaultHourlyRate ??
+                                ''
+                            }
+                            placeholder="0.00"
+                            className={inputClassName}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state?.fieldErrors
+                                        ?.defaultHourlyRate
+                                    : undefined
+                            }
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="currency"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Moeda *
+                        </label>
+
+                        <input
+                            id="currency"
+                            name="currency"
+                            type="text"
+                            required
+                            maxLength={3}
+                            defaultValue={
+                                project?.currency ??
+                                'USD'
+                            }
+                            placeholder="USD"
+                            className={`${inputClassName} uppercase`}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state?.fieldErrors
+                                        ?.currency
+                                    : undefined
+                            }
+                        />
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">
+                        Período
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        As datas são opcionais e ajudam a acompanhar o ciclo do projeto.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <label
+                            htmlFor="startDate"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Data de início
+                        </label>
+
+                        <input
+                            id="startDate"
+                            name="startDate"
+                            type="date"
+                            defaultValue={
+                                project?.startDate ?? ''
+                            }
+                            className={inputClassName}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state?.fieldErrors
+                                        ?.startDate
+                                    : undefined
+                            }
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="endDate"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Data de encerramento
+                        </label>
+
+                        <input
+                            id="endDate"
+                            name="endDate"
+                            type="date"
+                            defaultValue={
+                                project?.endDate ?? ''
+                            }
+                            className={inputClassName}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state?.fieldErrors
+                                        ?.endDate
+                                    : undefined
+                            }
+                        />
+                    </div>
+                </div>
+            </section>
+
+            <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
+                <Link
+                    href={
+                        project
+                            ? `/projetos/${project.id}`
+                            : '/projetos'
+                    }
+                    className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                >
+                    Cancelar
+                </Link>
+
+                <button
+                    type="submit"
+                    disabled={
+                        isPending ||
+                        clients.length === 0
+                    }
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    <Save size={18} />
+
+                    {isPending
+                        ? 'Salvando...'
+                        : project
+                            ? 'Salvar alterações'
+                            : 'Cadastrar projeto'}
+                </button>
+            </div>
+        </form>
+    );
+}
