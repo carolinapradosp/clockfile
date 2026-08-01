@@ -10,10 +10,19 @@ import {
     CircleDollarSign,
     Clock3,
     Edit3,
+    FileClock,
     FileText,
+    Plus,
 } from 'lucide-react';
 
-import { getProjectById } from '@/app/actions/projects';
+import {
+    getProjectById,
+} from '@/app/actions/projects';
+
+import {
+    getProjectReportSummary,
+} from '@/app/actions/report';
+
 import ArchiveProjectButton from '@/components/projects/ArchiveProjectButton';
 
 type ProjectDetailsPageProps = {
@@ -93,13 +102,51 @@ function formatCurrency({
     }
 }
 
+function formatDuration(
+    totalMinutes: number
+) {
+    const hours = Math.floor(
+        totalMinutes / 60
+    );
+
+    const minutes =
+        totalMinutes % 60;
+
+    return `${String(hours).padStart(
+        2,
+        '0'
+    )}:${String(minutes).padStart(
+        2,
+        '0'
+    )}`;
+}
+
+function formatEntryDate(
+    value: string
+) {
+    return new Date(
+        `${value}T00:00:00Z`
+    ).toLocaleDateString(
+        'pt-BR',
+        {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            timeZone: 'UTC',
+        }
+    );
+}
+
 export default async function ProjectDetailsPage({
     params,
 }: ProjectDetailsPageProps) {
     const { id } = await params;
 
-    const project =
-        await getProjectById(id);
+    const [project, reportSummary] =
+        await Promise.all([
+            getProjectById(id),
+            getProjectReportSummary(id),
+        ]);
 
     if (!project) {
         notFound();
@@ -107,6 +154,24 @@ export default async function ProjectDetailsPage({
 
     const status =
         STATUS_CONFIG[project.status];
+
+    const summary = reportSummary ?? {
+        entriesCount: 0,
+        totalMinutes: 0,
+        totalAmount: 0,
+        currency: project.currency,
+        recentEntries: [],
+    };
+
+    const reportListUrl =
+        `/relatorios?projectId=${encodeURIComponent(
+            project.id
+        )}`;
+
+    const newEntryUrl =
+        `/relatorios/novo?projectId=${encodeURIComponent(
+            project.id
+        )}`;
 
     return (
         <div>
@@ -119,7 +184,7 @@ export default async function ProjectDetailsPage({
                 Voltar para projetos
             </Link>
 
-            <header className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+            <header className="mb-8 flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
                 <div>
                     <div className="flex flex-wrap items-center gap-3">
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -147,6 +212,18 @@ export default async function ProjectDetailsPage({
                 <div className="flex flex-wrap gap-3">
                     {project.status !==
                         'archived' && (
+                            <Link
+                                href={newEntryUrl}
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                            >
+                                <Plus size={17} />
+
+                                Novo lançamento
+                            </Link>
+                        )}
+
+                    {project.status !==
+                        'archived' && (
                             <>
                                 <Link
                                     href={`/projetos/${project.id}/editar`}
@@ -158,19 +235,83 @@ export default async function ProjectDetailsPage({
                                 </Link>
 
                                 <ArchiveProjectButton
-                                    projectId={
-                                        project.id
-                                    }
-                                    projectName={
-                                        project.name
-                                    }
+                                    projectId={project.id}
+                                    projectName={project.name}
                                 />
                             </>
                         )}
                 </div>
             </header>
 
+            {/* RESUMO */}
+            <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <article className="rounded-2xl border border-slate-200 bg-white p-5">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">
+                                Lançamentos
+                            </p>
+
+                            <p className="mt-3 text-2xl font-bold text-slate-900">
+                                {summary.entriesCount}
+                            </p>
+                        </div>
+
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <FileClock size={21} />
+                        </div>
+                    </div>
+                </article>
+
+                <article className="rounded-2xl border border-slate-200 bg-white p-5">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">
+                                Horas registradas
+                            </p>
+
+                            <p className="mt-3 text-2xl font-bold text-slate-900">
+                                {formatDuration(
+                                    summary.totalMinutes
+                                )}
+                            </p>
+                        </div>
+
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                            <Clock3 size={21} />
+                        </div>
+                    </div>
+                </article>
+
+                <article className="rounded-2xl border border-slate-200 bg-white p-5 sm:col-span-2 xl:col-span-1">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500">
+                                Valor gerado
+                            </p>
+
+                            <p className="mt-3 text-2xl font-bold text-slate-900">
+                                {formatCurrency({
+                                    value:
+                                        summary.totalAmount,
+
+                                    currency:
+                                        summary.currency,
+                                })}
+                            </p>
+                        </div>
+
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                            <CircleDollarSign
+                                size={21}
+                            />
+                        </div>
+                    </div>
+                </article>
+            </section>
+
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* INFORMAÇÕES */}
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
                     <h2 className="text-lg font-bold text-slate-900">
                         Informações do projeto
@@ -192,6 +333,7 @@ export default async function ProjectDetailsPage({
                                     ? `${formatCurrency({
                                         value:
                                             project.defaultHourlyRate,
+
                                         currency:
                                             project.currency,
                                     })} / hora`
@@ -215,9 +357,7 @@ export default async function ProjectDetailsPage({
                             </p>
 
                             <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-                                <CalendarDays
-                                    size={16}
-                                />
+                                <CalendarDays size={16} />
 
                                 {formatDate(
                                     project.startDate
@@ -231,9 +371,7 @@ export default async function ProjectDetailsPage({
                             </p>
 
                             <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-                                <CalendarDays
-                                    size={16}
-                                />
+                                <CalendarDays size={16} />
 
                                 {formatDate(
                                     project.endDate
@@ -254,46 +392,154 @@ export default async function ProjectDetailsPage({
                     </div>
                 </section>
 
+                {/* ACESSOS RÁPIDOS */}
                 <section className="space-y-4">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                    <Link
+                        href={reportListUrl}
+                        className="group block rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:border-blue-200 hover:shadow-sm"
+                    >
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                            <Clock3 size={21} />
-                        </div>
-
-                        <h2 className="mt-5 text-lg font-bold text-slate-900">
-                            Horas registradas
-                        </h2>
-
-                        <p className="mt-2 text-sm text-slate-500">
-                            Os lançamentos deste projeto serão exibidos aqui.
-                        </p>
-
-                        <p className="mt-5 text-2xl font-bold text-slate-900">
-                            00:00
-                        </p>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                             <FileText size={21} />
                         </div>
 
-                        <h2 className="mt-5 text-lg font-bold text-slate-900">
-                            Faturamento
+                        <h2 className="mt-5 text-lg font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                            Ver relatório
                         </h2>
 
-                        <p className="mt-2 text-sm text-slate-500">
-                            As faturas vinculadas ao projeto serão exibidas aqui.
+                        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                            Consulte os lançamentos mensais vinculados a este projeto.
                         </p>
+                    </Link>
 
-                        <p className="mt-5 text-2xl font-bold text-slate-900">
-                            {formatCurrency({
-                                value: 0,
-                                currency:
-                                    project.currency,
-                            })}
-                        </p>
+                    {project.status !==
+                        'archived' && (
+                            <Link
+                                href={newEntryUrl}
+                                className="group block rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:border-emerald-200 hover:shadow-sm"
+                            >
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                                    <Plus size={21} />
+                                </div>
+
+                                <h2 className="mt-5 text-lg font-bold text-slate-900 transition-colors group-hover:text-emerald-600">
+                                    Registrar atividade
+                                </h2>
+
+                                <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                                    Adicione horas trabalhadas diretamente neste projeto.
+                                </p>
+                            </Link>
+                        )}
+                </section>
+
+                {/* ÚLTIMOS LANÇAMENTOS */}
+                <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900">
+                                Últimos lançamentos
+                            </h2>
+
+                            <p className="mt-1 text-sm text-slate-500">
+                                Atividades mais recentes registradas no projeto.
+                            </p>
+                        </div>
+
+                        {summary.entriesCount > 0 && (
+                            <Link
+                                href={reportListUrl}
+                                className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+                            >
+                                Ver todos
+                            </Link>
+                        )}
                     </div>
+
+                    {summary.recentEntries.length ===
+                        0 ? (
+                        <div className="mt-6 flex min-h-44 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center">
+                            <Clock3
+                                size={24}
+                                className="text-slate-400"
+                            />
+
+                            <p className="mt-4 text-sm font-medium text-slate-600">
+                                Nenhuma atividade registrada.
+                            </p>
+
+                            {project.status !==
+                                'archived' && (
+                                    <Link
+                                        href={newEntryUrl}
+                                        className="mt-4 text-sm font-semibold text-blue-600 hover:underline"
+                                    >
+                                        Criar primeiro lançamento
+                                    </Link>
+                                )}
+                        </div>
+                    ) : (
+                        <div className="mt-6 divide-y divide-slate-100">
+                            {summary.recentEntries.map(
+                                (entry) => (
+                                    <Link
+                                        key={entry.id}
+                                        href={`/relatorios/${entry.id}`}
+                                        className="flex flex-col justify-between gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-slate-900 transition-colors hover:text-blue-600">
+                                                {entry.task}
+                                            </p>
+
+                                            <p className="mt-1 line-clamp-1 text-sm text-slate-500">
+                                                {entry.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex shrink-0 items-center gap-5 text-sm">
+                                            <div>
+                                                <p className="text-xs text-slate-400">
+                                                    Data
+                                                </p>
+
+                                                <p className="mt-1 font-medium text-slate-700">
+                                                    {formatEntryDate(
+                                                        entry.date
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <p className="text-xs text-slate-400">
+                                                    Duração
+                                                </p>
+
+                                                <p className="mt-1 font-medium text-slate-700">
+                                                    {entry.duration}
+                                                </p>
+                                            </div>
+
+                                            <div className="text-right">
+                                                <p className="text-xs text-slate-400">
+                                                    Valor
+                                                </p>
+
+                                                <p className="mt-1 font-bold text-slate-900">
+                                                    {formatCurrency({
+                                                        value:
+                                                            entry.amount,
+
+                                                        currency:
+                                                            entry.currency,
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )
+                            )}
+                        </div>
+                    )}
                 </section>
             </div>
         </div>

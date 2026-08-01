@@ -18,6 +18,21 @@ import type {
   ReportProjectOption,
 } from '@/interfaces/ReportEntry';
 
+type ProjectReportSummaryRow = {
+  entries_count: number | string;
+  total_minutes: number | string | null;
+  total_amount: number | string | null;
+  currency: string | null;
+};
+
+export type ProjectReportSummary = {
+  entriesCount: number;
+  totalMinutes: number;
+  totalAmount: number;
+  currency: string;
+  recentEntries: ReportEntry[];
+};
+
 type ReportEntryRow = {
   id: string;
 
@@ -1084,4 +1099,145 @@ export async function deleteReportEntry(
         'Não foi possível excluir o lançamento.',
     };
   }
+}
+
+export async function getProjectReportSummary(
+  projectId: string
+): Promise<ProjectReportSummary | null> {
+  if (!isValidUuid(projectId)) {
+    return null;
+  }
+
+  const ownerId =
+    await getCurrentAppUserId();
+
+  const projectRows = await sql`
+    SELECT
+      project.id,
+      project.currency
+    FROM public.projects project
+
+    INNER JOIN public.clients client
+      ON client.id = project.client_id
+
+    WHERE
+      project.id = ${projectId}::uuid
+      AND client.owner_id = ${ownerId}::uuid
+
+    LIMIT 1
+  `;
+
+  const project = projectRows[0] as
+    | {
+        id: string;
+        currency: string;
+      }
+    | undefined;
+
+  if (!project) {
+    return null;
+  }
+
+  const summaryRows = await sql`
+    SELECT
+      COUNT(*) AS entries_count,
+
+      COALESCE(
+        SUM(
+          COALESCE(
+            duration_minutes,
+            (
+              split_part(duration, ':', 1)::INTEGER * 60
+              + split_part(duration, ':', 2)::INTEGER
+            )
+          )
+        ),
+        0
+      ) AS total_minutes,
+
+      COALESCE(
+        SUM(amount),
+        0
+      ) AS total_amount,
+
+      ${project.currency}::text AS currency
+
+    FROM public.report_entries
+    WHERE project_id = ${projectId}::uuid
+  `;
+
+  const summary =
+    summaryRows[0] as
+      | ProjectReportSummaryRow
+      | undefined;
+
+  const recentRows = await sql`
+    SELECT
+      entry.id,
+
+      entry.project_id,
+      project.name AS project_name,
+
+      client.id AS client_id,
+      client.name AS client_name,
+      client.company_name
+        AS client_company_name,
+
+      entry.task,
+      entry.description,
+      entry.date,
+
+      entry.duration,
+      entry.duration_minutes,
+
+      entry.rate,
+      entry.amount,
+
+      COALESCE(
+        entry.currency,
+        project.currency,
+        'USD'
+      ) AS currency,
+
+      entry.created_at,
+      entry.updated_at
+
+    FROM public.report_entries entry
+
+    INNER JOIN public.projects project
+      ON project.id = entry.project_id
+
+    INNER JOIN public.clients client
+      ON client.id = project.client_id
+
+    WHERE
+      entry.project_id = ${projectId}::uuid
+      AND client.owner_id = ${ownerId}::uuid
+
+    ORDER BY
+      entry.date DESC,
+      entry.created_at DESC
+
+    LIMIT 5
+  `;
+
+  return {
+    entriesCount:
+      Number(summary?.entries_count ?? 0),
+
+    totalMinutes:
+      Number(summary?.total_minutes ?? 0),
+
+    totalAmount:
+      Number(summary?.total_amount ?? 0),
+
+    currency:
+      summary?.currency ??
+      project.currency ??
+      'USD',
+
+    recentEntries: (
+      recentRows as ReportEntryRow[]
+    ).map(mapReportEntry),
+  };
 }
