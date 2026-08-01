@@ -3,11 +3,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, Printer } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+    Plus,
+    Printer,
+    Save,
+} from 'lucide-react';
 
+import { saveInvoice } from '@/app/actions/invoice';
+import InvoiceItemRow from '@/components/InvoiceItemRow';
 import Logo from '@/components/Logo';
 import Title from '@/components/Title';
-import InvoiceItemRow from '@/components/InvoiceItemRow';
 
 import type {
     InvoiceInitialData,
@@ -30,12 +36,30 @@ function createEmptyItem(): InvoiceItem {
     };
 }
 
-function parseMoney(value: string): number {
+function parseNumber(value: string): number {
+    if (!value.trim()) {
+        return 0;
+    }
+
     const parsedValue = Number(value);
 
     return Number.isFinite(parsedValue)
         ? parsedValue
         : 0;
+}
+
+function parseOptionalNumber(
+    value: string
+): number | null {
+    if (!value.trim()) {
+        return null;
+    }
+
+    const parsedValue = Number(value);
+
+    return Number.isFinite(parsedValue)
+        ? parsedValue
+        : null;
 }
 
 function formatCurrency(value: number): string {
@@ -45,45 +69,100 @@ function formatCurrency(value: number): string {
     }).format(value);
 }
 
-function formatOptionalNumber(value: string): string {
+function formatOptionalNumber(
+    value: string
+): string {
     if (!value.trim()) {
         return '-';
     }
 
-    const number = Number(value);
+    const parsedValue = Number(value);
 
-    if (!Number.isFinite(number)) {
+    if (!Number.isFinite(parsedValue)) {
         return '-';
     }
 
-    return number.toLocaleString('en-US', {
+    return parsedValue.toLocaleString('en-US', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
     });
 }
 
+function formatInvoiceDate(
+    value: string
+): string {
+    const parsedDate = new Date(
+        `${value}T00:00:00Z`
+    );
+
+    if (
+        Number.isNaN(
+            parsedDate.getTime()
+        )
+    ) {
+        return value;
+    }
+
+    return parsedDate.toLocaleDateString(
+        'en-US',
+        {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            timeZone: 'UTC',
+        }
+    );
+}
+
 export default function InvoiceBuilder({
     initialData,
 }: InvoiceBuilderProps) {
+    const router = useRouter();
+
     const [items, setItems] = useState<InvoiceItem[]>(
-        initialData.items.length
+        initialData.items.length > 0
             ? initialData.items
             : [createEmptyItem()]
     );
 
-    const [taxPercentage, setTaxPercentage] =
-        useState(String(initialData.taxPercentage));
+    const [
+        invoiceNumber,
+        setInvoiceNumber,
+    ] = useState(
+        initialData.invoiceNumber
+    );
+
+    const [
+        taxPercentage,
+        setTaxPercentage,
+    ] = useState(
+        String(initialData.taxPercentage)
+    );
+
+    const [saving, setSaving] =
+        useState(false);
+
+    const [
+        saveMessage,
+        setSaveMessage,
+    ] = useState('');
+
+    const [
+        saveSucceeded,
+        setSaveSucceeded,
+    ] = useState(false);
 
     const subtotal = useMemo(() => {
         return items.reduce(
             (total, item) =>
-                total + parseMoney(item.amount),
+                total +
+                parseNumber(item.amount),
             0
         );
     }, [items]);
 
     const parsedTaxPercentage =
-        parseMoney(taxPercentage);
+        parseNumber(taxPercentage);
 
     const taxAmount =
         subtotal *
@@ -103,33 +182,29 @@ export default function InvoiceBuilder({
                     return item;
                 }
 
-                const updatedItem = {
+                const updatedItem: InvoiceItem = {
                     ...item,
                     [field]: value,
                 };
 
                 /*
-                 * Ao alterar quantity ou rate,
-                 * calculamos amount automaticamente
-                 * quando os dois valores existem.
+                 * Quando quantity ou rate mudarem,
+                 * recalculamos o amount se os dois
+                 * campos estiverem preenchidos.
                  *
-                 * O amount continua editável manualmente.
+                 * O amount continua editável.
                  */
                 if (
                     field === 'quantity' ||
                     field === 'rate'
                 ) {
-                    const quantity = Number(
-                        field === 'quantity'
-                            ? value
-                            : updatedItem.quantity
-                    );
+                    const quantity =
+                        Number(
+                            updatedItem.quantity
+                        );
 
-                    const rate = Number(
-                        field === 'rate'
-                            ? value
-                            : updatedItem.rate
-                    );
+                    const rate =
+                        Number(updatedItem.rate);
 
                     if (
                         updatedItem.quantity !== '' &&
@@ -146,6 +221,9 @@ export default function InvoiceBuilder({
                 return updatedItem;
             })
         );
+
+        setSaveMessage('');
+        setSaveSucceeded(false);
     }
 
     function handleAddItem() {
@@ -153,9 +231,14 @@ export default function InvoiceBuilder({
             ...currentItems,
             createEmptyItem(),
         ]);
+
+        setSaveMessage('');
+        setSaveSucceeded(false);
     }
 
-    function handleRemoveItem(id: string) {
+    function handleRemoveItem(
+        id: string
+    ) {
         setItems((currentItems) => {
             if (currentItems.length === 1) {
                 return currentItems;
@@ -165,6 +248,92 @@ export default function InvoiceBuilder({
                 (item) => item.id !== id
             );
         });
+
+        setSaveMessage('');
+        setSaveSucceeded(false);
+    }
+
+    async function handleSave() {
+        try {
+            setSaving(true);
+            setSaveMessage('');
+            setSaveSucceeded(false);
+
+            const result = await saveInvoice({
+                referenceMonth:
+                    initialData.referenceMonth,
+
+                invoiceDate:
+                    initialData.date,
+
+                taxPercentage:
+                    parsedTaxPercentage,
+
+                items: items.map((item) => ({
+                    description:
+                        item.description,
+
+                    link:
+                        item.link.trim()
+                            ? item.link.trim()
+                            : null,
+
+                    quantity:
+                        parseOptionalNumber(
+                            item.quantity
+                        ),
+
+                    rate:
+                        parseOptionalNumber(
+                            item.rate
+                        ),
+
+                    amount:
+                        parseOptionalNumber(
+                            item.amount
+                        ),
+
+                    source: item.source,
+                })),
+            });
+
+            if (!result.success) {
+                setSaveMessage(
+                    result.message
+                );
+
+                return;
+            }
+
+            setInvoiceNumber(
+                String(
+                    result.invoiceNumber
+                )
+            );
+
+            setSaveMessage(
+                'Invoice saved successfully.'
+            );
+
+            setSaveSucceeded(true);
+
+            /*
+             * Faz o Server Component buscar novamente
+             * a invoice persistida.
+             */
+            router.refresh();
+        } catch (error) {
+            console.error(
+                'Error saving invoice:',
+                error
+            );
+
+            setSaveMessage(
+                'The invoice could not be saved.'
+            );
+        } finally {
+            setSaving(false);
+        }
     }
 
     function handlePrint() {
@@ -183,31 +352,76 @@ export default function InvoiceBuilder({
                             </h1>
 
                             <p className="mt-1 text-sm text-slate-500">
-                                Review the monthly totals and add additional invoice items.
+                                Review the monthly total and add any additional invoice items.
                             </p>
+
+                            {saveMessage && (
+                                <p
+                                    role="status"
+                                    className={`mt-3 text-sm font-medium ${saveSucceeded
+                                            ? 'text-emerald-700'
+                                            : 'text-red-600'
+                                        }`}
+                                >
+                                    {saveMessage}
+                                </p>
+                            )}
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={handlePrint}
-                            className="
-                inline-flex
-                items-center
-                justify-center
-                gap-2
-                bg-black
-                px-5
-                py-3
-                text-sm
-                font-semibold
-                text-white
-                transition-opacity
-                hover:opacity-80
-              "
-                        >
-                            <Printer size={17} />
-                            Print invoice
-                        </button>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  gap-2
+                  border
+                  border-black
+                  bg-white
+                  px-5
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-black
+                  transition-colors
+                  hover:bg-slate-100
+                  disabled:cursor-wait
+                  disabled:opacity-60
+                "
+                            >
+                                <Save size={17} />
+
+                                {saving
+                                    ? 'Saving...'
+                                    : 'Save invoice'}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handlePrint}
+                                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  gap-2
+                  bg-black
+                  px-5
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-white
+                  transition-opacity
+                  hover:opacity-80
+                "
+                            >
+                                <Printer size={17} />
+
+                                Print invoice
+                            </button>
+                        </div>
                     </div>
 
                     <div className="border border-slate-200 bg-slate-50 p-4 md:p-6">
@@ -215,9 +429,15 @@ export default function InvoiceBuilder({
                             <InvoiceItemRow
                                 key={item.id}
                                 item={item}
-                                onChange={handleItemChange}
-                                onRemove={handleRemoveItem}
-                                canRemove={items.length > 1}
+                                onChange={
+                                    handleItemChange
+                                }
+                                onRemove={
+                                    handleRemoveItem
+                                }
+                                canRemove={
+                                    items.length > 1
+                                }
                             />
                         ))}
 
@@ -243,12 +463,13 @@ export default function InvoiceBuilder({
               "
                         >
                             <Plus size={17} />
+
                             Add item
                         </button>
                     </div>
                 </section>
 
-                {/* INVOICE */}
+                {/* DOCUMENTO DA INVOICE */}
                 <section id="invoice-document">
                     <div className="mb-12 flex flex-col items-start justify-between gap-4 md:flex-row">
                         <div className="flex items-center gap-4">
@@ -261,12 +482,12 @@ export default function InvoiceBuilder({
                             </Title>
 
                             <span className="mt-1 block text-slate-500">
-                                # {initialData.invoiceNumber}
+                                # {invoiceNumber}
                             </span>
                         </div>
                     </div>
 
-                    {/* BILL TO / DATE */}
+                    {/* BILL TO E DATA */}
                     <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row">
                         <div>
                             <span className="mb-2 block text-sm font-semibold text-slate-600">
@@ -275,23 +496,38 @@ export default function InvoiceBuilder({
 
                             <div className="space-y-0.5 text-slate-800">
                                 <p className="font-bold">
-                                    {initialData.billTo.name}
+                                    {
+                                        initialData.billTo
+                                            .name
+                                    }
                                 </p>
 
                                 <p className="text-sm">
-                                    {initialData.billTo.company}
+                                    {
+                                        initialData.billTo
+                                            .company
+                                    }
                                 </p>
 
                                 <p className="text-sm">
-                                    {initialData.billTo.address}
+                                    {
+                                        initialData.billTo
+                                            .address
+                                    }
                                 </p>
 
                                 <p className="text-sm">
-                                    {initialData.billTo.suite}
+                                    {
+                                        initialData.billTo
+                                            .suite
+                                    }
                                 </p>
 
                                 <p className="text-sm">
-                                    {initialData.billTo.cityStateZip}
+                                    {
+                                        initialData.billTo
+                                            .cityStateZip
+                                    }
                                 </p>
                             </div>
                         </div>
@@ -303,7 +539,9 @@ export default function InvoiceBuilder({
                                 </span>
 
                                 <span className="font-semibold text-slate-800">
-                                    {initialData.date}
+                                    {formatInvoiceDate(
+                                        initialData.date
+                                    )}
                                 </span>
                             </div>
 
@@ -313,13 +551,15 @@ export default function InvoiceBuilder({
                                 </span>
 
                                 <span className="text-xl font-bold text-nowrap text-slate-900">
-                                    {formatCurrency(total)}
+                                    {formatCurrency(
+                                        total
+                                    )}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* ITEMS TABLE */}
+                    {/* TABELA DA INVOICE */}
                     <div className="mb-8 overflow-x-auto">
                         <table className="w-full border-collapse text-left">
                             <thead>
@@ -348,7 +588,7 @@ export default function InvoiceBuilder({
                                         key={item.id}
                                         className="border-b border-slate-100"
                                     >
-                                        <td className="max-w-xs p-3 md:max-w-none">
+                                        <td className="max-w-xs p-3 align-top md:max-w-none">
                                             <p className="font-bold text-slate-800">
                                                 {item.description ||
                                                     'Untitled item'}
@@ -357,7 +597,9 @@ export default function InvoiceBuilder({
                                             {item.link && (
                                                 <a
                                                     href={
-                                                        item.link.startsWith('http')
+                                                        item.link.startsWith(
+                                                            'http'
+                                                        )
                                                             ? item.link
                                                             : `https://${item.link}`
                                                     }
@@ -377,16 +619,20 @@ export default function InvoiceBuilder({
                                         </td>
 
                                         <td className="p-3 text-right align-top font-medium text-nowrap text-slate-600">
-                                            {item.rate
+                                            {item.rate.trim()
                                                 ? formatCurrency(
-                                                    parseMoney(item.rate)
+                                                    parseNumber(
+                                                        item.rate
+                                                    )
                                                 )
                                                 : '-'}
                                         </td>
 
                                         <td className="p-3 text-right align-top font-semibold text-nowrap text-slate-800">
                                             {formatCurrency(
-                                                parseMoney(item.amount)
+                                                parseNumber(
+                                                    item.amount
+                                                )
                                             )}
                                         </td>
                                     </tr>
@@ -395,7 +641,7 @@ export default function InvoiceBuilder({
                         </table>
                     </div>
 
-                    {/* TOTALS */}
+                    {/* TOTAIS */}
                     <div className="flex justify-end">
                         <div className="w-full space-y-3 text-sm text-slate-600 md:w-72">
                             <div className="flex items-center justify-between px-4">
@@ -404,24 +650,40 @@ export default function InvoiceBuilder({
                                 </span>
 
                                 <span className="font-medium text-slate-800">
-                                    {formatCurrency(subtotal)}
+                                    {formatCurrency(
+                                        subtotal
+                                    )}
                                 </span>
                             </div>
 
                             <div className="flex items-center justify-between gap-4 px-4">
-                                <span className="flex items-center gap-2">
-                                    Tax
+                                <div className="flex items-center gap-2">
+                                    <span>Tax</span>
 
                                     <input
                                         type="number"
                                         min="0"
                                         step="0.01"
-                                        value={taxPercentage}
-                                        onChange={(event) =>
-                                            setTaxPercentage(
-                                                event.target.value
-                                            )
+                                        value={
+                                            taxPercentage
                                         }
+                                        onChange={(
+                                            event
+                                        ) => {
+                                            setTaxPercentage(
+                                                event.target
+                                                    .value
+                                            );
+
+                                            setSaveMessage(
+                                                ''
+                                            );
+
+                                            setSaveSucceeded(
+                                                false
+                                            );
+                                        }}
+                                        aria-label="Tax percentage"
                                         className="
                       w-16
                       border
@@ -430,6 +692,7 @@ export default function InvoiceBuilder({
                       py-1
                       text-right
                       outline-none
+                      focus:border-slate-500
                       print:hidden
                     "
                                     />
@@ -439,12 +702,18 @@ export default function InvoiceBuilder({
                                     </span>
 
                                     <span className="hidden print:inline">
-                                        ({parsedTaxPercentage}%)
+                                        (
+                                        {
+                                            parsedTaxPercentage
+                                        }
+                                        %)
                                     </span>
-                                </span>
+                                </div>
 
                                 <span className="font-medium text-slate-800">
-                                    {formatCurrency(taxAmount)}
+                                    {formatCurrency(
+                                        taxAmount
+                                    )}
                                 </span>
                             </div>
 
@@ -454,7 +723,9 @@ export default function InvoiceBuilder({
                                 </span>
 
                                 <span>
-                                    {formatCurrency(total)}
+                                    {formatCurrency(
+                                        total
+                                    )}
                                 </span>
                             </div>
                         </div>

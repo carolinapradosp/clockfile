@@ -1,6 +1,13 @@
 // app/relatorio/invoice-generator/page.tsx
 
-import { getReportEntries } from '@/app/actions/report';
+import {
+    getInvoiceByMonth,
+} from '@/app/actions/invoice';
+
+import {
+    getReportEntries,
+} from '@/app/actions/report';
+
 import InvoiceBuilder from '@/components/InvoiceBuilder';
 
 import type {
@@ -30,14 +37,6 @@ function parseDurationToMinutes(
     return hours * 60 + minutes;
 }
 
-function formatDecimalHours(
-    totalMinutes: number
-): string {
-    const hours = totalMinutes / 60;
-
-    return hours.toFixed(2);
-}
-
 function formatInvoiceDate(
     selectedMonth: string
 ): string {
@@ -48,15 +47,9 @@ function formatInvoiceDate(
         Date.UTC(year, month, 0)
     );
 
-    return finalDay.toLocaleDateString(
-        'en-US',
-        {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-            timeZone: 'UTC',
-        }
-    );
+    return finalDay
+        .toISOString()
+        .slice(0, 10);
 }
 
 function formatMonthLabel(
@@ -77,6 +70,63 @@ function formatMonthLabel(
     );
 }
 
+function createSuggestedItems({
+    selectedMonth,
+    totalMinutes,
+    totalAmount,
+}: {
+    selectedMonth: string;
+    totalMinutes: number;
+    totalAmount: number;
+}): InvoiceItem[] {
+    if (
+        totalMinutes <= 0 &&
+        totalAmount <= 0
+    ) {
+        return [];
+    }
+
+    const totalHours =
+        totalMinutes / 60;
+
+    const suggestedRate =
+        totalHours > 0
+            ? totalAmount / totalHours
+            : 0;
+
+    return [
+        {
+            id: crypto.randomUUID(),
+
+            description:
+                `WordPress development — ${formatMonthLabel(
+                    selectedMonth
+                )}`,
+
+            link:
+                'www.studiotwentyseven.com',
+
+            quantity:
+                totalHours > 0
+                    ? totalHours.toFixed(2)
+                    : '',
+
+            rate:
+                suggestedRate > 0
+                    ? suggestedRate.toFixed(2)
+                    : '',
+
+            amount:
+                totalAmount > 0
+                    ? totalAmount.toFixed(2)
+                    : '',
+
+            source:
+                'monthly-report',
+        },
+    ];
+}
+
 export default async function InvoiceGeneratorPage({
     searchParams,
 }: PageProps) {
@@ -88,101 +138,135 @@ export default async function InvoiceGeneratorPage({
             .toISOString()
             .slice(0, 7);
 
-    const reportEntries =
-        await getReportEntries(selectedMonth);
+    const savedInvoice =
+        await getInvoiceByMonth(
+            selectedMonth
+        );
 
-    const totalMinutes =
-        reportEntries.reduce(
-            (total, entry) =>
-                total +
-                parseDurationToMinutes(
-                    String(entry.duration ?? '')
+    let initialData:
+        InvoiceInitialData;
+
+    if (savedInvoice) {
+        initialData = {
+            invoiceId:
+                savedInvoice.id,
+
+            invoiceNumber:
+                String(
+                    savedInvoice.invoiceNumber
                 ),
-            0
-        );
 
-    const totalAmount =
-        reportEntries.reduce(
-            (total, entry) =>
-                total +
-                Number(entry.amount ?? 0),
-            0
-        );
+            referenceMonth:
+                savedInvoice.referenceMonth,
 
-    const totalHours =
-        totalMinutes / 60;
+            date:
+                savedInvoice.invoiceDate,
 
-    const suggestedRate =
-        totalHours > 0
-            ? totalAmount / totalHours
-            : 0;
+            taxPercentage:
+                savedInvoice.taxPercentage,
 
-    const monthLabel =
-        formatMonthLabel(selectedMonth);
+            billTo: {
+                name: 'Andrew Sherman',
+                company: 'STUDIO 27 LLC',
+                address:
+                    '370 NE 80TH TERRACE',
+                suite: 'SUITE 108',
+                cityStateZip:
+                    'MIAMI FL 33138',
+            },
 
-    const initialItems: InvoiceItem[] = [];
+            items:
+                savedInvoice.items.map(
+                    (item) => ({
+                        id: item.id,
 
-    /*
-     * Só cria a sugestão automática quando
-     * o mês contém horas ou algum valor registrado.
-     */
-    if (
-        totalMinutes > 0 ||
-        totalAmount > 0
-    ) {
-        initialItems.push({
-            id: crypto.randomUUID(),
+                        description:
+                            item.description,
 
-            description:
-                `WordPress development — ${monthLabel}`,
+                        link:
+                            item.link ?? '',
 
-            link:
-                'www.studiotwentyseven.com',
+                        quantity:
+                            item.quantity === null
+                                ? ''
+                                : String(
+                                    item.quantity
+                                ),
 
-            quantity:
-                totalMinutes > 0
-                    ? formatDecimalHours(totalMinutes)
-                    : '',
+                        rate:
+                            item.rate === null
+                                ? ''
+                                : String(item.rate),
 
-            rate:
-                suggestedRate > 0
-                    ? suggestedRate.toFixed(2)
-                    : '',
+                        amount:
+                            item.amount === null
+                                ? ''
+                                : String(
+                                    item.amount
+                                ),
 
-            amount:
-                totalAmount.toFixed(2),
+                        source: item.source,
+                    })
+                ),
+        };
+    } else {
+        const reportEntries =
+            await getReportEntries(
+                selectedMonth
+            );
 
-            source: 'monthly-report',
-        });
+        const totalMinutes =
+            reportEntries.reduce(
+                (total, entry) =>
+                    total +
+                    parseDurationToMinutes(
+                        String(
+                            entry.duration ?? ''
+                        )
+                    ),
+                0
+            );
+
+        const totalAmount =
+            reportEntries.reduce(
+                (total, entry) =>
+                    total +
+                    Number(
+                        entry.amount ?? 0
+                    ),
+                0
+            );
+
+        initialData = {
+            invoiceNumber: 'Draft',
+
+            referenceMonth:
+                selectedMonth,
+
+            date:
+                formatInvoiceDate(
+                    selectedMonth
+                ),
+
+            billTo: {
+                name: 'Andrew Sherman',
+                company: 'STUDIO 27 LLC',
+                address:
+                    '370 NE 80TH TERRACE',
+                suite: 'SUITE 108',
+                cityStateZip:
+                    'MIAMI FL 33138',
+            },
+
+            taxPercentage: 0,
+
+            items: createSuggestedItems({
+                selectedMonth,
+                totalMinutes,
+                totalAmount,
+            }),
+        };
     }
-
-    const initialData: InvoiceInitialData = {
-        /*
-         * Número temporário.
-         * Depois pode vir de uma tabela de invoices.
-         */
-        invoiceNumber:
-            selectedMonth.replace('-', ''),
-
-        referenceMonth:
-            selectedMonth,
-
-        date:
-            formatInvoiceDate(selectedMonth),
-
-        billTo: {
-            name: 'Andrew Sherman',
-            company: 'STUDIO 27 LLC',
-            address: '370 NE 80TH TERRACE',
-            suite: 'SUITE 108',
-            cityStateZip:
-                'MIAMI FL 33138',
-        },
-
-        taxPercentage: 0,
-
-        items: initialItems,
-    };
 
     return (
         <InvoiceBuilder
