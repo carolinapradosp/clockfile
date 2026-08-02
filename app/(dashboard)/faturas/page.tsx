@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 
 import {
-    getInvoiceClientOptions,
     getInvoiceProjectOptions,
     getInvoices,
 } from '@/app/actions/invoice';
@@ -26,7 +25,6 @@ import type {
 type InvoicesPageProps = {
     searchParams: Promise<{
         month?: string;
-        clientId?: string;
         projectId?: string;
         status?: string;
     }>;
@@ -152,22 +150,15 @@ export default async function InvoicesPage({
             params.status
         );
 
-    const selectedClientId =
-        params.clientId || undefined;
-
     const selectedProjectId =
         params.projectId || undefined;
 
     const [
         invoices,
-        clients,
         projects,
     ] = await Promise.all([
         getInvoices({
             month: selectedMonth,
-
-            clientId:
-                selectedClientId,
 
             projectId:
                 selectedProjectId,
@@ -176,7 +167,6 @@ export default async function InvoicesPage({
                 selectedStatus,
         }),
 
-        getInvoiceClientOptions(),
 
         getInvoiceProjectOptions(),
     ]);
@@ -225,13 +215,6 @@ export default async function InvoicesPage({
     const newInvoiceParams =
         new URLSearchParams();
 
-    if (selectedClientId) {
-        newInvoiceParams.set(
-            'clientId',
-            selectedClientId
-        );
-    }
-
     if (selectedProjectId) {
         newInvoiceParams.set(
             'projectId',
@@ -274,21 +257,12 @@ export default async function InvoicesPage({
                 </Link>
             </header>
 
+
             <InvoiceFilters
-                clients={clients}
                 projects={projects}
-                selectedMonth={
-                    selectedMonth
-                }
-                selectedClientId={
-                    selectedClientId
-                }
-                selectedProjectId={
-                    selectedProjectId
-                }
-                selectedStatus={
-                    selectedStatus
-                }
+                selectedMonth={selectedMonth}
+                selectedProjectId={selectedProjectId}
+                selectedStatus={selectedStatus}
             />
 
             <section className="my-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

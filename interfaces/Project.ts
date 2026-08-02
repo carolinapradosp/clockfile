@@ -9,10 +9,7 @@ export type ProjectStatus =
 
 export type Project = {
   id: string;
-
-  clientId: string;
-  clientName: string;
-  clientCompanyName: string | null;
+  ownerId: string;
 
   name: string;
   description: string | null;
@@ -30,8 +27,6 @@ export type Project = {
 };
 
 export type ProjectFormData = {
-  clientId: string;
-
   name: string;
   description: string;
 
@@ -53,8 +48,12 @@ export type ProjectActionState =
   | {
       success: false;
       message: string;
+
       fieldErrors?: Partial<
-        Record<keyof ProjectFormData, string>
+        Record<
+          keyof ProjectFormData,
+          string
+        >
       >;
     }
   | null;

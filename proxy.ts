@@ -1,48 +1,68 @@
 // proxy.ts
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import {
+  NextRequest,
+  NextResponse,
+} from 'next/server';
+
+const SESSION_COOKIE_NAME =
+  'clockfile_session';
+
+const PUBLIC_ROUTES = new Set([
+  '/',
+  '/cadastro',
+]);
 
 const PROTECTED_ROUTE_PREFIXES = [
   '/dashboard',
-  '/clientes',
   '/projetos',
   '/relatorios',
   '/faturas',
   '/configuracoes',
 ];
 
-function isProtectedRoute(pathname: string) {
+function isProtectedRoute(
+  pathname: string
+): boolean {
   return PROTECTED_ROUTE_PREFIXES.some(
-    (route) =>
-      pathname === route ||
-      pathname.startsWith(`${route}/`)
+    (prefix) =>
+      pathname === prefix ||
+      pathname.startsWith(`${prefix}/`)
   );
 }
 
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export function proxy(
+  request: NextRequest
+) {
+  const { pathname } =
+    request.nextUrl;
 
-  const session =
-    request.cookies.get('auth_session')?.value;
+  const sessionToken =
+    request.cookies.get(
+      SESSION_COOKIE_NAME
+    )?.value;
 
-  /*
-   * Usuário não autenticado tentando acessar
-   * uma página interna.
-   */
-  if (isProtectedRoute(pathname) && !session) {
-    const loginUrl = new URL('/', request.url);
+  const isPublicRoute =
+    PUBLIC_ROUTES.has(pathname);
 
-    return NextResponse.redirect(loginUrl);
+  if (
+    isProtectedRoute(pathname) &&
+    !sessionToken
+  ) {
+    return NextResponse.redirect(
+      new URL('/', request.url)
+    );
   }
 
-  /*
-   * Usuário autenticado tentando acessar
-   * a página de login.
-   */
-  if (pathname === '/' && session) {
+  if (
+    isPublicRoute &&
+    sessionToken
+  ) {
     return NextResponse.redirect(
-      new URL('/dashboard', request.url)
+      new URL(
+        '/dashboard',
+        request.url
+      )
     );
   }
 
@@ -52,8 +72,8 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
+    '/cadastro',
     '/dashboard/:path*',
-    '/clientes/:path*',
     '/projetos/:path*',
     '/relatorios/:path*',
     '/faturas/:path*',

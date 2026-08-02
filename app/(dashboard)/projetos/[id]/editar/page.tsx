@@ -1,12 +1,17 @@
 // app/(dashboard)/projetos/[id]/editar/page.tsx
 
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+
+import {
+    notFound,
+} from 'next/navigation';
+
+import {
+    ArrowLeft,
+} from 'lucide-react';
 
 import {
     getProjectById,
-    getProjectClientOptions,
 } from '@/app/actions/projects';
 
 import ProjectForm from '@/components/projects/ProjectForm';
@@ -22,11 +27,8 @@ export default async function EditProjectPage({
 }: EditProjectPageProps) {
     const { id } = await params;
 
-    const [project, clients] =
-        await Promise.all([
-            getProjectById(id),
-            getProjectClientOptions(),
-        ]);
+    const project =
+        await getProjectById(id);
 
     if (!project) {
         notFound();
@@ -55,7 +57,6 @@ export default async function EditProjectPage({
 
             <ProjectForm
                 project={project}
-                clients={clients}
             />
         </div>
     );

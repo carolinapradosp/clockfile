@@ -5,7 +5,10 @@
 import { revalidatePath } from 'next/cache';
 
 import { sql } from '@/lib/db';
-import { getCurrentAppUserId } from '@/lib/users/get-current-app-user';
+
+import {
+  getCurrentUserId,
+} from '@/lib/auth/current-user';
 
 import type {
   Project,
@@ -16,36 +19,31 @@ import type {
 
 type ProjectRow = {
   id: string;
-
-  client_id: string;
-  client_name: string;
-  client_company_name: string | null;
+  owner_id: string;
 
   name: string;
   description: string | null;
 
-  default_hourly_rate: string | number | null;
-  currency: string;
+  default_hourly_rate:
+    | string
+    | number
+    | null;
 
+  currency: string;
   status: ProjectStatus;
 
-  start_date: string | Date | null;
-  end_date: string | Date | null;
+  start_date:
+    | string
+    | Date
+    | null;
+
+  end_date:
+    | string
+    | Date
+    | null;
 
   created_at: string | Date;
   updated_at: string | Date;
-};
-
-type ProjectClientOptionRow = {
-  id: string;
-  name: string;
-  company_name: string | null;
-};
-
-export type ProjectClientOption = {
-  id: string;
-  name: string;
-  companyName: string | null;
 };
 
 const VALID_STATUSES: ProjectStatus[] = [
@@ -56,10 +54,31 @@ const VALID_STATUSES: ProjectStatus[] = [
   'archived',
 ];
 
-function isValidUuid(value: string): boolean {
+function isValidUuid(
+  value: string
+): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   );
+}
+
+function normalizeDate(
+  value:
+    | string
+    | Date
+    | null
+): string | null {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value
+      .toISOString()
+      .slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
 }
 
 function normalizeDateTime(
@@ -67,21 +86,7 @@ function normalizeDateTime(
 ): string {
   return value instanceof Date
     ? value.toISOString()
-    : String(value);
-}
-
-function normalizeDate(
-  value: string | Date | null
-): string | null {
-  if (!value) {
-    return null;
-  }
-
-  if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
-  }
-
-  return String(value).slice(0, 10);
+    : new Date(value).toISOString();
 }
 
 function mapProjectRow(
@@ -89,11 +94,7 @@ function mapProjectRow(
 ): Project {
   return {
     id: String(row.id),
-
-    clientId: String(row.client_id),
-    clientName: row.client_name,
-    clientCompanyName:
-      row.client_company_name,
+    ownerId: String(row.owner_id),
 
     name: row.name,
     description: row.description,
@@ -101,7 +102,9 @@ function mapProjectRow(
     defaultHourlyRate:
       row.default_hourly_rate === null
         ? null
-        : Number(row.default_hourly_rate),
+        : Number(
+            row.default_hourly_rate
+          ),
 
     currency: row.currency,
     status: row.status,
@@ -124,9 +127,13 @@ function mapProjectRow(
   };
 }
 
-function requiredText(
-  value: FormDataEntryValue | null
+function getString(
+  formData: FormData,
+  field: string
 ): string {
+  const value =
+    formData.get(field);
+
   return typeof value === 'string'
     ? value.trim()
     : '';
@@ -135,7 +142,8 @@ function requiredText(
 function optionalText(
   value: string
 ): string | null {
-  const normalized = value.trim();
+  const normalized =
+    value.trim();
 
   return normalized || null;
 }
@@ -151,55 +159,58 @@ function parseProjectFormData(
       success: false;
       result: ProjectActionState;
     } {
-  const clientId = requiredText(
-    formData.get('clientId')
-  );
+  const name =
+    getString(formData, 'name');
 
-  const name = requiredText(
-    formData.get('name')
-  );
-
-  const description = requiredText(
-    formData.get('description')
-  );
-
-  const defaultHourlyRate =
-    requiredText(
-      formData.get('defaultHourlyRate')
+  const description =
+    getString(
+      formData,
+      'description'
     );
 
-  const currency = requiredText(
-    formData.get('currency')
-  ).toUpperCase();
+  const defaultHourlyRate =
+    getString(
+      formData,
+      'defaultHourlyRate'
+    );
 
-  const rawStatus = requiredText(
-    formData.get('status')
-  ) as ProjectStatus;
+  const currency =
+    getString(
+      formData,
+      'currency'
+    ).toUpperCase();
 
-  const startDate = requiredText(
-    formData.get('startDate')
-  );
+  const rawStatus =
+    getString(
+      formData,
+      'status'
+    ) as ProjectStatus;
 
-  const endDate = requiredText(
-    formData.get('endDate')
-  );
+  const startDate =
+    getString(
+      formData,
+      'startDate'
+    );
+
+  const endDate =
+    getString(
+      formData,
+      'endDate'
+    );
 
   const status =
-    VALID_STATUSES.includes(rawStatus)
+    VALID_STATUSES.includes(
+      rawStatus
+    )
       ? rawStatus
       : 'active';
 
   const fieldErrors: Partial<
-    Record<keyof ProjectFormData, string>
+    Record<
+      keyof ProjectFormData,
+      string
+    >
   > = {};
-
-  if (!clientId) {
-    fieldErrors.clientId =
-      'Selecione um cliente.';
-  } else if (!isValidUuid(clientId)) {
-    fieldErrors.clientId =
-      'O cliente selecionado é inválido.';
-  }
 
   if (!name) {
     fieldErrors.name =
@@ -207,16 +218,15 @@ function parseProjectFormData(
   }
 
   if (
-    currency.length !== 3
+    !/^[A-Z]{3}$/.test(currency)
   ) {
     fieldErrors.currency =
-      'Informe uma moeda com 3 letras.';
+      'Informe uma moeda válida com 3 letras.';
   }
 
   if (defaultHourlyRate) {
-    const hourlyRate = Number(
-      defaultHourlyRate
-    );
+    const hourlyRate =
+      Number(defaultHourlyRate);
 
     if (
       !Number.isFinite(hourlyRate) ||
@@ -261,14 +271,19 @@ function parseProjectFormData(
   }
 
   if (
-    Object.keys(fieldErrors).length > 0
+    Object.keys(
+      fieldErrors
+    ).length > 0
   ) {
     return {
       success: false,
+
       result: {
         success: false,
+
         message:
           'Revise os campos destacados.',
+
         fieldErrors,
       },
     };
@@ -276,8 +291,8 @@ function parseProjectFormData(
 
   return {
     success: true,
+
     data: {
-      clientId,
       name,
       description,
       defaultHourlyRate,
@@ -289,125 +304,51 @@ function parseProjectFormData(
   };
 }
 
-async function clientBelongsToOwner({
-  clientId,
-  ownerId,
+export async function getProjects({
+  includeArchived = false,
 }: {
-  clientId: string;
-  ownerId: string;
-}): Promise<boolean> {
-  const rows = await sql`
-    SELECT id
-    FROM public.clients
-    WHERE
-      id = ${clientId}::uuid
-      AND owner_id = ${ownerId}::uuid
-      AND status <> 'archived'
-    LIMIT 1
-  `;
-
-  return Boolean(rows[0]);
-}
-
-export async function getProjectClientOptions(): Promise<
-  ProjectClientOption[]
-> {
+  includeArchived?: boolean;
+} = {}): Promise<Project[]> {
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const rows = await sql`
     SELECT
       id,
+      owner_id,
+
       name,
-      company_name
-    FROM public.clients
-    WHERE
-      owner_id = ${ownerId}::uuid
-      AND status <> 'archived'
-    ORDER BY
-      company_name ASC NULLS LAST,
-      name ASC
-  `;
+      description,
 
-  return (
-    rows as ProjectClientOptionRow[]
-  ).map((row) => ({
-    id: String(row.id),
-    name: row.name,
-    companyName: row.company_name,
-  }));
-}
+      default_hourly_rate,
+      currency,
+      status,
 
-export async function getProjects({
-  includeArchived = false,
-  clientId,
-}: {
-  includeArchived?: boolean;
-  clientId?: string;
-} = {}): Promise<Project[]> {
-  const ownerId =
-    await getCurrentAppUserId();
+      start_date,
+      end_date,
 
-  if (
-    clientId &&
-    !isValidUuid(clientId)
-  ) {
-    return [];
-  }
+      created_at,
+      updated_at
 
-  const rows = await sql`
-    SELECT
-      project.id,
-      project.client_id,
-
-      client.name AS client_name,
-      client.company_name
-        AS client_company_name,
-
-      project.name,
-      project.description,
-
-      project.default_hourly_rate,
-      project.currency,
-      project.status,
-
-      project.start_date,
-      project.end_date,
-
-      project.created_at,
-      project.updated_at
-
-    FROM public.projects project
-
-    INNER JOIN public.clients client
-      ON client.id =
-        project.client_id
+    FROM public.projects
 
     WHERE
-      client.owner_id =
+      owner_id =
         ${ownerId}::uuid
 
       AND (
         ${includeArchived}
-        OR project.status <>
-          'archived'
-      )
-
-      AND (
-        ${clientId ?? null}::uuid
-          IS NULL
-        OR project.client_id =
-          ${clientId ?? null}::uuid
+        OR status <> 'archived'
       )
 
     ORDER BY
-      project.created_at DESC,
-      project.name ASC
+      created_at DESC,
+      name ASC
   `;
 
-  return (rows as ProjectRow[]).map(
-    mapProjectRow
-  );
+  return (
+    rows as ProjectRow[]
+  ).map(mapProjectRow);
 }
 
 export async function getProjectById(
@@ -418,88 +359,66 @@ export async function getProjectById(
   }
 
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const rows = await sql`
     SELECT
-      project.id,
-      project.client_id,
+      id,
+      owner_id,
 
-      client.name AS client_name,
-      client.company_name
-        AS client_company_name,
+      name,
+      description,
 
-      project.name,
-      project.description,
+      default_hourly_rate,
+      currency,
+      status,
 
-      project.default_hourly_rate,
-      project.currency,
-      project.status,
+      start_date,
+      end_date,
 
-      project.start_date,
-      project.end_date,
+      created_at,
+      updated_at
 
-      project.created_at,
-      project.updated_at
-
-    FROM public.projects project
-
-    INNER JOIN public.clients client
-      ON client.id =
-        project.client_id
+    FROM public.projects
 
     WHERE
-      project.id =
-        ${projectId}::uuid
-
-      AND client.owner_id =
+      id = ${projectId}::uuid
+      AND owner_id =
         ${ownerId}::uuid
 
     LIMIT 1
   `;
 
-  const project =
-    rows[0] as ProjectRow | undefined;
+  const row =
+    rows[0] as
+      | ProjectRow
+      | undefined;
 
-  return project
-    ? mapProjectRow(project)
+  return row
+    ? mapProjectRow(row)
     : null;
 }
 
 export async function createProject(
-  _previousState: ProjectActionState,
+  _previousState:
+    ProjectActionState,
+
   formData: FormData
 ): Promise<ProjectActionState> {
   try {
     const parsed =
-      parseProjectFormData(formData);
+      parseProjectFormData(
+        formData
+      );
 
     if (!parsed.success) {
       return parsed.result;
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const data = parsed.data;
-
-    const validClient =
-      await clientBelongsToOwner({
-        clientId: data.clientId,
-        ownerId,
-      });
-
-    if (!validClient) {
-      return {
-        success: false,
-        message:
-          'O cliente selecionado não foi encontrado.',
-        fieldErrors: {
-          clientId:
-            'Selecione um cliente válido.',
-        },
-      };
-    }
 
     const hourlyRate =
       data.defaultHourlyRate
@@ -510,7 +429,8 @@ export async function createProject(
 
     const rows = await sql`
       INSERT INTO public.projects (
-        client_id,
+        owner_id,
+
         name,
         description,
 
@@ -526,8 +446,10 @@ export async function createProject(
         updated_at
       )
       VALUES (
-        ${data.clientId}::uuid,
+        ${ownerId}::uuid,
+
         ${data.name},
+
         ${optionalText(
           data.description
         )},
@@ -548,14 +470,16 @@ export async function createProject(
         NOW(),
         NOW()
       )
+
       RETURNING id
     `;
 
-    const created = rows[0] as
-      | {
-          id: string;
-        }
-      | undefined;
+    const created =
+      rows[0] as
+        | {
+            id: string;
+          }
+        | undefined;
 
     if (!created) {
       throw new Error(
@@ -564,15 +488,16 @@ export async function createProject(
     }
 
     revalidatePath('/projetos');
-    revalidatePath(
-      `/clientes/${data.clientId}`
-    );
+    revalidatePath('/dashboard');
 
     return {
       success: true,
+
       message:
         'Projeto cadastrado com sucesso.',
-      projectId: String(created.id),
+
+      projectId:
+        String(created.id),
     };
   } catch (error) {
     console.error(
@@ -583,16 +508,18 @@ export async function createProject(
     const databaseError =
       error as {
         code?: string;
-        constraint?: string;
       };
 
     if (
-      databaseError.code === '23505'
+      databaseError.code ===
+      '23505'
     ) {
       return {
         success: false,
+
         message:
-          'Já existe um projeto com esse nome para o cliente selecionado.',
+          'Já existe um projeto com esse nome na sua conta.',
+
         fieldErrors: {
           name:
             'Escolha outro nome para o projeto.',
@@ -602,6 +529,7 @@ export async function createProject(
 
     return {
       success: false,
+
       message:
         'Não foi possível cadastrar o projeto.',
     };
@@ -610,47 +538,37 @@ export async function createProject(
 
 export async function updateProject(
   projectId: string,
-  _previousState: ProjectActionState,
+
+  _previousState:
+    ProjectActionState,
+
   formData: FormData
 ): Promise<ProjectActionState> {
   try {
-    if (!isValidUuid(projectId)) {
+    if (
+      !isValidUuid(projectId)
+    ) {
       return {
         success: false,
+
         message:
           'Identificador do projeto inválido.',
       };
     }
 
     const parsed =
-      parseProjectFormData(formData);
+      parseProjectFormData(
+        formData
+      );
 
     if (!parsed.success) {
       return parsed.result;
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const data = parsed.data;
-
-    const validClient =
-      await clientBelongsToOwner({
-        clientId: data.clientId,
-        ownerId,
-      });
-
-    if (!validClient) {
-      return {
-        success: false,
-        message:
-          'O cliente selecionado não foi encontrado.',
-        fieldErrors: {
-          clientId:
-            'Selecione um cliente válido.',
-        },
-      };
-    }
 
     const hourlyRate =
       data.defaultHourlyRate
@@ -661,10 +579,8 @@ export async function updateProject(
 
     const rows = await sql`
       UPDATE public.projects
-      SET
-        client_id =
-          ${data.clientId}::uuid,
 
+      SET
         name = ${data.name},
 
         description =
@@ -696,12 +612,8 @@ export async function updateProject(
       WHERE
         id = ${projectId}::uuid
 
-        AND client_id IN (
-          SELECT id
-          FROM public.clients
-          WHERE owner_id =
-            ${ownerId}::uuid
-        )
+        AND owner_id =
+          ${ownerId}::uuid
 
       RETURNING id
     `;
@@ -709,26 +621,32 @@ export async function updateProject(
     if (!rows[0]) {
       return {
         success: false,
+
         message:
           'Projeto não encontrado.',
       };
     }
 
     revalidatePath('/projetos');
+    revalidatePath('/dashboard');
+
     revalidatePath(
       `/projetos/${projectId}`
     );
+
     revalidatePath(
       `/projetos/${projectId}/editar`
     );
-    revalidatePath(
-      `/clientes/${data.clientId}`
-    );
+
+    revalidatePath('/relatorios');
+    revalidatePath('/faturas');
 
     return {
       success: true,
+
       message:
         'Projeto atualizado com sucesso.',
+
       projectId,
     };
   } catch (error) {
@@ -743,12 +661,15 @@ export async function updateProject(
       };
 
     if (
-      databaseError.code === '23505'
+      databaseError.code ===
+      '23505'
     ) {
       return {
         success: false,
+
         message:
-          'Já existe um projeto com esse nome para o cliente selecionado.',
+          'Já existe um projeto com esse nome na sua conta.',
+
         fieldErrors: {
           name:
             'Escolha outro nome para o projeto.',
@@ -758,6 +679,7 @@ export async function updateProject(
 
     return {
       success: false,
+
       message:
         'Não foi possível atualizar o projeto.',
     };
@@ -771,19 +693,23 @@ export async function archiveProject(
   message: string;
 }> {
   try {
-    if (!isValidUuid(projectId)) {
+    if (
+      !isValidUuid(projectId)
+    ) {
       return {
         success: false,
+
         message:
           'Identificador do projeto inválido.',
       };
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const rows = await sql`
       UPDATE public.projects
+
       SET
         status = 'archived',
         updated_at = NOW()
@@ -791,41 +717,29 @@ export async function archiveProject(
       WHERE
         id = ${projectId}::uuid
 
-        AND client_id IN (
-          SELECT id
-          FROM public.clients
-          WHERE owner_id =
-            ${ownerId}::uuid
-        )
+        AND owner_id =
+          ${ownerId}::uuid
 
-      RETURNING
-        id,
-        client_id
+      RETURNING id
     `;
 
-    const archived = rows[0] as
-      | {
-          id: string;
-          client_id: string;
-        }
-      | undefined;
-
-    if (!archived) {
+    if (!rows[0]) {
       return {
         success: false,
+
         message:
           'Projeto não encontrado.',
       };
     }
 
     revalidatePath('/projetos');
-
-    revalidatePath(
-      `/clientes/${archived.client_id}`
-    );
+    revalidatePath('/dashboard');
+    revalidatePath('/relatorios');
+    revalidatePath('/faturas');
 
     return {
       success: true,
+
       message:
         'Projeto arquivado com sucesso.',
     };
@@ -837,6 +751,7 @@ export async function archiveProject(
 
     return {
       success: false,
+
       message:
         'Não foi possível arquivar o projeto.',
     };

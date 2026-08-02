@@ -50,7 +50,6 @@ export default async function NewInvoicePage({
         );
 
     const initialClientId =
-        initialProject?.clientId ??
         params.clientId;
 
     return (

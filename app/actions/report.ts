@@ -377,10 +377,6 @@ async function getOwnedProject({
 
     FROM public.projects project
 
-    INNER JOIN public.clients client
-      ON client.id =
-        project.client_id
-
     WHERE
       project.id =
         ${projectId}::uuid
@@ -429,10 +425,6 @@ export async function getReportProjectOptions(): Promise<
       project.currency
 
     FROM public.projects project
-
-    INNER JOIN public.clients client
-      ON client.id =
-        project.client_id
 
     WHERE
       client.owner_id =
@@ -569,10 +561,6 @@ export async function getReportEntries({
         ON project.id =
           entry.project_id
 
-      INNER JOIN public.clients client
-        ON client.id =
-          project.client_id
-
       WHERE
         client.owner_id =
           ${ownerId}::uuid
@@ -638,9 +626,6 @@ export async function getReportEntries({
         ON project.id =
           entry.project_id
 
-      LEFT JOIN public.clients client
-        ON client.id =
-          project.client_id
 
       WHERE
         entry.date BETWEEN
@@ -717,10 +702,6 @@ export async function getReportEntryById(
     LEFT JOIN public.projects project
       ON project.id =
         entry.project_id
-
-    LEFT JOIN public.clients client
-      ON client.id =
-        project.client_id
 
     WHERE
       entry.id =
@@ -966,9 +947,6 @@ export async function updateReportEntry(
 
             FROM public.projects project
 
-            INNER JOIN public.clients client
-              ON client.id =
-                project.client_id
 
             WHERE client.owner_id =
               ${ownerId}::uuid
@@ -1045,9 +1023,6 @@ export async function deleteReportEntry(
 
             FROM public.projects project
 
-            INNER JOIN public.clients client
-              ON client.id =
-                project.client_id
 
             WHERE client.owner_id =
               ${ownerId}::uuid
@@ -1117,8 +1092,6 @@ export async function getProjectReportSummary(
       project.currency
     FROM public.projects project
 
-    INNER JOIN public.clients client
-      ON client.id = project.client_id
 
     WHERE
       project.id = ${projectId}::uuid
@@ -1206,9 +1179,6 @@ export async function getProjectReportSummary(
 
     INNER JOIN public.projects project
       ON project.id = entry.project_id
-
-    INNER JOIN public.clients client
-      ON client.id = project.client_id
 
     WHERE
       entry.project_id = ${projectId}::uuid

@@ -127,14 +127,11 @@ export type InvoiceClientOption = {
   email: string | null;
   currency: string | null;
 };
-
 export type InvoiceProjectOption = {
   id: string;
-  clientId: string;
+  ownerId: string;
 
   name: string;
-  clientName: string;
-  clientCompanyName: string | null;
 
   defaultHourlyRate: number | null;
   currency: string;

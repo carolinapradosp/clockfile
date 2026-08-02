@@ -14,17 +14,14 @@ import {
 } from 'next/navigation';
 
 import type {
-    InvoiceClientOption,
     InvoiceProjectOption,
     InvoiceStatus,
 } from '@/interfaces/Invoice';
 
 type InvoiceFiltersProps = {
-    clients: InvoiceClientOption[];
     projects: InvoiceProjectOption[];
 
     selectedMonth?: string;
-    selectedClientId?: string;
     selectedProjectId?: string;
     selectedStatus?: InvoiceStatus;
 };
@@ -47,26 +44,16 @@ const inputClassName = `
 `;
 
 export default function InvoiceFilters({
-    clients,
     projects,
     selectedMonth,
-    selectedClientId,
     selectedProjectId,
     selectedStatus,
 }: InvoiceFiltersProps) {
     const router = useRouter();
     const pathname = usePathname();
+
     const searchParams =
         useSearchParams();
-
-    const filteredProjects =
-        selectedClientId
-            ? projects.filter(
-                (project) =>
-                    project.clientId ===
-                    selectedClientId
-            )
-            : projects;
 
     function updateFilter(
         name: string,
@@ -81,10 +68,6 @@ export default function InvoiceFilters({
             params.set(name, value);
         } else {
             params.delete(name);
-        }
-
-        if (name === 'clientId') {
-            params.delete('projectId');
         }
 
         const query =
@@ -113,7 +96,7 @@ export default function InvoiceFilters({
                     <Filter size={18} />
                 </div>
 
-                <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
                         <label
                             htmlFor="invoice-month"
@@ -136,44 +119,6 @@ export default function InvoiceFilters({
                             }
                             className={inputClassName}
                         />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="invoice-client"
-                            className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-                        >
-                            Cliente
-                        </label>
-
-                        <select
-                            id="invoice-client"
-                            value={
-                                selectedClientId ?? ''
-                            }
-                            onChange={(event) =>
-                                updateFilter(
-                                    'clientId',
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassName}
-                        >
-                            <option value="">
-                                Todos os clientes
-                            </option>
-
-                            {clients.map((client) => (
-                                <option
-                                    key={client.id}
-                                    value={client.id}
-                                >
-                                    {client.companyName
-                                        ? `${client.companyName} — ${client.name}`
-                                        : client.name}
-                                </option>
-                            ))}
-                        </select>
                     </div>
 
                     <div>
@@ -201,15 +146,13 @@ export default function InvoiceFilters({
                                 Todos os projetos
                             </option>
 
-                            {filteredProjects.map(
+                            {projects.map(
                                 (project) => (
                                     <option
                                         key={project.id}
                                         value={project.id}
                                     >
-                                        {project.clientCompanyName
-                                            ? `${project.clientCompanyName} — ${project.name}`
-                                            : `${project.clientName} — ${project.name}`}
+                                        {project.name}
                                     </option>
                                 )
                             )}

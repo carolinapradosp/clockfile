@@ -358,23 +358,8 @@ export default function InvoiceForm({
         useState('');
 
     const filteredProjects =
-        useMemo(
-            () =>
-                clientId
-                    ? projects.filter(
-                        (project) =>
-                            project.clientId ===
-                            clientId
-                    )
-                    : [],
-            [clientId, projects]
-        );
+        projects;
 
-    const selectedProject =
-        projects.find(
-            (project) =>
-                project.id === projectId
-        );
 
     const subtotal = useMemo(
         () =>
@@ -418,7 +403,6 @@ export default function InvoiceForm({
         value: string
     ) {
         setClientId(value);
-        setProjectId('');
     }
 
     function handleProjectChange(

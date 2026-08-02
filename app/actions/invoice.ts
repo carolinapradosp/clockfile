@@ -22,6 +22,7 @@ import type {
   SaveInvoiceResult,
   SavedInvoiceItem,
 } from '@/interfaces/Invoice';
+import { getCurrentUserId } from '@/lib/auth/current-user';
 
 type InvoiceRow = {
   id: string;
@@ -94,13 +95,15 @@ type InvoiceClientOptionRow = {
 
 type InvoiceProjectOptionRow = {
   id: string;
-  client_id: string;
+  owner_id: string;
 
   name: string;
-  client_name: string;
-  client_company_name: string | null;
 
-  default_hourly_rate: string | number | null;
+  default_hourly_rate:
+    | string
+    | number
+    | null;
+
   currency: string;
 };
 
@@ -522,9 +525,6 @@ async function validateProject({
     SELECT project.id
     FROM public.projects project
 
-    INNER JOIN public.clients client
-      ON client.id = project.client_id
-
     WHERE
       project.id = ${projectId}::uuid
       AND project.client_id = ${clientId}::uuid
@@ -547,9 +547,6 @@ async function invoiceBelongsToOwner({
   const rows = await sql`
     SELECT invoice.id
     FROM public.invoices invoice
-
-    INNER JOIN public.clients client
-      ON client.id = invoice.client_id
 
     WHERE
       invoice.id = ${invoiceId}::uuid
@@ -593,70 +590,43 @@ export async function getInvoiceClientOptions(): Promise<
   }));
 }
 
-export async function getInvoiceProjectOptions({
-  clientId,
-}: {
-  clientId?: string;
-} = {}): Promise<InvoiceProjectOption[]> {
+export async function getInvoiceProjectOptions(): Promise<
+  InvoiceProjectOption[]
+> {
   const ownerId =
-    await getCurrentAppUserId();
-
-  if (clientId && !isValidUuid(clientId)) {
-    return [];
-  }
+    await getCurrentUserId();
 
   const rows = await sql`
     SELECT
-      project.id,
-      project.client_id,
-      project.name,
+      id,
+      owner_id,
+      name,
+      default_hourly_rate,
+      currency
 
-      client.name AS client_name,
-      client.company_name
-        AS client_company_name,
-
-      project.default_hourly_rate,
-      project.currency
-
-    FROM public.projects project
-
-    INNER JOIN public.clients client
-      ON client.id = project.client_id
+    FROM public.projects
 
     WHERE
-      client.owner_id = ${ownerId}::uuid
-      AND client.status <> 'archived'
-      AND project.status <> 'archived'
+      owner_id = ${ownerId}::uuid
+      AND status <> 'archived'
 
-      AND (
-        ${clientId ?? null}::uuid IS NULL
-        OR project.client_id =
-          ${clientId ?? null}::uuid
-      )
-
-    ORDER BY
-      client.company_name ASC NULLS LAST,
-      client.name ASC,
-      project.name ASC
+    ORDER BY name ASC
   `;
 
   return (
     rows as InvoiceProjectOptionRow[]
   ).map((row) => ({
     id: String(row.id),
-    clientId: String(row.client_id),
+    ownerId: String(row.owner_id),
 
     name: row.name,
-
-    clientName: row.client_name,
-
-    clientCompanyName:
-      row.client_company_name,
 
     defaultHourlyRate:
       row.default_hourly_rate === null
         ? null
-        : Number(row.default_hourly_rate),
+        : Number(
+            row.default_hourly_rate
+          ),
 
     currency: row.currency,
   }));
@@ -723,8 +693,6 @@ export async function getUnbilledReportEntries({
     INNER JOIN public.projects project
       ON project.id = entry.project_id
 
-    INNER JOIN public.clients client
-      ON client.id = project.client_id
 
     LEFT JOIN public.invoice_report_entries relation
       ON relation.report_entry_id = entry.id
@@ -878,9 +846,6 @@ export async function getInvoices(
 
     FROM public.invoices invoice
 
-    INNER JOIN public.clients client
-      ON client.id = invoice.client_id
-
     LEFT JOIN public.projects project
       ON project.id = invoice.project_id
 
@@ -979,9 +944,6 @@ export async function getInvoiceById(
       invoice.updated_at
 
     FROM public.invoices invoice
-
-    INNER JOIN public.clients client
-      ON client.id = invoice.client_id
 
     LEFT JOIN public.projects project
       ON project.id = invoice.project_id

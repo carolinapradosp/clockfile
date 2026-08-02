@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 
 import {
     ArrowLeft,
-    Building2,
     CalendarDays,
     CircleDollarSign,
     Clock3,
@@ -197,16 +196,6 @@ export default async function ProjectDetailsPage({
                             {status.label}
                         </span>
                     </div>
-
-                    <Link
-                        href={`/clientes/${project.clientId}`}
-                        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-blue-600"
-                    >
-                        <Building2 size={16} />
-
-                        {project.clientCompanyName ??
-                            project.clientName}
-                    </Link>
                 </div>
 
                 <div className="flex flex-wrap gap-3">

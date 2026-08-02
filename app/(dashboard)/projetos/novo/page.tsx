@@ -1,26 +1,14 @@
 // app/(dashboard)/projetos/novo/page.tsx
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 
-import { getProjectClientOptions } from '@/app/actions/projects';
+import {
+    ArrowLeft,
+} from 'lucide-react';
+
 import ProjectForm from '@/components/projects/ProjectForm';
 
-type NewProjectPageProps = {
-    searchParams: Promise<{
-        clientId?: string;
-    }>;
-};
-
-export default async function NewProjectPage({
-    searchParams,
-}: NewProjectPageProps) {
-    const params =
-        await searchParams;
-
-    const clients =
-        await getProjectClientOptions();
-
+export default function NewProjectPage() {
     return (
         <div className="mx-auto max-w-4xl">
             <Link
@@ -38,16 +26,11 @@ export default async function NewProjectPage({
                 </h1>
 
                 <p className="mt-2 text-sm text-slate-500">
-                    Cadastre um projeto e vincule-o a um cliente.
+                    Crie um projeto para registrar horas e gerar relatórios.
                 </p>
             </header>
 
-            <ProjectForm
-                clients={clients}
-                initialClientId={
-                    params.clientId
-                }
-            />
+            <ProjectForm />
         </div>
     );
 }
