@@ -132,9 +132,7 @@ export default function ReportFilters({
                                 key={project.id}
                                 value={project.id}
                             >
-                                {project.clientCompanyName
-                                    ? `${project.clientCompanyName} — ${project.name}`
-                                    : `${project.clientName} — ${project.name}`}
+                                {project.name}
                             </option>
                         ))}
                     </select>

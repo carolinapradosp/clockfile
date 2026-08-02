@@ -3,12 +3,8 @@
 export type ReportEntry = {
   id: string;
 
-  projectId: string | null;
-  projectName: string | null;
-
-  clientId: string | null;
-  clientName: string | null;
-  clientCompanyName: string | null;
+  projectId: string;
+  projectName: string;
 
   task: string;
   description: string;
@@ -56,12 +52,7 @@ export type ReportEntryActionState =
 
 export type ReportProjectOption = {
   id: string;
-
   name: string;
-
-  clientId: string;
-  clientName: string;
-  clientCompanyName: string | null;
 
   defaultHourlyRate: number | null;
   currency: string;

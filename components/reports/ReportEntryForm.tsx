@@ -267,9 +267,7 @@ export default function ReportEntryForm({
                                     key={project.id}
                                     value={project.id}
                                 >
-                                    {project.clientCompanyName
-                                        ? `${project.clientCompanyName} — ${project.name}`
-                                        : `${project.clientName} — ${project.name}`}
+                                    {project.name}
                                 </option>
                             ))}
                         </select>

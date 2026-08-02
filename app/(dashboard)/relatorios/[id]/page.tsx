@@ -88,9 +88,7 @@ export default async function ReportEntryDetailsPage({
         notFound();
     }
 
-    const clientDisplayName =
-        entry.clientCompanyName ??
-        entry.clientName;
+
 
     return (
         <div className="mx-auto max-w-5xl">
@@ -110,11 +108,11 @@ export default async function ReportEntryDetailsPage({
                             {entry.task}
                         </h1>
 
-                        {!entry.projectId && (
+                        {/* {!entry.projectId && (
                             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
                                 Registro legado
                             </span>
-                        )}
+                        )} */}
                     </div>
 
                     <p className="mt-2 text-sm text-slate-500">
@@ -203,9 +201,7 @@ export default async function ReportEntryDetailsPage({
                 <section className="rounded-2xl border border-slate-200 bg-white p-6">
                     <div className="flex items-center gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                            <BriefcaseBusiness
-                                size={21}
-                            />
+                            <BriefcaseBusiness size={21} />
                         </div>
 
                         <div>
@@ -219,48 +215,14 @@ export default async function ReportEntryDetailsPage({
                         </div>
                     </div>
 
-                    {entry.projectId ? (
-                        <div className="mt-6">
-                            <Link
-                                href={`/projetos/${entry.projectId}`}
-                                className="text-base font-bold text-slate-900 transition-colors hover:text-blue-600"
-                            >
-                                {entry.projectName}
-                            </Link>
-
-                            {clientDisplayName && (
-                                <div className="mt-3 flex items-start gap-2 text-sm text-slate-500">
-                                    <Building2
-                                        size={16}
-                                        className="mt-0.5 shrink-0"
-                                    />
-
-                                    {entry.clientId ? (
-                                        <Link
-                                            href={`/clientes/${entry.clientId}`}
-                                            className="transition-colors hover:text-blue-600"
-                                        >
-                                            {clientDisplayName}
-                                        </Link>
-                                    ) : (
-                                        <span>
-                                            {clientDisplayName}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="mt-6 rounded-xl border border-dashed border-amber-200 bg-amber-50 p-4">
-                            <p className="text-sm font-medium text-amber-800">
-                                Projeto não informado
-                            </p>
-
-                            <p className="mt-1 text-xs leading-relaxed text-amber-700">
-                                Este registro foi criado antes da implantação do módulo de projetos.
-                            </p>
-                        </div>
-                    )}
+                    <div className="mt-6">
+                        <Link
+                            href={`/projetos/${entry.projectId}`}
+                            className="text-base font-bold text-slate-900 transition-colors hover:text-blue-600"
+                        >
+                            {entry.projectName}
+                        </Link>
+                    </div>
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3">

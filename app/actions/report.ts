@@ -5,7 +5,8 @@
 import { revalidatePath } from 'next/cache';
 
 import { sql } from '@/lib/db';
-import { getCurrentAppUserId } from '@/lib/users/get-current-app-user';
+import { getCurrentUserId } from '@/lib/auth/current-user';
+
 import {
   durationToMinutes,
   minutesToDuration,
@@ -36,12 +37,8 @@ export type ProjectReportSummary = {
 type ReportEntryRow = {
   id: string;
 
-  project_id: string | null;
-  project_name: string | null;
-
-  client_id: string | null;
-  client_name: string | null;
-  client_company_name: string | null;
+  project_id: string;
+  project_name: string;
 
   task: string;
   description: string;
@@ -49,6 +46,7 @@ type ReportEntryRow = {
   date: string | Date;
 
   duration: string | null;
+
   duration_minutes:
     | number
     | string
@@ -74,9 +72,16 @@ type ProjectOptionRow = {
   id: string;
   name: string;
 
-  client_id: string;
-  client_name: string;
-  client_company_name: string | null;
+  default_hourly_rate:
+    | number
+    | string
+    | null;
+
+  currency: string;
+};
+
+type OwnedProjectRow = {
+  id: string;
 
   default_hourly_rate:
     | number
@@ -119,8 +124,13 @@ function isValidDate(
     `${value}T00:00:00Z`
   );
 
-  return !Number.isNaN(
-    date.getTime()
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  return (
+    date.toISOString().slice(0, 10) ===
+    value
   );
 }
 
@@ -133,10 +143,7 @@ function normalizeDate(
       .slice(0, 10);
   }
 
-  return String(value).slice(
-    0,
-    10
-  );
+  return String(value).slice(0, 10);
 }
 
 function normalizeDateTime(
@@ -146,7 +153,7 @@ function normalizeDateTime(
     return value.toISOString();
   }
 
-  return String(value);
+  return new Date(value).toISOString();
 }
 
 function requiredText(
@@ -175,21 +182,12 @@ function mapReportEntry(
   return {
     id: String(row.id),
 
-    projectId: row.project_id
-      ? String(row.project_id)
-      : null,
+    projectId: String(
+      row.project_id
+    ),
 
     projectName:
       row.project_name,
-
-    clientId: row.client_id
-      ? String(row.client_id)
-      : null,
-
-    clientName: row.client_name,
-
-    clientCompanyName:
-      row.client_company_name,
 
     task: row.task,
     description: row.description,
@@ -232,31 +230,37 @@ function parseFormData(
 ):
   | {
       success: true;
+
       data: ReportEntryFormData;
+
       durationMinutes: number;
       rate: number;
     }
   | {
       success: false;
-      result: ReportEntryActionState;
+
+      result:
+        ReportEntryActionState;
     } {
   const projectId =
     requiredText(
       formData.get('projectId')
     );
 
-  const task = requiredText(
-    formData.get('task')
-  );
+  const task =
+    requiredText(
+      formData.get('task')
+    );
 
   const description =
     requiredText(
       formData.get('description')
     );
 
-  const date = requiredText(
-    formData.get('date')
-  );
+  const date =
+    requiredText(
+      formData.get('date')
+    );
 
   const duration =
     requiredText(
@@ -331,11 +335,12 @@ function parseFormData(
   }
 
   if (
-    Object.keys(fieldErrors)
-      .length > 0
+    Object.keys(fieldErrors).length >
+    0
   ) {
     return {
       success: false,
+
       result: {
         success: false,
         message:
@@ -362,45 +367,52 @@ function parseFormData(
   };
 }
 
+function calculateAmount({
+  durationMinutes,
+  rate,
+}: {
+  durationMinutes: number;
+  rate: number;
+}): number {
+  return (
+    Math.round(
+      (durationMinutes / 60) *
+        rate *
+        100
+    ) / 100
+  );
+}
+
 async function getOwnedProject({
   projectId,
   ownerId,
 }: {
   projectId: string;
   ownerId: string;
-}) {
+}): Promise<
+  OwnedProjectRow | undefined
+> {
   const rows = await sql`
     SELECT
-      project.id,
-      project.default_hourly_rate,
-      project.currency
+      id,
+      default_hourly_rate,
+      currency
 
-    FROM public.projects project
+    FROM public.projects
 
     WHERE
-      project.id =
-        ${projectId}::uuid
+      id = ${projectId}::uuid
 
-      AND client.owner_id =
+      AND owner_id =
         ${ownerId}::uuid
 
-      AND project.status <>
-        'archived'
+      AND status <> 'archived'
 
     LIMIT 1
   `;
 
   return rows[0] as
-    | {
-        id: string;
-
-        default_hourly_rate:
-          | number
-          | string
-          | null;
-
-        currency: string;
-      }
+    | OwnedProjectRow
     | undefined;
 }
 
@@ -408,57 +420,30 @@ export async function getReportProjectOptions(): Promise<
   ReportProjectOption[]
 > {
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const rows = await sql`
     SELECT
-      project.id,
-      project.name,
+      id,
+      name,
+      default_hourly_rate,
+      currency
 
-      client.id AS client_id,
-      client.name AS client_name,
-
-      client.company_name
-        AS client_company_name,
-
-      project.default_hourly_rate,
-      project.currency
-
-    FROM public.projects project
+    FROM public.projects
 
     WHERE
-      client.owner_id =
-        ${ownerId}::uuid
+      owner_id = ${ownerId}::uuid
+      AND status <> 'archived'
 
-      AND client.status <>
-        'archived'
-
-      AND project.status <>
-        'archived'
-
-    ORDER BY
-      client.company_name
-        ASC NULLS LAST,
-
-      client.name ASC,
-      project.name ASC
+    ORDER BY name ASC
   `;
 
   return (
     rows as ProjectOptionRow[]
   ).map((row) => ({
     id: String(row.id),
+
     name: row.name,
-
-    clientId: String(
-      row.client_id
-    ),
-
-    clientName:
-      row.client_name,
-
-    clientCompanyName:
-      row.client_company_name,
 
     defaultHourlyRate:
       row.default_hourly_rate ===
@@ -481,11 +466,10 @@ export async function getReportEntries({
   projectId?: string;
 } = {}): Promise<ReportEntry[]> {
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const selectedMonth =
-    month &&
-    isValidMonth(month)
+    month && isValidMonth(month)
       ? month
       : new Date()
           .toISOString()
@@ -516,167 +500,14 @@ export async function getReportEntries({
     .toISOString()
     .slice(0, 10);
 
-  let rows;
-
-  if (projectId) {
-    rows = await sql`
-      SELECT
-        entry.id,
-
-        entry.project_id,
-        project.name
-          AS project_name,
-
-        client.id
-          AS client_id,
-
-        client.name
-          AS client_name,
-
-        client.company_name
-          AS client_company_name,
-
-        entry.task,
-        entry.description,
-        entry.date,
-
-        entry.duration,
-        entry.duration_minutes,
-
-        entry.rate,
-        entry.amount,
-
-        COALESCE(
-          entry.currency,
-          project.currency,
-          'USD'
-        ) AS currency,
-
-        entry.created_at,
-        entry.updated_at
-
-      FROM public.report_entries entry
-
-      INNER JOIN public.projects project
-        ON project.id =
-          entry.project_id
-
-      WHERE
-        client.owner_id =
-          ${ownerId}::uuid
-
-        AND entry.project_id =
-          ${projectId}::uuid
-
-        AND entry.date BETWEEN
-          ${startDate}::date
-          AND ${endDate}::date
-
-      ORDER BY
-        entry.date DESC,
-        entry.created_at DESC
-    `;
-  } else {
-    /*
-     * O LEFT JOIN mantém visíveis os registros
-     * antigos que ainda não possuem project_id.
-     *
-     * Depois que eles forem migrados para um
-     * projeto, podemos tornar project_id obrigatório.
-     */
-    rows = await sql`
-      SELECT
-        entry.id,
-
-        entry.project_id,
-        project.name
-          AS project_name,
-
-        client.id
-          AS client_id,
-
-        client.name
-          AS client_name,
-
-        client.company_name
-          AS client_company_name,
-
-        entry.task,
-        entry.description,
-        entry.date,
-
-        entry.duration,
-        entry.duration_minutes,
-
-        entry.rate,
-        entry.amount,
-
-        COALESCE(
-          entry.currency,
-          project.currency,
-          'USD'
-        ) AS currency,
-
-        entry.created_at,
-        entry.updated_at
-
-      FROM public.report_entries entry
-
-      LEFT JOIN public.projects project
-        ON project.id =
-          entry.project_id
-
-
-      WHERE
-        entry.date BETWEEN
-          ${startDate}::date
-          AND ${endDate}::date
-
-        AND (
-          client.owner_id =
-            ${ownerId}::uuid
-
-          OR entry.project_id
-            IS NULL
-        )
-
-      ORDER BY
-        entry.date DESC,
-        entry.created_at DESC
-    `;
-  }
-
-  return (
-    rows as ReportEntryRow[]
-  ).map(mapReportEntry);
-}
-
-export async function getReportEntryById(
-  entryId: string
-): Promise<ReportEntry | null> {
-  if (!isValidUuid(entryId)) {
-    return null;
-  }
-
-  const ownerId =
-    await getCurrentAppUserId();
-
   const rows = await sql`
     SELECT
       entry.id,
 
       entry.project_id,
+
       project.name
         AS project_name,
-
-      client.id
-        AS client_id,
-
-      client.name
-        AS client_name,
-
-      client.company_name
-        AS client_company_name,
 
       entry.task,
       entry.description,
@@ -699,7 +530,77 @@ export async function getReportEntryById(
 
     FROM public.report_entries entry
 
-    LEFT JOIN public.projects project
+    INNER JOIN public.projects project
+      ON project.id =
+        entry.project_id
+
+    WHERE
+      project.owner_id =
+        ${ownerId}::uuid
+
+      AND entry.date BETWEEN
+        ${startDate}::date
+        AND ${endDate}::date
+
+      AND (
+        ${projectId ?? null}::uuid
+          IS NULL
+
+        OR entry.project_id =
+          ${projectId ?? null}::uuid
+      )
+
+    ORDER BY
+      entry.date DESC,
+      entry.created_at DESC
+  `;
+
+  return (
+    rows as ReportEntryRow[]
+  ).map(mapReportEntry);
+}
+
+export async function getReportEntryById(
+  entryId: string
+): Promise<ReportEntry | null> {
+  if (!isValidUuid(entryId)) {
+    return null;
+  }
+
+  const ownerId =
+    await getCurrentUserId();
+
+  const rows = await sql`
+    SELECT
+      entry.id,
+
+      entry.project_id,
+
+      project.name
+        AS project_name,
+
+      entry.task,
+      entry.description,
+      entry.date,
+
+      entry.duration,
+      entry.duration_minutes,
+
+      entry.rate,
+      entry.amount,
+
+      COALESCE(
+        entry.currency,
+        project.currency,
+        'USD'
+      ) AS currency,
+
+      entry.created_at,
+      entry.updated_at
+
+    FROM public.report_entries entry
+
+    INNER JOIN public.projects project
       ON project.id =
         entry.project_id
 
@@ -707,13 +608,8 @@ export async function getReportEntryById(
       entry.id =
         ${entryId}::uuid
 
-      AND (
-        client.owner_id =
-          ${ownerId}::uuid
-
-        OR entry.project_id
-          IS NULL
-      )
+      AND project.owner_id =
+        ${ownerId}::uuid
 
     LIMIT 1
   `;
@@ -729,7 +625,9 @@ export async function getReportEntryById(
 }
 
 export async function createReportEntry(
-  _previousState: ReportEntryActionState,
+  _previousState:
+    ReportEntryActionState,
+
   formData: FormData
 ): Promise<ReportEntryActionState> {
   try {
@@ -741,7 +639,7 @@ export async function createReportEntry(
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const project =
       await getOwnedProject({
@@ -754,8 +652,10 @@ export async function createReportEntry(
     if (!project) {
       return {
         success: false,
+
         message:
           'O projeto selecionado não foi encontrado.',
+
         fieldErrors: {
           projectId:
             'Selecione um projeto válido.',
@@ -764,14 +664,12 @@ export async function createReportEntry(
     }
 
     const amount =
-      Math.round(
-        (
-          parsed.durationMinutes /
-          60
-        ) *
-          parsed.rate *
-          100
-      ) / 100;
+      calculateAmount({
+        durationMinutes:
+          parsed.durationMinutes,
+
+        rate: parsed.rate,
+      });
 
     const rows = await sql`
       INSERT INTO public.report_entries (
@@ -810,14 +708,16 @@ export async function createReportEntry(
         NOW(),
         NOW()
       )
+
       RETURNING id
     `;
 
-    const created = rows[0] as
-      | {
-          id: string;
-        }
-      | undefined;
+    const created =
+      rows[0] as
+        | {
+            id: string;
+          }
+        | undefined;
 
     if (!created) {
       throw new Error(
@@ -825,16 +725,21 @@ export async function createReportEntry(
       );
     }
 
+    revalidatePath('/dashboard');
     revalidatePath('/relatorios');
+
     revalidatePath(
       `/projetos/${parsed.data.projectId}`
     );
 
     return {
       success: true,
+
       message:
         'Lançamento salvo com sucesso.',
-      entryId: String(created.id),
+
+      entryId:
+        String(created.id),
     };
   } catch (error) {
     console.error(
@@ -844,6 +749,7 @@ export async function createReportEntry(
 
     return {
       success: false,
+
       message:
         'Não foi possível salvar o lançamento.',
     };
@@ -852,13 +758,17 @@ export async function createReportEntry(
 
 export async function updateReportEntry(
   entryId: string,
-  _previousState: ReportEntryActionState,
+
+  _previousState:
+    ReportEntryActionState,
+
   formData: FormData
 ): Promise<ReportEntryActionState> {
   try {
     if (!isValidUuid(entryId)) {
       return {
         success: false,
+
         message:
           'Identificador do lançamento inválido.',
       };
@@ -872,7 +782,7 @@ export async function updateReportEntry(
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const project =
       await getOwnedProject({
@@ -885,8 +795,10 @@ export async function updateReportEntry(
     if (!project) {
       return {
         success: false,
+
         message:
           'O projeto selecionado não foi encontrado.',
+
         fieldErrors: {
           projectId:
             'Selecione um projeto válido.',
@@ -895,17 +807,16 @@ export async function updateReportEntry(
     }
 
     const amount =
-      Math.round(
-        (
-          parsed.durationMinutes /
-          60
-        ) *
-          parsed.rate *
-          100
-      ) / 100;
+      calculateAmount({
+        durationMinutes:
+          parsed.durationMinutes,
+
+        rate: parsed.rate,
+      });
 
     const rows = await sql`
-      UPDATE public.report_entries
+      UPDATE public.report_entries entry
+
       SET
         project_id =
           ${parsed.data.projectId}::uuid,
@@ -937,45 +848,75 @@ export async function updateReportEntry(
         updated_at = NOW()
 
       WHERE
-        id = ${entryId}::uuid
+        entry.id =
+          ${entryId}::uuid
 
-        AND (
-          project_id IS NULL
+        AND EXISTS (
+          SELECT 1
 
-          OR project_id IN (
-            SELECT project.id
+          FROM public.projects
+            current_project
 
-            FROM public.projects project
+          WHERE
+            current_project.id =
+              entry.project_id
 
-
-            WHERE client.owner_id =
+            AND current_project.owner_id =
               ${ownerId}::uuid
-          )
         )
 
-      RETURNING id
+      RETURNING
+        entry.id,
+        entry.project_id
     `;
 
-    if (!rows[0]) {
+    const updated =
+      rows[0] as
+        | {
+            id: string;
+            project_id: string;
+          }
+        | undefined;
+
+    if (!updated) {
       return {
         success: false,
+
         message:
           'Lançamento não encontrado.',
       };
     }
 
+    revalidatePath('/dashboard');
     revalidatePath('/relatorios');
+
+    revalidatePath(
+      `/relatorios/${entryId}`
+    );
+
     revalidatePath(
       `/relatorios/${entryId}/editar`
     );
+
     revalidatePath(
       `/projetos/${parsed.data.projectId}`
     );
 
+    if (
+      updated.project_id !==
+      parsed.data.projectId
+    ) {
+      revalidatePath(
+        `/projetos/${updated.project_id}`
+      );
+    }
+
     return {
       success: true,
+
       message:
         'Lançamento atualizado com sucesso.',
+
       entryId,
     };
   } catch (error) {
@@ -986,6 +927,7 @@ export async function updateReportEntry(
 
     return {
       success: false,
+
       message:
         'Não foi possível atualizar o lançamento.',
     };
@@ -1002,63 +944,68 @@ export async function deleteReportEntry(
     if (!isValidUuid(entryId)) {
       return {
         success: false,
+
         message:
           'Identificador do lançamento inválido.',
       };
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const rows = await sql`
       DELETE FROM public.report_entries
+        AS entry
+
       WHERE
-        id = ${entryId}::uuid
+        entry.id =
+          ${entryId}::uuid
 
-        AND (
-          project_id IS NULL
+        AND EXISTS (
+          SELECT 1
 
-          OR project_id IN (
-            SELECT project.id
+          FROM public.projects project
 
-            FROM public.projects project
+          WHERE
+            project.id =
+              entry.project_id
 
-
-            WHERE client.owner_id =
+            AND project.owner_id =
               ${ownerId}::uuid
-          )
         )
 
       RETURNING
-        id,
-        project_id
+        entry.id,
+        entry.project_id
     `;
 
-    const deleted = rows[0] as
-      | {
-          id: string;
-          project_id: string | null;
-        }
-      | undefined;
+    const deleted =
+      rows[0] as
+        | {
+            id: string;
+            project_id: string;
+          }
+        | undefined;
 
     if (!deleted) {
       return {
         success: false,
+
         message:
           'Lançamento não encontrado.',
       };
     }
 
+    revalidatePath('/dashboard');
     revalidatePath('/relatorios');
 
-    if (deleted.project_id) {
-      revalidatePath(
-        `/projetos/${deleted.project_id}`
-      );
-    }
+    revalidatePath(
+      `/projetos/${deleted.project_id}`
+    );
 
     return {
       success: true,
+
       message:
         'Lançamento excluído com sucesso.',
     };
@@ -1070,6 +1017,7 @@ export async function deleteReportEntry(
 
     return {
       success: false,
+
       message:
         'Não foi possível excluir o lançamento.',
     };
@@ -1084,28 +1032,31 @@ export async function getProjectReportSummary(
   }
 
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const projectRows = await sql`
     SELECT
-      project.id,
-      project.currency
-    FROM public.projects project
+      id,
+      currency
 
+    FROM public.projects
 
     WHERE
-      project.id = ${projectId}::uuid
-      AND client.owner_id = ${ownerId}::uuid
+      id = ${projectId}::uuid
+
+      AND owner_id =
+        ${ownerId}::uuid
 
     LIMIT 1
   `;
 
-  const project = projectRows[0] as
-    | {
-        id: string;
-        currency: string;
-      }
-    | undefined;
+  const project =
+    projectRows[0] as
+      | {
+          id: string;
+          currency: string;
+        }
+      | undefined;
 
   if (!project) {
     return null;
@@ -1119,9 +1070,21 @@ export async function getProjectReportSummary(
         SUM(
           COALESCE(
             duration_minutes,
+
             (
-              split_part(duration, ':', 1)::INTEGER * 60
-              + split_part(duration, ':', 2)::INTEGER
+              split_part(
+                duration,
+                ':',
+                1
+              )::INTEGER * 60
+
+              +
+
+              split_part(
+                duration,
+                ':',
+                2
+              )::INTEGER
             )
           )
         ),
@@ -1133,10 +1096,14 @@ export async function getProjectReportSummary(
         0
       ) AS total_amount,
 
-      ${project.currency}::text AS currency
+      ${project.currency}::text
+        AS currency
 
     FROM public.report_entries
-    WHERE project_id = ${projectId}::uuid
+
+    WHERE
+      project_id =
+        ${projectId}::uuid
   `;
 
   const summary =
@@ -1149,12 +1116,9 @@ export async function getProjectReportSummary(
       entry.id,
 
       entry.project_id,
-      project.name AS project_name,
 
-      client.id AS client_id,
-      client.name AS client_name,
-      client.company_name
-        AS client_company_name,
+      project.name
+        AS project_name,
 
       entry.task,
       entry.description,
@@ -1178,11 +1142,15 @@ export async function getProjectReportSummary(
     FROM public.report_entries entry
 
     INNER JOIN public.projects project
-      ON project.id = entry.project_id
+      ON project.id =
+        entry.project_id
 
     WHERE
-      entry.project_id = ${projectId}::uuid
-      AND client.owner_id = ${ownerId}::uuid
+      entry.project_id =
+        ${projectId}::uuid
+
+      AND project.owner_id =
+        ${ownerId}::uuid
 
     ORDER BY
       entry.date DESC,
@@ -1193,13 +1161,19 @@ export async function getProjectReportSummary(
 
   return {
     entriesCount:
-      Number(summary?.entries_count ?? 0),
+      Number(
+        summary?.entries_count ?? 0
+      ),
 
     totalMinutes:
-      Number(summary?.total_minutes ?? 0),
+      Number(
+        summary?.total_minutes ?? 0
+      ),
 
     totalAmount:
-      Number(summary?.total_amount ?? 0),
+      Number(
+        summary?.total_amount ?? 0
+      ),
 
     currency:
       summary?.currency ??

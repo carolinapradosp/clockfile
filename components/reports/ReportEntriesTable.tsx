@@ -1,6 +1,7 @@
 // components/reports/ReportEntriesTable.tsx
 
 import Link from 'next/link';
+
 import {
     BriefcaseBusiness,
     Edit3,
@@ -16,7 +17,9 @@ type ReportEntriesTableProps = {
     entries: ReportEntry[];
 };
 
-function formatDate(value: string) {
+function formatDate(
+    value: string
+) {
     return new Date(
         `${value}T00:00:00Z`
     ).toLocaleDateString('pt-BR', {
@@ -32,12 +35,17 @@ function formatCurrency({
     currency: string;
 }) {
     try {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency,
-        }).format(value);
+        return new Intl.NumberFormat(
+            'en-US',
+            {
+                style: 'currency',
+                currency,
+            }
+        ).format(value);
     } catch {
-        return `${currency} ${value.toFixed(2)}`;
+        return `${currency} ${value.toFixed(
+            2
+        )}`;
     }
 }
 
@@ -102,91 +110,92 @@ export default function ReportEntriesTable({
                         </thead>
 
                         <tbody>
-                            {entries.map((entry) => (
-                                <tr
-                                    key={entry.id}
-                                    className="border-b border-slate-100 last:border-b-0"
-                                >
-                                    <td className="px-5 py-4 align-top text-sm font-medium text-slate-700">
-                                        {formatDate(entry.date)}
-                                    </td>
+                            {entries.map(
+                                (entry) => (
+                                    <tr
+                                        key={entry.id}
+                                        className="border-b border-slate-100 last:border-b-0"
+                                    >
+                                        <td className="px-5 py-4 align-top text-sm font-medium text-slate-700">
+                                            {formatDate(
+                                                entry.date
+                                            )}
+                                        </td>
 
-                                    <td className="px-5 py-4 align-top">
-                                        {entry.projectId ? (
+                                        <td className="px-5 py-4 align-top">
                                             <Link
                                                 href={`/projetos/${entry.projectId}`}
                                                 className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
                                             >
                                                 {entry.projectName}
                                             </Link>
-                                        ) : (
-                                            <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
-                                                Registro legado
-                                            </span>
-                                        )}
+                                        </td>
 
-                                        {(entry.clientCompanyName ||
-                                            entry.clientName) && (
-                                                <p className="mt-1 text-xs text-slate-400">
-                                                    {entry.clientCompanyName ??
-                                                        entry.clientName}
-                                                </p>
-                                            )}
-                                    </td>
-
-                                    <td className="max-w-md px-5 py-4 align-top">
-                                        <Link
-                                            href={`/relatorios/${entry.id}`}
-                                            className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
-                                        >
-                                            {entry.task}
-                                        </Link>
-
-                                        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500">
-                                            {entry.description}
-                                        </p>
-                                    </td>
-
-                                    <td className="px-5 py-4 text-right align-top text-sm font-medium text-slate-700">
-                                        {entry.duration}
-                                    </td>
-
-                                    <td className="px-5 py-4 text-right align-top text-sm text-slate-500">
-                                        {entry.rate !== null
-                                            ? formatCurrency({
-                                                value: entry.rate,
-                                                currency:
-                                                    entry.currency,
-                                            })
-                                            : '—'}
-                                    </td>
-
-                                    <td className="px-5 py-4 text-right align-top text-sm font-bold text-slate-800">
-                                        {formatCurrency({
-                                            value: entry.amount,
-                                            currency: entry.currency,
-                                        })}
-                                    </td>
-
-                                    <td className="px-5 py-4 align-top">
-                                        <div className="flex justify-end gap-1">
+                                        <td className="max-w-md px-5 py-4 align-top">
                                             <Link
-                                                href={`/relatorios/${entry.id}/editar`}
-                                                title="Editar lançamento"
-                                                aria-label={`Editar ${entry.task}`}
-                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                                                href={`/relatorios/${entry.id}`}
+                                                className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
                                             >
-                                                <Edit3 size={16} />
+                                                {entry.task}
                                             </Link>
 
-                                            <DeleteReportEntryButton
-                                                entryId={entry.id}
-                                                task={entry.task}
-                                            />
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                            <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                                                {entry.description}
+                                            </p>
+                                        </td>
+
+                                        <td className="px-5 py-4 text-right align-top text-sm font-medium text-slate-700">
+                                            {entry.duration}
+                                        </td>
+
+                                        <td className="px-5 py-4 text-right align-top text-sm text-slate-500">
+                                            {entry.rate !== null
+                                                ? formatCurrency({
+                                                    value:
+                                                        entry.rate,
+
+                                                    currency:
+                                                        entry.currency,
+                                                })
+                                                : '—'}
+                                        </td>
+
+                                        <td className="px-5 py-4 text-right align-top text-sm font-bold text-slate-800">
+                                            {formatCurrency({
+                                                value:
+                                                    entry.amount,
+
+                                                currency:
+                                                    entry.currency,
+                                            })}
+                                        </td>
+
+                                        <td className="px-5 py-4 align-top">
+                                            <div className="flex justify-end gap-1">
+                                                <Link
+                                                    href={`/relatorios/${entry.id}/editar`}
+                                                    title="Editar lançamento"
+                                                    aria-label={`Editar ${entry.task}`}
+                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                                                >
+                                                    <Edit3
+                                                        size={16}
+                                                    />
+                                                </Link>
+
+                                                <DeleteReportEntryButton
+                                                    entryId={
+                                                        entry.id
+                                                    }
+                                                    task={
+                                                        entry.task
+                                                    }
+                                                />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -202,7 +211,9 @@ export default function ReportEntriesTable({
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                    {formatDate(entry.date)}
+                                    {formatDate(
+                                        entry.date
+                                    )}
                                 </p>
 
                                 <h2 className="mt-2 font-bold text-slate-900">
@@ -231,18 +242,12 @@ export default function ReportEntriesTable({
                         </p>
 
                         <div className="mt-5 border-t border-slate-100 pt-4">
-                            {entry.projectId ? (
-                                <Link
-                                    href={`/projetos/${entry.projectId}`}
-                                    className="text-sm font-semibold text-blue-600"
-                                >
-                                    {entry.projectName}
-                                </Link>
-                            ) : (
-                                <span className="text-xs font-semibold text-amber-700">
-                                    Registro legado sem projeto
-                                </span>
-                            )}
+                            <Link
+                                href={`/projetos/${entry.projectId}`}
+                                className="text-sm font-semibold text-blue-600"
+                            >
+                                {entry.projectName}
+                            </Link>
 
                             <div className="mt-4 grid grid-cols-3 gap-3">
                                 <div>
@@ -263,7 +268,9 @@ export default function ReportEntriesTable({
                                     <p className="mt-1 text-sm font-semibold text-slate-800">
                                         {entry.rate !== null
                                             ? formatCurrency({
-                                                value: entry.rate,
+                                                value:
+                                                    entry.rate,
+
                                                 currency:
                                                     entry.currency,
                                             })
@@ -278,8 +285,11 @@ export default function ReportEntriesTable({
 
                                     <p className="mt-1 text-sm font-bold text-slate-900">
                                         {formatCurrency({
-                                            value: entry.amount,
-                                            currency: entry.currency,
+                                            value:
+                                                entry.amount,
+
+                                            currency:
+                                                entry.currency,
                                         })}
                                     </p>
                                 </div>
