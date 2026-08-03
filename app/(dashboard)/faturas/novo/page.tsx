@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 import {
-    getInvoiceClientOptions,
     getInvoiceProjectOptions,
 } from '@/app/actions/invoice';
 
@@ -13,7 +12,6 @@ import InvoiceForm from '@/components/invoices/InvoiceForm';
 
 type NewInvoicePageProps = {
     searchParams: Promise<{
-        clientId?: string;
         projectId?: string;
         month?: string;
     }>;
@@ -21,7 +19,7 @@ type NewInvoicePageProps = {
 
 function isValidMonth(
     value?: string
-) {
+): value is string {
     return Boolean(
         value &&
         /^\d{4}-(0[1-9]|1[0-2])$/.test(
@@ -36,11 +34,8 @@ export default async function NewInvoicePage({
     const params =
         await searchParams;
 
-    const [clients, projects] =
-        await Promise.all([
-            getInvoiceClientOptions(),
-            getInvoiceProjectOptions(),
-        ]);
+    const projects =
+        await getInvoiceProjectOptions();
 
     const initialProject =
         projects.find(
@@ -48,9 +43,6 @@ export default async function NewInvoicePage({
                 project.id ===
                 params.projectId
         );
-
-    const initialClientId =
-        params.clientId;
 
     return (
         <div className="mx-auto max-w-6xl">
@@ -69,16 +61,12 @@ export default async function NewInvoicePage({
                 </h1>
 
                 <p className="mt-2 text-sm text-slate-500">
-                    Importe horas do projeto ou adicione itens manualmente.
+                    Informe o destinatário, importe horas do projeto ou adicione itens manualmente.
                 </p>
             </header>
 
             <InvoiceForm
-                clients={clients}
                 projects={projects}
-                initialClientId={
-                    initialClientId
-                }
                 initialProjectId={
                     initialProject?.id
                 }

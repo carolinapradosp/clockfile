@@ -26,7 +26,7 @@ import InvoiceItemsEditor from '@/components/invoices/InvoiceItemsEditor';
 
 import type {
     Invoice,
-    InvoiceClientOption,
+    InvoiceBillToInput,
     InvoiceItem,
     InvoiceItemSource,
     InvoiceProjectOption,
@@ -44,12 +44,10 @@ type EditableInvoiceItemField =
     | 'source';
 
 type InvoiceFormProps = {
-    clients: InvoiceClientOption[];
     projects: InvoiceProjectOption[];
 
     invoice?: Invoice;
 
-    initialClientId?: string;
     initialProjectId?: string;
     initialMonth?: string;
 };
@@ -104,12 +102,16 @@ function createEmptyItem(
 ): InvoiceItem {
     return {
         id: createLocalId(),
+
         description: '',
         link: '',
+
         quantity: '1',
         rate: '',
         amount: '',
+
         source,
+
         reportEntryIds: [],
     };
 }
@@ -118,37 +120,95 @@ function normalizeInitialItems(
     invoice?: Invoice
 ): InvoiceItem[] {
     if (!invoice?.items.length) {
-        return [createEmptyItem()];
+        return [
+            createEmptyItem(),
+        ];
     }
 
-    return invoice.items.map((item) => ({
-        id: item.id,
-        description: item.description,
-        link: item.link ?? '',
+    return invoice.items.map(
+        (item) => ({
+            id: item.id,
 
-        quantity:
-            item.quantity === null
-                ? ''
-                : String(item.quantity),
+            description:
+                item.description,
 
-        rate:
-            item.rate === null
-                ? ''
-                : String(item.rate),
+            link:
+                item.link ?? '',
 
-        amount: String(item.amount),
+            quantity:
+                item.quantity === null
+                    ? ''
+                    : String(
+                        item.quantity
+                    ),
 
-        source: item.source,
+            rate:
+                item.rate === null
+                    ? ''
+                    : String(
+                        item.rate
+                    ),
 
-        reportEntryIds:
-            item.reportEntryIds,
-    }));
+            amount:
+                String(item.amount),
+
+            source:
+                item.source,
+
+            reportEntryIds:
+                item.reportEntryIds,
+        })
+    );
+}
+
+function createInitialBillTo(
+    invoice?: Invoice
+): InvoiceBillToInput {
+    return {
+        name:
+            invoice?.billTo.name ?? '',
+
+        company:
+            invoice?.billTo.company ??
+            '',
+
+        email:
+            invoice?.billTo.email ?? '',
+
+        phone:
+            invoice?.billTo.phone ?? '',
+
+        addressLine1:
+            invoice?.billTo
+                .addressLine1 ?? '',
+
+        addressLine2:
+            invoice?.billTo
+                .addressLine2 ?? '',
+
+        city:
+            invoice?.billTo.city ?? '',
+
+        state:
+            invoice?.billTo.state ?? '',
+
+        postalCode:
+            invoice?.billTo
+                .postalCode ?? '',
+
+        countryCode:
+            invoice?.billTo
+                .countryCode ?? '',
+    };
 }
 
 function roundCurrency(
     value: number
 ) {
-    return Math.round(value * 100) / 100;
+    return (
+        Math.round(value * 100) /
+        100
+    );
 }
 
 function formatCurrency({
@@ -182,7 +242,9 @@ function getDefaultInvoiceDate() {
 function getDefaultDueDate() {
     const date = new Date();
 
-    date.setDate(date.getDate() + 15);
+    date.setDate(
+        date.getDate() + 15
+    );
 
     return date
         .toISOString()
@@ -200,55 +262,79 @@ function buildMonthlyReportItem({
     project,
     referenceMonth,
 }: {
-    entries: InvoiceReportEntryOption[];
-    project: InvoiceProjectOption;
+    entries:
+    InvoiceReportEntryOption[];
+
+    project:
+    InvoiceProjectOption;
+
     referenceMonth: string;
 }): InvoiceItem {
-    const totalMinutes = entries.reduce(
-        (total, entry) =>
-            total + entry.durationMinutes,
-        0
-    );
+    const totalMinutes =
+        entries.reduce(
+            (total, entry) =>
+                total +
+                entry.durationMinutes,
+            0
+        );
 
-    const quantity = roundCurrency(
-        totalMinutes / 60
-    );
+    const quantity =
+        roundCurrency(
+            totalMinutes / 60
+        );
 
     const rates = entries
-        .map((entry) => entry.rate)
+        .map(
+            (entry) => entry.rate
+        )
         .filter(
-            (rate): rate is number =>
+            (
+                rate
+            ): rate is number =>
                 rate !== null
         );
 
     const uniqueRates =
-        Array.from(new Set(rates));
+        Array.from(
+            new Set(rates)
+        );
 
     const rate =
         uniqueRates.length === 1
             ? uniqueRates[0]
             : project.defaultHourlyRate;
 
-    const amount = roundCurrency(
-        entries.reduce(
-            (total, entry) =>
-                total + entry.amount,
-            0
-        )
-    );
+    const amount =
+        roundCurrency(
+            entries.reduce(
+                (total, entry) =>
+                    total + entry.amount,
+                0
+            )
+        );
 
-    const [year, month] =
-        referenceMonth
-            .split('-')
-            .map(Number);
+    const [
+        year,
+        month,
+    ] = referenceMonth
+        .split('-')
+        .map(Number);
 
-    const monthLabel = new Date(
-        Date.UTC(year, month - 1, 1)
-    ).toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC',
-    });
+    const monthLabel =
+        new Date(
+            Date.UTC(
+                year,
+                month - 1,
+                1
+            )
+        ).toLocaleDateString(
+            'en-US',
+            {
+                month: 'long',
+                year: 'numeric',
+                timeZone: 'UTC',
+            }
+        );
 
     return {
         id: createLocalId(),
@@ -258,45 +344,61 @@ function buildMonthlyReportItem({
 
         link: '',
 
-        quantity: String(quantity),
+        quantity:
+            String(quantity),
 
         rate:
             rate === null
                 ? ''
                 : String(rate),
 
-        amount: String(amount),
+        amount:
+            String(amount),
 
-        source: 'monthly-report',
+        source:
+            'monthly-report',
 
         reportEntryIds:
-            entries.map((entry) => entry.id),
+            entries.map(
+                (entry) => entry.id
+            ),
     };
 }
 
+function normalizeOptionalValue(
+    value: string
+): string | null {
+    const normalized =
+        value.trim();
+
+    return normalized || null;
+}
+
 export default function InvoiceForm({
-    clients,
     projects,
     invoice,
-    initialClientId,
     initialProjectId,
     initialMonth,
 }: InvoiceFormProps) {
     const router = useRouter();
 
-    const [clientId, setClientId] =
-        useState(
-            invoice?.clientId ??
-            initialClientId ??
-            ''
-        );
+    const [
+        billTo,
+        setBillTo,
+    ] = useState<InvoiceBillToInput>(
+        createInitialBillTo(
+            invoice
+        )
+    );
 
-    const [projectId, setProjectId] =
-        useState(
-            invoice?.projectId ??
-            initialProjectId ??
-            ''
-        );
+    const [
+        projectId,
+        setProjectId,
+    ] = useState(
+        invoice?.projectId ??
+        initialProjectId ??
+        ''
+    );
 
     const [
         referenceMonth,
@@ -315,65 +417,97 @@ export default function InvoiceForm({
         getDefaultInvoiceDate()
     );
 
-    const [dueDate, setDueDate] =
-        useState(
-            invoice?.dueDate ??
-            getDefaultDueDate()
-        );
+    const [
+        dueDate,
+        setDueDate,
+    ] = useState(
+        invoice?.dueDate ??
+        getDefaultDueDate()
+    );
 
-    const [currency, setCurrency] =
-        useState(
-            invoice?.currency ?? 'USD'
-        );
+    const [
+        currency,
+        setCurrency,
+    ] = useState(
+        invoice?.currency ??
+        projects.find(
+            (project) =>
+                project.id ===
+                initialProjectId
+        )?.currency ??
+        'USD'
+    );
 
     const [
         taxPercentage,
         setTaxPercentage,
     ] = useState(
         String(
-            invoice?.taxPercentage ?? 0
+            invoice
+                ?.taxPercentage ?? 0
         )
     );
 
-    const [notes, setNotes] =
-        useState(invoice?.notes ?? '');
+    const [
+        notes,
+        setNotes,
+    ] = useState(
+        invoice?.notes ?? ''
+    );
 
-    const [items, setItems] =
-        useState<InvoiceItem[]>(
-            normalizeInitialItems(invoice)
-        );
+    const [
+        items,
+        setItems,
+    ] = useState<
+        InvoiceItem[]
+    >(
+        normalizeInitialItems(
+            invoice
+        )
+    );
 
-    const [isSaving, setIsSaving] =
-        useState(false);
+    const [
+        isSaving,
+        setIsSaving,
+    ] = useState(false);
 
     const [
         isImporting,
         setIsImporting,
     ] = useState(false);
 
-    const [error, setError] =
-        useState('');
+    const [
+        error,
+        setError,
+    ] = useState('');
 
-    const [successMessage, setSuccessMessage] =
-        useState('');
-
-    const filteredProjects =
-        projects;
-
+    const [
+        successMessage,
+        setSuccessMessage,
+    ] = useState('');
 
     const subtotal = useMemo(
         () =>
             roundCurrency(
                 items.reduce(
-                    (total, item) => {
+                    (
+                        total,
+                        item
+                    ) => {
                         const amount =
-                            Number(item.amount);
+                            Number(
+                                item.amount
+                            );
 
                         return (
                             total +
-                            (Number.isFinite(amount)
-                                ? amount
-                                : 0)
+                            (
+                                Number.isFinite(
+                                    amount
+                                )
+                                    ? amount
+                                    : 0
+                            )
                         );
                     },
                     0
@@ -383,26 +517,47 @@ export default function InvoiceForm({
     );
 
     const numericTax =
-        Number(taxPercentage);
+        Number(
+            taxPercentage
+        );
 
     const taxAmount =
-        Number.isFinite(numericTax) &&
+        Number.isFinite(
+            numericTax
+        ) &&
             numericTax >= 0
             ? roundCurrency(
                 subtotal *
-                (numericTax / 100)
+                (
+                    numericTax /
+                    100
+                )
             )
             : 0;
 
     const total =
         roundCurrency(
-            subtotal + taxAmount
+            subtotal +
+            taxAmount
         );
 
-    function handleClientChange(
+    function handleBillToChange(
+        field:
+            keyof InvoiceBillToInput,
+
         value: string
     ) {
-        setClientId(value);
+        setBillTo(
+            (current) => ({
+                ...current,
+
+                [field]:
+                    field ===
+                        'countryCode'
+                        ? value.toUpperCase()
+                        : value,
+            })
+        );
     }
 
     function handleProjectChange(
@@ -410,75 +565,93 @@ export default function InvoiceForm({
     ) {
         setProjectId(value);
 
-        const project = projects.find(
-            (item) => item.id === value
-        );
+        const project =
+            projects.find(
+                (item) =>
+                    item.id === value
+            );
 
         if (project) {
-            setCurrency(project.currency);
+            setCurrency(
+                project.currency
+            );
         }
     }
 
     function handleItemChange(
         id: string,
-        field: EditableInvoiceItemField,
+
+        field:
+            EditableInvoiceItemField,
+
         value: string
     ) {
-        setItems((currentItems) =>
-            currentItems.map((item) => {
-                if (item.id !== id) {
-                    return item;
-                }
+        setItems(
+            (currentItems) =>
+                currentItems.map(
+                    (item) => {
+                        if (
+                            item.id !== id
+                        ) {
+                            return item;
+                        }
 
-                const updatedItem = {
-                    ...item,
-                    [field]: value,
-                };
+                        const updatedItem = {
+                            ...item,
+                            [field]: value,
+                        };
 
-                /*
-                 * Quando quantidade ou rate mudarem,
-                 * recalculamos o amount automaticamente.
-                 *
-                 * O usuário ainda pode alterar o amount
-                 * diretamente depois.
-                 */
-                if (
-                    field === 'quantity' ||
-                    field === 'rate'
-                ) {
-                    const quantity = Number(
-                        updatedItem.quantity
-                    );
+                        if (
+                            field ===
+                            'quantity' ||
+                            field === 'rate'
+                        ) {
+                            const quantity =
+                                Number(
+                                    updatedItem
+                                        .quantity
+                                );
 
-                    const rate = Number(
-                        updatedItem.rate
-                    );
+                            const rate =
+                                Number(
+                                    updatedItem.rate
+                                );
 
-                    if (
-                        Number.isFinite(quantity) &&
-                        quantity >= 0 &&
-                        Number.isFinite(rate) &&
-                        rate >= 0
-                    ) {
-                        updatedItem.amount =
-                            String(
-                                roundCurrency(
-                                    quantity * rate
-                                )
-                            );
+                            if (
+                                Number.isFinite(
+                                    quantity
+                                ) &&
+                                quantity >= 0 &&
+                                Number.isFinite(
+                                    rate
+                                ) &&
+                                rate >= 0
+                            ) {
+                                updatedItem.amount =
+                                    String(
+                                        roundCurrency(
+                                            quantity *
+                                            rate
+                                        )
+                                    );
+                            }
+                        }
+
+                        return updatedItem;
                     }
-                }
-
-                return updatedItem;
-            })
+                )
         );
     }
 
-    function removeItem(id: string) {
-        setItems((currentItems) =>
-            currentItems.filter(
-                (item) => item.id !== id
-            )
+    function removeItem(
+        id: string
+    ) {
+        setItems(
+            (currentItems) =>
+                currentItems.filter(
+                    (item) =>
+                        item.id !== id
+                )
         );
     }
 
@@ -488,10 +661,14 @@ export default function InvoiceForm({
             'monthly-report'
         >
     ) {
-        setItems((currentItems) => [
-            ...currentItems,
-            createEmptyItem(source),
-        ]);
+        setItems(
+            (currentItems) => [
+                ...currentItems,
+                createEmptyItem(
+                    source
+                ),
+            ]
+        );
     }
 
     async function importReportEntries() {
@@ -511,9 +688,12 @@ export default function InvoiceForm({
             return;
         }
 
-        const project = projects.find(
-            (item) => item.id === projectId
-        );
+        const project =
+            projects.find(
+                (item) =>
+                    item.id ===
+                    projectId
+            );
 
         if (!project) {
             setError(
@@ -529,13 +709,21 @@ export default function InvoiceForm({
             setSuccessMessage('');
 
             const entries =
-                await getUnbilledReportEntries({
-                    projectId,
-                    month: referenceMonth,
-                    invoiceId: invoice?.id,
-                });
+                await getUnbilledReportEntries(
+                    {
+                        projectId,
 
-            if (entries.length === 0) {
+                        month:
+                            referenceMonth,
+
+                        invoiceId:
+                            invoice?.id,
+                    }
+                );
+
+            if (
+                entries.length === 0
+            ) {
                 setError(
                     'Nenhum lançamento disponível para faturamento nesse projeto e mês.'
                 );
@@ -544,39 +732,47 @@ export default function InvoiceForm({
             }
 
             const reportItem =
-                buildMonthlyReportItem({
-                    entries,
-                    project,
-                    referenceMonth,
-                });
+                buildMonthlyReportItem(
+                    {
+                        entries,
+                        project,
+                        referenceMonth,
+                    }
+                );
 
-            setItems((currentItems) => {
-                const withoutPreviousReport =
-                    currentItems.filter(
-                        (item) =>
-                            item.source !==
-                            'monthly-report'
-                    );
+            setItems(
+                (currentItems) => {
+                    const withoutPreviousReport =
+                        currentItems.filter(
+                            (item) =>
+                                item.source !==
+                                'monthly-report'
+                        );
 
-                const meaningfulItems =
-                    withoutPreviousReport.filter(
-                        (item) =>
-                            item.description.trim() ||
-                            item.amount.trim()
-                    );
+                    const meaningfulItems =
+                        withoutPreviousReport.filter(
+                            (item) =>
+                                item.description.trim() ||
+                                item.amount.trim()
+                        );
 
-                return [
-                    reportItem,
-                    ...meaningfulItems,
-                ];
-            });
+                    return [
+                        reportItem,
+                        ...meaningfulItems,
+                    ];
+                }
+            );
 
-            setCurrency(project.currency);
+            setCurrency(
+                project.currency
+            );
 
             setSuccessMessage(
-                `${entries.length} lançamentos foram importados para a fatura.`
+                `${entries.length} lançamento(s) foram importados para a fatura.`
             );
-        } catch (importError) {
+        } catch (
+        importError
+        ) {
             console.error(
                 'Erro ao importar lançamentos:',
                 importError
@@ -586,16 +782,20 @@ export default function InvoiceForm({
                 'Não foi possível carregar os lançamentos.'
             );
         } finally {
-            setIsImporting(false);
+            setIsImporting(
+                false
+            );
         }
     }
 
     function buildPayload(
         status: InvoiceStatus
     ): SaveInvoiceInput | null {
-        if (!clientId) {
+        if (
+            !billTo.name.trim()
+        ) {
             setError(
-                'Selecione um cliente.'
+                'Informe o nome do destinatário.'
             );
 
             return null;
@@ -619,7 +819,10 @@ export default function InvoiceForm({
 
         const normalizedItems =
             items.map(
-                (item, position) => ({
+                (
+                    item,
+                    position
+                ) => ({
                     description:
                         item.description,
 
@@ -630,18 +833,26 @@ export default function InvoiceForm({
 
                     quantity:
                         item.quantity.trim()
-                            ? Number(item.quantity)
+                            ? Number(
+                                item.quantity
+                            )
                             : null,
 
                     rate:
                         item.rate.trim()
-                            ? Number(item.rate)
+                            ? Number(
+                                item.rate
+                            )
                             : null,
 
                     amount:
-                        Number(item.amount),
+                        Number(
+                            item.amount
+                        ),
 
-                    source: item.source,
+                    source:
+                        item.source,
+
                     position,
 
                     reportEntryIds:
@@ -650,9 +861,8 @@ export default function InvoiceForm({
             );
 
         return {
-            invoiceId: invoice?.id,
-
-            clientId,
+            invoiceId:
+                invoice?.id,
 
             projectId:
                 projectId || null,
@@ -667,14 +877,77 @@ export default function InvoiceForm({
             currency,
 
             taxPercentage:
-                Number(taxPercentage),
+                Number(
+                    taxPercentage
+                ),
 
             notes:
-                notes.trim() || null,
+                notes.trim() ||
+                null,
 
             status,
 
-            items: normalizedItems,
+            billTo: {
+                name:
+                    billTo.name.trim(),
+
+                company:
+                    normalizeOptionalValue(
+                        billTo.company ??
+                        ''
+                    ),
+
+                email:
+                    normalizeOptionalValue(
+                        billTo.email ?? ''
+                    ),
+
+                phone:
+                    normalizeOptionalValue(
+                        billTo.phone ?? ''
+                    ),
+
+                addressLine1:
+                    normalizeOptionalValue(
+                        billTo
+                            .addressLine1 ??
+                        ''
+                    ),
+
+                addressLine2:
+                    normalizeOptionalValue(
+                        billTo
+                            .addressLine2 ??
+                        ''
+                    ),
+
+                city:
+                    normalizeOptionalValue(
+                        billTo.city ?? ''
+                    ),
+
+                state:
+                    normalizeOptionalValue(
+                        billTo.state ?? ''
+                    ),
+
+                postalCode:
+                    normalizeOptionalValue(
+                        billTo
+                            .postalCode ??
+                        ''
+                    ),
+
+                countryCode:
+                    normalizeOptionalValue(
+                        billTo
+                            .countryCode ??
+                        ''
+                    ),
+            },
+
+            items:
+                normalizedItems,
         };
     }
 
@@ -694,10 +967,15 @@ export default function InvoiceForm({
             setSuccessMessage('');
 
             const result =
-                await saveInvoice(payload);
+                await saveInvoice(
+                    payload
+                );
 
             if (!result.success) {
-                setError(result.message);
+                setError(
+                    result.message
+                );
+
                 return;
             }
 
@@ -706,7 +984,9 @@ export default function InvoiceForm({
             );
 
             router.refresh();
-        } catch (saveError) {
+        } catch (
+        saveError
+        ) {
             console.error(
                 'Erro ao salvar fatura:',
                 saveError
@@ -737,6 +1017,279 @@ export default function InvoiceForm({
                 </div>
             )}
 
+            {/* DESTINATÁRIO */}
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">
+                        Destinatário
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Informe os dados que serão exibidos na fatura.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <label
+                            htmlFor="bill-to-name"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Nome *
+                        </label>
+
+                        <input
+                            id="bill-to-name"
+                            type="text"
+                            value={billTo.name}
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'name',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Nome do destinatário"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-company"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Empresa
+                        </label>
+
+                        <input
+                            id="bill-to-company"
+                            type="text"
+                            value={
+                                billTo.company ??
+                                ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'company',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Nome da empresa"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-email"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            E-mail
+                        </label>
+
+                        <input
+                            id="bill-to-email"
+                            type="email"
+                            value={
+                                billTo.email ?? ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'email',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="cliente@empresa.com"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-phone"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Telefone
+                        </label>
+
+                        <input
+                            id="bill-to-phone"
+                            type="tel"
+                            value={
+                                billTo.phone ?? ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'phone',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="+55 11 99999-9999"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="bill-to-address-line-1"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Endereço
+                        </label>
+
+                        <input
+                            id="bill-to-address-line-1"
+                            type="text"
+                            value={
+                                billTo
+                                    .addressLine1 ??
+                                ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'addressLine1',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Rua, número e complemento principal"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="bill-to-address-line-2"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Complemento
+                        </label>
+
+                        <input
+                            id="bill-to-address-line-2"
+                            type="text"
+                            value={
+                                billTo
+                                    .addressLine2 ??
+                                ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'addressLine2',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Sala, apartamento ou complemento"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-city"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Cidade
+                        </label>
+
+                        <input
+                            id="bill-to-city"
+                            type="text"
+                            value={
+                                billTo.city ?? ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'city',
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-state"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Estado
+                        </label>
+
+                        <input
+                            id="bill-to-state"
+                            type="text"
+                            value={
+                                billTo.state ?? ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'state',
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-postal-code"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            CEP / Código postal
+                        </label>
+
+                        <input
+                            id="bill-to-postal-code"
+                            type="text"
+                            value={
+                                billTo
+                                    .postalCode ??
+                                ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'postalCode',
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="bill-to-country"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            País
+                        </label>
+
+                        <input
+                            id="bill-to-country"
+                            type="text"
+                            maxLength={2}
+                            value={
+                                billTo
+                                    .countryCode ??
+                                ''
+                            }
+                            onChange={(event) =>
+                                handleBillToChange(
+                                    'countryCode',
+                                    event.target.value
+                                )
+                            }
+                            placeholder="BR"
+                            className={`${inputClassName} uppercase`}
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* INFORMAÇÕES DA FATURA */}
+
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
                     <h2 className="text-lg font-bold text-slate-900">
@@ -744,46 +1297,11 @@ export default function InvoiceForm({
                     </h2>
 
                     <p className="mt-1 text-sm text-slate-500">
-                        Selecione o cliente, projeto e período da cobrança.
+                        Selecione o projeto, período e moeda da cobrança.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div>
-                        <label
-                            htmlFor="invoice-client"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Cliente *
-                        </label>
-
-                        <select
-                            id="invoice-client"
-                            value={clientId}
-                            onChange={(event) =>
-                                handleClientChange(
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassName}
-                        >
-                            <option value="">
-                                Selecione um cliente
-                            </option>
-
-                            {clients.map((client) => (
-                                <option
-                                    key={client.id}
-                                    value={client.id}
-                                >
-                                    {client.companyName
-                                        ? `${client.companyName} — ${client.name}`
-                                        : client.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
                     <div>
                         <label
                             htmlFor="invoice-project"
@@ -800,18 +1318,21 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            disabled={!clientId}
                             className={inputClassName}
                         >
                             <option value="">
                                 Sem projeto específico
                             </option>
 
-                            {filteredProjects.map(
+                            {projects.map(
                                 (project) => (
                                     <option
-                                        key={project.id}
-                                        value={project.id}
+                                        key={
+                                            project.id
+                                        }
+                                        value={
+                                            project.id
+                                        }
                                     >
                                         {project.name}
                                     </option>
@@ -831,7 +1352,9 @@ export default function InvoiceForm({
                         <input
                             id="reference-month"
                             type="month"
-                            value={referenceMonth}
+                            value={
+                                referenceMonth
+                            }
                             onChange={(event) =>
                                 setReferenceMonth(
                                     event.target.value
@@ -910,7 +1433,9 @@ export default function InvoiceForm({
                 <div className="mt-5">
                     <button
                         type="button"
-                        onClick={importReportEntries}
+                        onClick={
+                            importReportEntries
+                        }
                         disabled={
                             isImporting ||
                             !projectId ||
@@ -924,7 +1449,9 @@ export default function InvoiceForm({
                                 className="animate-spin"
                             />
                         ) : (
-                            <Download size={17} />
+                            <Download
+                                size={17}
+                            />
                         )}
 
                         {isImporting
@@ -936,8 +1463,12 @@ export default function InvoiceForm({
 
             <InvoiceItemsEditor
                 items={items}
-                onChange={handleItemChange}
-                onRemove={removeItem}
+                onChange={
+                    handleItemChange
+                }
+                onRemove={
+                    removeItem
+                }
                 onAdd={addItem}
             />
 
@@ -958,8 +1489,10 @@ export default function InvoiceForm({
                                 event.target.value
                             )
                         }
-                        placeholder="Condições de pagamento, informações bancárias ou observações para o cliente..."
-                        className={textareaClassName}
+                        placeholder="Condições de pagamento, informações bancárias ou observações..."
+                        className={
+                            textareaClassName
+                        }
                     />
                 </div>
 
@@ -978,7 +1511,9 @@ export default function InvoiceForm({
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={taxPercentage}
+                                value={
+                                    taxPercentage
+                                }
                                 onChange={(event) =>
                                     setTaxPercentage(
                                         event.target.value
@@ -995,22 +1530,30 @@ export default function InvoiceForm({
 
                     <div className="mt-6 space-y-3 border-t border-slate-100 pt-5 text-sm">
                         <div className="flex justify-between gap-4 text-slate-500">
-                            <span>Subtotal</span>
+                            <span>
+                                Subtotal
+                            </span>
 
                             <span className="font-semibold text-slate-800">
                                 {formatCurrency({
-                                    value: subtotal,
+                                    value:
+                                        subtotal,
+
                                     currency,
                                 })}
                             </span>
                         </div>
 
                         <div className="flex justify-between gap-4 text-slate-500">
-                            <span>Imposto</span>
+                            <span>
+                                Imposto
+                            </span>
 
                             <span className="font-semibold text-slate-800">
                                 {formatCurrency({
-                                    value: taxAmount,
+                                    value:
+                                        taxAmount,
+
                                     currency,
                                 })}
                             </span>
@@ -1023,7 +1566,9 @@ export default function InvoiceForm({
 
                             <span className="text-xl font-bold text-slate-900">
                                 {formatCurrency({
-                                    value: total,
+                                    value:
+                                        total,
+
                                     currency,
                                 })}
                             </span>
@@ -1047,7 +1592,9 @@ export default function InvoiceForm({
                 <button
                     type="button"
                     onClick={() =>
-                        handleSave('draft')
+                        handleSave(
+                            'draft'
+                        )
                     }
                     disabled={isSaving}
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60"
@@ -1062,7 +1609,9 @@ export default function InvoiceForm({
                 <button
                     type="button"
                     onClick={() =>
-                        handleSave('issued')
+                        handleSave(
+                            'issued'
+                        )
                     }
                     disabled={isSaving}
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"

@@ -11,7 +11,6 @@ import { ArrowLeft } from 'lucide-react';
 
 import {
     getInvoiceById,
-    getInvoiceClientOptions,
     getInvoiceProjectOptions,
 } from '@/app/actions/invoice';
 
@@ -30,11 +29,9 @@ export default async function EditInvoicePage({
 
     const [
         invoice,
-        clients,
         projects,
     ] = await Promise.all([
         getInvoiceById(id),
-        getInvoiceClientOptions(),
         getInvoiceProjectOptions(),
     ]);
 
@@ -43,11 +40,15 @@ export default async function EditInvoicePage({
     }
 
     /*
-     * Nesta primeira versão, somente rascunhos
-     * podem ser editados livremente.
+     * Somente rascunhos podem ser
+     * editados livremente.
      */
-    if (invoice.status !== 'draft') {
-        redirect(`/faturas/${invoice.id}`);
+    if (
+        invoice.status !== 'draft'
+    ) {
+        redirect(
+            `/faturas/${invoice.id}`
+        );
     }
 
     return (
@@ -67,13 +68,12 @@ export default async function EditInvoicePage({
                 </h1>
 
                 <p className="mt-2 text-sm text-slate-500">
-                    Atualize os dados, itens e valores do rascunho.
+                    Atualize o destinatário, os itens e os valores do rascunho.
                 </p>
             </header>
 
             <InvoiceForm
                 invoice={invoice}
-                clients={clients}
                 projects={projects}
             />
         </div>

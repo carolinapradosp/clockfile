@@ -125,12 +125,10 @@ export default async function InvoiceDetailsPage({
         notFound();
     }
 
-    const clientDisplayName =
+    const recipientDisplayName =
         invoice.billTo.company ??
-        invoice.clientCompanyName ??
         invoice.billTo.name ??
-        invoice.clientName ??
-        'Cliente não informado';
+        'Destinatário não informado';
 
     const addressParts = [
         invoice.billTo.addressLine1,
@@ -318,14 +316,15 @@ export default async function InvoiceDetailsPage({
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                Dados congelados na emissão.
+                                Dados do destinatário registrados na fatura.
+
                             </p>
                         </div>
                     </div>
 
                     <div className="mt-6">
                         <p className="font-bold text-slate-900">
-                            {clientDisplayName}
+                            {recipientDisplayName}
                         </p>
 
                         {invoice.billTo.company &&
@@ -378,16 +377,7 @@ export default async function InvoiceDetailsPage({
                             </div>
                         )}
 
-                        {invoice.clientId && (
-                            <Link
-                                href={`/clientes/${invoice.clientId}`}
-                                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
-                            >
-                                Ver cliente
 
-                                <ExternalLink size={14} />
-                            </Link>
-                        )}
                     </div>
                 </section>
 

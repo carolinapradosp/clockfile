@@ -5,11 +5,11 @@
 import { revalidatePath } from 'next/cache';
 
 import { sql } from '@/lib/db';
-import { getCurrentAppUserId } from '@/lib/users/get-current-app-user';
+import { getCurrentUserId } from '@/lib/auth/current-user';
 
 import type {
   Invoice,
-  InvoiceClientOption,
+  InvoiceBillToInput,
   InvoiceFilters,
   InvoiceItemInput,
   InvoiceItemSource,
@@ -22,29 +22,46 @@ import type {
   SaveInvoiceResult,
   SavedInvoiceItem,
 } from '@/interfaces/Invoice';
-import { getCurrentUserId } from '@/lib/auth/current-user';
 
 type InvoiceRow = {
   id: string;
-  invoice_number: string | number;
+  owner_id: string;
 
-  client_id: string | null;
-  client_name: string | null;
-  client_company_name: string | null;
+  invoice_number:
+    | string
+    | number;
 
   project_id: string | null;
   project_name: string | null;
 
   reference_month: string;
-  invoice_date: string | Date;
-  due_date: string | Date | null;
+
+  invoice_date:
+    | string
+    | Date;
+
+  due_date:
+    | string
+    | Date
+    | null;
 
   currency: string;
 
-  tax_percentage: string | number;
-  subtotal: string | number;
-  tax_amount: string | number;
-  total_amount: string | number;
+  tax_percentage:
+    | string
+    | number;
+
+  subtotal:
+    | string
+    | number;
+
+  tax_amount:
+    | string
+    | number;
+
+  total_amount:
+    | string
+    | number;
 
   status: InvoiceStatus;
   notes: string | null;
@@ -54,20 +71,52 @@ type InvoiceRow = {
   bill_to_email: string | null;
   bill_to_phone: string | null;
 
-  bill_to_address_line_1: string | null;
-  bill_to_address_line_2: string | null;
+  bill_to_address_line_1:
+    | string
+    | null;
+
+  bill_to_address_line_2:
+    | string
+    | null;
+
   bill_to_city: string | null;
   bill_to_state: string | null;
-  bill_to_postal_code: string | null;
-  bill_to_country_code: string | null;
 
-  issued_at: string | Date | null;
-  sent_at: string | Date | null;
-  paid_at: string | Date | null;
-  cancelled_at: string | Date | null;
+  bill_to_postal_code:
+    | string
+    | null;
 
-  created_at: string | Date;
-  updated_at: string | Date;
+  bill_to_country_code:
+    | string
+    | null;
+
+  issued_at:
+    | string
+    | Date
+    | null;
+
+  sent_at:
+    | string
+    | Date
+    | null;
+
+  paid_at:
+    | string
+    | Date
+    | null;
+
+  cancelled_at:
+    | string
+    | Date
+    | null;
+
+  created_at:
+    | string
+    | Date;
+
+  updated_at:
+    | string
+    | Date;
 };
 
 type InvoiceItemRow = {
@@ -76,21 +125,29 @@ type InvoiceItemRow = {
   description: string;
   link: string | null;
 
-  quantity: string | number | null;
-  rate: string | number | null;
-  amount: string | number;
+  quantity:
+    | string
+    | number
+    | null;
+
+  rate:
+    | string
+    | number
+    | null;
+
+  amount:
+    | string
+    | number;
 
   source: InvoiceItemSource;
-  position: string | number;
 
-  report_entry_ids: string[] | null;
-};
+  position:
+    | string
+    | number;
 
-type InvoiceClientOptionRow = {
-  id: string;
-  name: string;
-  company_name: string | null;
-  email: string | null;
+  report_entry_ids:
+    | string[]
+    | null;
 };
 
 type InvoiceProjectOptionRow = {
@@ -114,32 +171,28 @@ type InvoiceReportEntryRow = {
   task: string;
   description: string;
 
-  date: string | Date;
+  date:
+    | string
+    | Date;
 
   duration: string | null;
-  duration_minutes: string | number | null;
 
-  rate: string | number | null;
-  amount: string | number | null;
+  duration_minutes:
+    | string
+    | number
+    | null;
+
+  rate:
+    | string
+    | number
+    | null;
+
+  amount:
+    | string
+    | number
+    | null;
+
   currency: string | null;
-};
-
-type ClientSnapshotRow = {
-  id: string;
-
-  name: string;
-  company_name: string | null;
-
-  email: string | null;
-  phone: string | null;
-
-  address_line_1: string | null;
-  address_line_2: string | null;
-
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  country_code: string | null;
 };
 
 const VALID_STATUSES: InvoiceStatus[] = [
@@ -158,48 +211,87 @@ const VALID_ITEM_SOURCES: InvoiceItemSource[] = [
   'adjustment',
 ];
 
-function isValidUuid(value: string): boolean {
+function isValidUuid(
+  value: string
+): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   );
 }
 
-function isValidMonth(value: string): boolean {
+function isValidMonth(
+  value: string
+): boolean {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(
     value
   );
 }
 
-function isValidDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+function isValidDate(
+  value: string
+): boolean {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(
+      value
+    )
+  ) {
     return false;
   }
 
-  return !Number.isNaN(
-    new Date(`${value}T00:00:00Z`).getTime()
+  const date = new Date(
+    `${value}T00:00:00Z`
+  );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    date
+      .toISOString()
+      .slice(0, 10) === value
   );
 }
 
-function isValidCurrency(value: string): boolean {
-  return /^[A-Z]{3}$/.test(value);
+function isValidCurrency(
+  value: string
+): boolean {
+  return /^[A-Z]{3}$/.test(
+    value
+  );
 }
 
 function normalizeDate(
-  value: string | Date | null
+  value:
+    | string
+    | Date
+    | null
 ): string | null {
   if (!value) {
     return null;
   }
 
   if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
+    return value
+      .toISOString()
+      .slice(0, 10);
   }
 
-  return String(value).slice(0, 10);
+  return String(value).slice(
+    0,
+    10
+  );
 }
 
 function normalizeDateTime(
-  value: string | Date | null
+  value:
+    | string
+    | Date
+    | null
 ): string | null {
   if (!value) {
     return null;
@@ -219,37 +311,178 @@ function durationToMinutes(
     return 0;
   }
 
-  const match = /^(\d+):([0-5]\d)$/.exec(
-    duration
-  );
+  const match =
+    /^(\d+):([0-5]\d)$/.exec(
+      duration
+    );
 
   if (!match) {
     return 0;
   }
 
-  return Number(match[1]) * 60 + Number(match[2]);
+  return (
+    Number(match[1]) * 60 +
+    Number(match[2])
+  );
 }
 
 function minutesToDuration(
   totalMinutes: number
 ): string {
   const safeMinutes =
-    Number.isSafeInteger(totalMinutes) &&
+    Number.isSafeInteger(
+      totalMinutes
+    ) &&
     totalMinutes >= 0
       ? totalMinutes
       : 0;
 
-  const hours = Math.floor(safeMinutes / 60);
-  const minutes = safeMinutes % 60;
+  const hours = Math.floor(
+    safeMinutes / 60
+  );
+
+  const minutes =
+    safeMinutes % 60;
 
   return `${String(hours).padStart(
     2,
     '0'
-  )}:${String(minutes).padStart(2, '0')}`;
+  )}:${String(minutes).padStart(
+    2,
+    '0'
+  )}`;
 }
 
-function roundCurrency(value: number): number {
-  return Math.round(value * 100) / 100;
+function roundCurrency(
+  value: number
+): number {
+  return (
+    Math.round(value * 100) /
+    100
+  );
+}
+
+function normalizeOptionalText(
+  value:
+    | string
+    | null
+    | undefined
+): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalized =
+    value.trim();
+
+  return normalized || null;
+}
+
+function normalizeBillTo(
+  billTo: InvoiceBillToInput
+): InvoiceBillToInput {
+  return {
+    name: billTo.name.trim(),
+
+    company:
+      normalizeOptionalText(
+        billTo.company
+      ),
+
+    email:
+      normalizeOptionalText(
+        billTo.email
+      )?.toLowerCase() ?? null,
+
+    phone:
+      normalizeOptionalText(
+        billTo.phone
+      ),
+
+    addressLine1:
+      normalizeOptionalText(
+        billTo.addressLine1
+      ),
+
+    addressLine2:
+      normalizeOptionalText(
+        billTo.addressLine2
+      ),
+
+    city:
+      normalizeOptionalText(
+        billTo.city
+      ),
+
+    state:
+      normalizeOptionalText(
+        billTo.state
+      ),
+
+    postalCode:
+      normalizeOptionalText(
+        billTo.postalCode
+      ),
+
+    countryCode:
+      normalizeOptionalText(
+        billTo.countryCode
+      )?.toUpperCase() ?? null,
+  };
+}
+
+function validateBillTo(
+  billTo: InvoiceBillToInput
+):
+  | {
+      success: true;
+      billTo: InvoiceBillToInput;
+    }
+  | {
+      success: false;
+      message: string;
+    } {
+  const normalized =
+    normalizeBillTo(billTo);
+
+  if (!normalized.name) {
+    return {
+      success: false,
+      message:
+        'Informe o nome do destinatário da fatura.',
+    };
+  }
+
+  if (
+    normalized.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      normalized.email
+    )
+  ) {
+    return {
+      success: false,
+      message:
+        'Informe um e-mail válido para o destinatário.',
+    };
+  }
+
+  if (
+    normalized.countryCode &&
+    !/^[A-Z]{2}$/.test(
+      normalized.countryCode
+    )
+  ) {
+    return {
+      success: false,
+      message:
+        'O código do país deve possuir duas letras.',
+    };
+  }
+
+  return {
+    success: true,
+    billTo: normalized,
+  };
 }
 
 function mapInvoiceRow(
@@ -257,54 +490,128 @@ function mapInvoiceRow(
 ): InvoiceSummary {
   return {
     id: String(row.id),
-    invoiceNumber: String(row.invoice_number),
 
-    clientId: row.client_id
-      ? String(row.client_id)
-      : null,
+    ownerId:
+      String(row.owner_id),
 
-    clientName: row.client_name,
-    clientCompanyName: row.client_company_name,
+    invoiceNumber:
+      String(
+        row.invoice_number
+      ),
 
-    projectId: row.project_id
-      ? String(row.project_id)
-      : null,
+    projectId:
+      row.project_id
+        ? String(
+            row.project_id
+          )
+        : null,
 
-    projectName: row.project_name,
+    projectName:
+      row.project_name,
 
-    referenceMonth: row.reference_month,
+    referenceMonth:
+      row.reference_month,
 
     invoiceDate:
-      normalizeDate(row.invoice_date) ?? '',
+      normalizeDate(
+        row.invoice_date
+      ) ?? '',
 
-    dueDate: normalizeDate(row.due_date),
+    dueDate:
+      normalizeDate(
+        row.due_date
+      ),
 
-    currency: row.currency,
+    currency:
+      row.currency,
 
-    taxPercentage: Number(
-      row.tax_percentage
-    ),
+    taxPercentage:
+      Number(
+        row.tax_percentage
+      ),
 
-    subtotal: Number(row.subtotal),
-    taxAmount: Number(row.tax_amount),
-    totalAmount: Number(row.total_amount),
+    subtotal:
+      Number(
+        row.subtotal
+      ),
 
-    status: row.status,
-    notes: row.notes,
+    taxAmount:
+      Number(
+        row.tax_amount
+      ),
 
-    issuedAt: normalizeDateTime(row.issued_at),
-    sentAt: normalizeDateTime(row.sent_at),
-    paidAt: normalizeDateTime(row.paid_at),
+    totalAmount:
+      Number(
+        row.total_amount
+      ),
 
-    cancelledAt: normalizeDateTime(
-      row.cancelled_at
-    ),
+    status:
+      row.status,
+
+    notes:
+      row.notes,
+
+    billTo: {
+      name:
+        row.bill_to_name,
+
+      company:
+        row.bill_to_company,
+
+      email:
+        row.bill_to_email,
+
+      phone:
+        row.bill_to_phone,
+
+      addressLine1:
+        row.bill_to_address_line_1,
+
+      addressLine2:
+        row.bill_to_address_line_2,
+
+      city:
+        row.bill_to_city,
+
+      state:
+        row.bill_to_state,
+
+      postalCode:
+        row.bill_to_postal_code,
+
+      countryCode:
+        row.bill_to_country_code,
+    },
+
+    issuedAt:
+      normalizeDateTime(
+        row.issued_at
+      ),
+
+    sentAt:
+      normalizeDateTime(
+        row.sent_at
+      ),
+
+    paidAt:
+      normalizeDateTime(
+        row.paid_at
+      ),
+
+    cancelledAt:
+      normalizeDateTime(
+        row.cancelled_at
+      ),
 
     createdAt:
-      normalizeDateTime(row.created_at) ?? '',
+      normalizeDateTime(
+        row.created_at
+      ) ?? '',
 
     updatedAt:
-      normalizeDateTime(row.updated_at) ?? '',
+      normalizeDateTime(
+        row.updated_at
+      ) ?? '',
   };
 }
 
@@ -314,26 +621,42 @@ function mapInvoiceItem(
   return {
     id: String(row.id),
 
-    description: row.description,
-    link: row.link,
+    description:
+      row.description,
+
+    link:
+      row.link,
 
     quantity:
       row.quantity === null
         ? null
-        : Number(row.quantity),
+        : Number(
+            row.quantity
+          ),
 
     rate:
       row.rate === null
         ? null
-        : Number(row.rate),
+        : Number(
+            row.rate
+          ),
 
-    amount: Number(row.amount),
+    amount:
+      Number(
+        row.amount
+      ),
 
-    source: row.source,
-    position: Number(row.position),
+    source:
+      row.source,
+
+    position:
+      Number(
+        row.position
+      ),
 
     reportEntryIds:
-      row.report_entry_ids?.map(String) ?? [],
+      row.report_entry_ids
+        ?.map(String) ?? [],
   };
 }
 
@@ -349,58 +672,93 @@ function validateAndNormalizeItems(
       success: false;
       message: string;
     } {
-  const normalizedItems = items
-    .map((item, index) => {
-      const quantity =
-        item.quantity === null
-          ? null
-          : Number(item.quantity);
+  const normalizedItems =
+    items
+      .map(
+        (
+          item,
+          index
+        ) => {
+          const quantity =
+            item.quantity === null
+              ? null
+              : Number(
+                  item.quantity
+                );
 
-      const rate =
-        item.rate === null
-          ? null
-          : Number(item.rate);
+          const rate =
+            item.rate === null
+              ? null
+              : Number(
+                  item.rate
+                );
 
-      let amount = Number(item.amount);
+          let amount =
+            Number(
+              item.amount
+            );
 
-      if (
-        (!Number.isFinite(amount) ||
-          amount < 0) &&
-        quantity !== null &&
-        rate !== null
-      ) {
-        amount = roundCurrency(quantity * rate);
-      }
+          if (
+            (
+              !Number.isFinite(
+                amount
+              ) ||
+              amount < 0
+            ) &&
+            quantity !== null &&
+            rate !== null
+          ) {
+            amount =
+              roundCurrency(
+                quantity *
+                  rate
+              );
+          }
 
-      return {
-        description: item.description.trim(),
+          return {
+            description:
+              item.description.trim(),
 
-        link: item.link?.trim() || null,
+            link:
+              item.link
+                ?.trim() ||
+              null,
 
-        quantity,
-        rate,
-        amount,
+            quantity,
+            rate,
+            amount,
 
-        source: item.source,
+            source:
+              item.source,
 
-        position:
-          Number.isSafeInteger(item.position) &&
-          item.position >= 0
-            ? item.position
-            : index,
+            position:
+              Number.isSafeInteger(
+                item.position
+              ) &&
+              item.position >= 0
+                ? item.position
+                : index,
 
-        reportEntryIds: Array.from(
-          new Set(
-            item.reportEntryIds.filter(
-              isValidUuid
-            )
-          )
-        ),
-      };
-    })
-    .filter((item) => item.description);
+            reportEntryIds:
+              Array.from(
+                new Set(
+                  item.reportEntryIds.filter(
+                    isValidUuid
+                  )
+                )
+              ),
+          };
+        }
+      )
+      .filter(
+        (item) =>
+          item.description
+      );
 
-  if (normalizedItems.length === 0) {
+  if (
+    normalizedItems.length ===
+    0
+  ) {
     return {
       success: false,
       message:
@@ -408,9 +766,14 @@ function validateAndNormalizeItems(
     };
   }
 
-  for (const item of normalizedItems) {
+  for (
+    const item of
+    normalizedItems
+  ) {
     if (
-      !VALID_ITEM_SOURCES.includes(item.source)
+      !VALID_ITEM_SOURCES.includes(
+        item.source
+      )
     ) {
       return {
         success: false,
@@ -421,8 +784,12 @@ function validateAndNormalizeItems(
 
     if (
       item.quantity !== null &&
-      (!Number.isFinite(item.quantity) ||
-        item.quantity < 0)
+      (
+        !Number.isFinite(
+          item.quantity
+        ) ||
+        item.quantity < 0
+      )
     ) {
       return {
         success: false,
@@ -433,8 +800,12 @@ function validateAndNormalizeItems(
 
     if (
       item.rate !== null &&
-      (!Number.isFinite(item.rate) ||
-        item.rate < 0)
+      (
+        !Number.isFinite(
+          item.rate
+        ) ||
+        item.rate < 0
+      )
     ) {
       return {
         success: false,
@@ -444,7 +815,9 @@ function validateAndNormalizeItems(
     }
 
     if (
-      !Number.isFinite(item.amount) ||
+      !Number.isFinite(
+        item.amount
+      ) ||
       item.amount < 0
     ) {
       return {
@@ -455,8 +828,10 @@ function validateAndNormalizeItems(
     }
 
     if (
-      item.source === 'monthly-report' &&
-      item.reportEntryIds.length === 0
+      item.source ===
+        'monthly-report' &&
+      item.reportEntryIds
+        .length === 0
     ) {
       return {
         success: false,
@@ -468,73 +843,53 @@ function validateAndNormalizeItems(
 
   return {
     success: true,
-    items: normalizedItems,
-    subtotal: roundCurrency(
-      normalizedItems.reduce(
-        (total, item) => total + item.amount,
-        0
-      )
-    ),
+
+    items:
+      normalizedItems,
+
+    subtotal:
+      roundCurrency(
+        normalizedItems.reduce(
+          (
+            total,
+            item
+          ) =>
+            total +
+            item.amount,
+          0
+        )
+      ),
   };
-}
-
-async function getOwnedClient({
-  clientId,
-  ownerId,
-}: {
-  clientId: string;
-  ownerId: string;
-}): Promise<ClientSnapshotRow | null> {
-  const rows = await sql`
-    SELECT
-      id,
-      name,
-      company_name,
-      email,
-      phone,
-      address_line_1,
-      address_line_2,
-      city,
-      state,
-      postal_code,
-      country_code
-    FROM public.clients
-    WHERE
-      id = ${clientId}::uuid
-      AND owner_id = ${ownerId}::uuid
-      AND status <> 'archived'
-    LIMIT 1
-  `;
-
-  return (
-    (rows[0] as ClientSnapshotRow | undefined) ??
-    null
-  );
 }
 
 async function validateProject({
   projectId,
-  clientId,
   ownerId,
 }: {
   projectId: string;
-  clientId: string;
   ownerId: string;
 }): Promise<boolean> {
   const rows = await sql`
-    SELECT project.id
-    FROM public.projects project
+    SELECT id
+
+    FROM public.projects
 
     WHERE
-      project.id = ${projectId}::uuid
-      AND project.client_id = ${clientId}::uuid
-      AND client.owner_id = ${ownerId}::uuid
-      AND project.status <> 'archived'
+      id =
+        ${projectId}::uuid
+
+      AND owner_id =
+        ${ownerId}::uuid
+
+      AND status <>
+        'archived'
 
     LIMIT 1
   `;
 
-  return Boolean(rows[0]);
+  return Boolean(
+    rows[0]
+  );
 }
 
 async function invoiceBelongsToOwner({
@@ -545,49 +900,117 @@ async function invoiceBelongsToOwner({
   ownerId: string;
 }): Promise<boolean> {
   const rows = await sql`
-    SELECT invoice.id
-    FROM public.invoices invoice
+    SELECT id
+
+    FROM public.invoices
 
     WHERE
-      invoice.id = ${invoiceId}::uuid
-      AND client.owner_id = ${ownerId}::uuid
+      id =
+        ${invoiceId}::uuid
+
+      AND owner_id =
+        ${ownerId}::uuid
 
     LIMIT 1
   `;
 
-  return Boolean(rows[0]);
+  return Boolean(
+    rows[0]
+  );
 }
 
-export async function getInvoiceClientOptions(): Promise<
-  InvoiceClientOption[]
-> {
-  const ownerId =
-    await getCurrentAppUserId();
+async function validateReportEntryRelations({
+  items,
+  ownerId,
+  projectId,
+  invoiceId,
+}: {
+  items: InvoiceItemInput[];
+  ownerId: string;
+  projectId: string | null;
+  invoiceId: string | null;
+}): Promise<boolean> {
+  const reportEntryIds =
+    Array.from(
+      new Set(
+        items.flatMap(
+          (item) =>
+            item.reportEntryIds
+        )
+      )
+    );
+
+  if (
+    reportEntryIds.length ===
+    0
+  ) {
+    return true;
+  }
+
+  if (!projectId) {
+    return false;
+  }
+
+  const serializedIds =
+    JSON.stringify(
+      reportEntryIds
+    );
 
   const rows = await sql`
     SELECT
-      id,
-      name,
-      company_name,
-      email
-    FROM public.clients
+      COUNT(DISTINCT entry.id)
+        AS valid_count
+
+    FROM public.report_entries
+      entry
+
+    INNER JOIN public.projects
+      project
+      ON project.id =
+        entry.project_id
+
+    LEFT JOIN
+      public.invoice_report_entries
+      relation
+      ON relation.report_entry_id =
+        entry.id
+
     WHERE
-      owner_id = ${ownerId}::uuid
-      AND status <> 'archived'
-    ORDER BY
-      company_name ASC NULLS LAST,
-      name ASC
+      entry.id IN (
+        SELECT
+          value::uuid
+
+        FROM
+          jsonb_array_elements_text(
+            ${serializedIds}::jsonb
+          )
+      )
+
+      AND entry.project_id =
+        ${projectId}::uuid
+
+      AND project.owner_id =
+        ${ownerId}::uuid
+
+      AND (
+        relation.report_entry_id
+          IS NULL
+
+        OR relation.invoice_id =
+          ${invoiceId ?? null}::uuid
+      )
   `;
 
+  const validCount =
+    Number(
+      rows[0]
+        ?.valid_count ?? 0
+    );
+
   return (
-    rows as InvoiceClientOptionRow[]
-  ).map((row) => ({
-    id: String(row.id),
-    name: row.name,
-    companyName: row.company_name,
-    email: row.email,
-    currency: null,
-  }));
+    validCount ===
+    reportEntryIds.length
+  );
 }
 
 export async function getInvoiceProjectOptions(): Promise<
@@ -607,29 +1030,43 @@ export async function getInvoiceProjectOptions(): Promise<
     FROM public.projects
 
     WHERE
-      owner_id = ${ownerId}::uuid
-      AND status <> 'archived'
+      owner_id =
+        ${ownerId}::uuid
+
+      AND status <>
+        'archived'
 
     ORDER BY name ASC
   `;
 
   return (
-    rows as InvoiceProjectOptionRow[]
-  ).map((row) => ({
-    id: String(row.id),
-    ownerId: String(row.owner_id),
+    rows as
+      InvoiceProjectOptionRow[]
+  ).map(
+    (row) => ({
+      id:
+        String(row.id),
 
-    name: row.name,
+      ownerId:
+        String(
+          row.owner_id
+        ),
 
-    defaultHourlyRate:
-      row.default_hourly_rate === null
-        ? null
-        : Number(
-            row.default_hourly_rate
-          ),
+      name:
+        row.name,
 
-    currency: row.currency,
-  }));
+      defaultHourlyRate:
+        row.default_hourly_rate ===
+        null
+          ? null
+          : Number(
+              row.default_hourly_rate
+            ),
+
+      currency:
+        row.currency,
+    })
+  );
 }
 
 export async function getUnbilledReportEntries({
@@ -640,33 +1077,53 @@ export async function getUnbilledReportEntries({
   projectId: string;
   month: string;
   invoiceId?: string;
-}): Promise<InvoiceReportEntryOption[]> {
+}): Promise<
+  InvoiceReportEntryOption[]
+> {
   if (
-    !isValidUuid(projectId) ||
-    !isValidMonth(month)
+    !isValidUuid(
+      projectId
+    ) ||
+    !isValidMonth(
+      month
+    )
+  ) {
+    return [];
+  }
+
+  if (
+    invoiceId &&
+    !isValidUuid(
+      invoiceId
+    )
   ) {
     return [];
   }
 
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
-  const startDate = `${month}-01`;
+  const startDate =
+    `${month}-01`;
 
-  const [year, monthNumber] = month
+  const [
+    year,
+    monthNumber,
+  ] = month
     .split('-')
     .map(Number);
 
-  const endDate = new Date(
-    Date.UTC(year, monthNumber, 0)
-  )
-    .toISOString()
-    .slice(0, 10);
+  const endDate =
+    new Date(
+      Date.UTC(
+        year,
+        monthNumber,
+        0
+      )
+    )
+      .toISOString()
+      .slice(0, 10);
 
-  /*
-   * Durante a edição, os lançamentos que já
-   * pertencem à própria fatura continuam disponíveis.
-   */
   const rows = await sql`
     SELECT
       entry.id,
@@ -688,28 +1145,38 @@ export async function getUnbilledReportEntries({
         'USD'
       ) AS currency
 
-    FROM public.report_entries entry
+    FROM public.report_entries
+      entry
 
-    INNER JOIN public.projects project
-      ON project.id = entry.project_id
+    INNER JOIN public.projects
+      project
+      ON project.id =
+        entry.project_id
 
-
-    LEFT JOIN public.invoice_report_entries relation
-      ON relation.report_entry_id = entry.id
+    LEFT JOIN
+      public.invoice_report_entries
+      relation
+      ON relation.report_entry_id =
+        entry.id
 
     WHERE
-      entry.project_id = ${projectId}::uuid
+      entry.project_id =
+        ${projectId}::uuid
 
-      AND client.owner_id = ${ownerId}::uuid
+      AND project.owner_id =
+        ${ownerId}::uuid
 
-      AND entry.date >= ${startDate}::date
+      AND entry.date >=
+        ${startDate}::date
+
       AND entry.date < (
         ${endDate}::date
         + INTERVAL '1 day'
       )
 
       AND (
-        relation.report_entry_id IS NULL
+        relation.report_entry_id
+          IS NULL
 
         OR relation.invoice_id =
           ${invoiceId ?? null}::uuid
@@ -721,96 +1188,129 @@ export async function getUnbilledReportEntries({
   `;
 
   return (
-    rows as InvoiceReportEntryRow[]
-  ).map((row) => {
-    const storedMinutes = Number(
-      row.duration_minutes
-    );
+    rows as
+      InvoiceReportEntryRow[]
+  ).map(
+    (row) => {
+      const storedMinutes =
+        Number(
+          row.duration_minutes
+        );
 
-    const durationMinutes =
-      Number.isSafeInteger(storedMinutes) &&
-      storedMinutes >= 0
-        ? storedMinutes
-        : durationToMinutes(row.duration);
+      const durationMinutes =
+        Number.isSafeInteger(
+          storedMinutes
+        ) &&
+        storedMinutes >= 0
+          ? storedMinutes
+          : durationToMinutes(
+              row.duration
+            );
 
-    return {
-      id: String(row.id),
+      return {
+        id:
+          String(row.id),
 
-      projectId: String(row.project_id),
+        projectId:
+          String(
+            row.project_id
+          ),
 
-      task: row.task,
-      description: row.description,
+        task:
+          row.task,
 
-      date:
-        normalizeDate(row.date) ?? '',
+        description:
+          row.description,
 
-      duration:
-        row.duration ||
-        minutesToDuration(durationMinutes),
+        date:
+          normalizeDate(
+            row.date
+          ) ?? '',
 
-      durationMinutes,
+        duration:
+          row.duration ||
+          minutesToDuration(
+            durationMinutes
+          ),
 
-      rate:
-        row.rate === null
-          ? null
-          : Number(row.rate),
+        durationMinutes,
 
-      amount:
-        row.amount === null
-          ? 0
-          : Number(row.amount),
+        rate:
+          row.rate === null
+            ? null
+            : Number(
+                row.rate
+              ),
 
-      currency: row.currency ?? 'USD',
-    };
-  });
+        amount:
+          row.amount === null
+            ? 0
+            : Number(
+                row.amount
+              ),
+
+        currency:
+          row.currency ??
+          'USD',
+      };
+    }
+  );
 }
 
 export async function getInvoices(
   filters: InvoiceFilters = {}
-): Promise<InvoiceSummary[]> {
+): Promise<
+  InvoiceSummary[]
+> {
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const {
-    clientId,
     projectId,
     status,
     month,
   } = filters;
 
-  if (clientId && !isValidUuid(clientId)) {
-    return [];
-  }
-
-  if (projectId && !isValidUuid(projectId)) {
+  if (
+    projectId &&
+    !isValidUuid(
+      projectId
+    )
+  ) {
     return [];
   }
 
   if (
     status &&
-    !VALID_STATUSES.includes(status)
+    !VALID_STATUSES.includes(
+      status
+    )
   ) {
     return [];
   }
 
-  if (month && !isValidMonth(month)) {
+  if (
+    month &&
+    !isValidMonth(
+      month
+    )
+  ) {
     return [];
   }
 
   const rows = await sql`
     SELECT
       invoice.id,
+      invoice.owner_id,
       invoice.invoice_number,
 
-      invoice.client_id,
-      client.name AS client_name,
-      client.company_name
-        AS client_company_name,
-
       invoice.project_id,
-      project.name AS project_name,
+
+      project.name
+        AS project_name,
 
       invoice.reference_month,
+
       invoice.invoice_date,
       invoice.due_date,
 
@@ -844,34 +1344,38 @@ export async function getInvoices(
       invoice.created_at,
       invoice.updated_at
 
-    FROM public.invoices invoice
+    FROM public.invoices
+      invoice
 
-    LEFT JOIN public.projects project
-      ON project.id = invoice.project_id
+    LEFT JOIN public.projects
+      project
+      ON project.id =
+        invoice.project_id
 
     WHERE
-      client.owner_id = ${ownerId}::uuid
+      invoice.owner_id =
+        ${ownerId}::uuid
 
       AND (
-        ${clientId ?? null}::uuid IS NULL
-        OR invoice.client_id =
-          ${clientId ?? null}::uuid
-      )
+        ${projectId ?? null}::uuid
+          IS NULL
 
-      AND (
-        ${projectId ?? null}::uuid IS NULL
         OR invoice.project_id =
           ${projectId ?? null}::uuid
       )
 
       AND (
-        ${status ?? null}::text IS NULL
+        ${status ?? null}::text
+          IS NULL
+
         OR invoice.status =
           ${status ?? null}::text
       )
 
       AND (
-        ${month ?? null}::text IS NULL
+        ${month ?? null}::text
+          IS NULL
+
         OR invoice.reference_month =
           ${month ?? null}::text
       )
@@ -881,35 +1385,42 @@ export async function getInvoices(
       invoice.created_at DESC
   `;
 
-  return (rows as InvoiceRow[]).map(
+  return (
+    rows as InvoiceRow[]
+  ).map(
     mapInvoiceRow
   );
 }
 
 export async function getInvoiceById(
   invoiceId: string
-): Promise<Invoice | null> {
-  if (!isValidUuid(invoiceId)) {
+): Promise<
+  Invoice | null
+> {
+  if (
+    !isValidUuid(
+      invoiceId
+    )
+  ) {
     return null;
   }
 
   const ownerId =
-    await getCurrentAppUserId();
+    await getCurrentUserId();
 
   const rows = await sql`
     SELECT
       invoice.id,
+      invoice.owner_id,
       invoice.invoice_number,
 
-      invoice.client_id,
-      client.name AS client_name,
-      client.company_name
-        AS client_company_name,
-
       invoice.project_id,
-      project.name AS project_name,
+
+      project.name
+        AS project_name,
 
       invoice.reference_month,
+
       invoice.invoice_date,
       invoice.due_date,
 
@@ -943,20 +1454,28 @@ export async function getInvoiceById(
       invoice.created_at,
       invoice.updated_at
 
-    FROM public.invoices invoice
+    FROM public.invoices
+      invoice
 
-    LEFT JOIN public.projects project
-      ON project.id = invoice.project_id
+    LEFT JOIN public.projects
+      project
+      ON project.id =
+        invoice.project_id
 
     WHERE
-      invoice.id = ${invoiceId}::uuid
-      AND client.owner_id = ${ownerId}::uuid
+      invoice.id =
+        ${invoiceId}::uuid
+
+      AND invoice.owner_id =
+        ${ownerId}::uuid
 
     LIMIT 1
   `;
 
   const row =
-    rows[0] as InvoiceRow | undefined;
+    rows[0] as
+      | InvoiceRow
+      | undefined;
 
   if (!row) {
     return null;
@@ -979,21 +1498,33 @@ export async function getInvoiceById(
       COALESCE(
         ARRAY_AGG(
           relation.report_entry_id::text
-          ORDER BY relation.created_at ASC
+
+          ORDER BY
+            relation.created_at ASC
         ) FILTER (
-          WHERE relation.report_entry_id IS NOT NULL
+          WHERE
+            relation.report_entry_id
+              IS NOT NULL
         ),
+
         ARRAY[]::text[]
       ) AS report_entry_ids
 
-    FROM public.invoice_items item
+    FROM public.invoice_items
+      item
 
-    LEFT JOIN public.invoice_report_entries relation
-      ON relation.invoice_item_id = item.id
+    LEFT JOIN
+      public.invoice_report_entries
+      relation
+      ON relation.invoice_item_id =
+        item.id
 
-    WHERE item.invoice_id = ${invoiceId}::uuid
+    WHERE
+      item.invoice_id =
+        ${invoiceId}::uuid
 
-    GROUP BY item.id
+    GROUP BY
+      item.id
 
     ORDER BY
       item.position ASC,
@@ -1001,92 +1532,89 @@ export async function getInvoiceById(
   `;
 
   return {
-    ...mapInvoiceRow(row),
-
-    billTo: {
-      name: row.bill_to_name,
-      company: row.bill_to_company,
-      email: row.bill_to_email,
-      phone: row.bill_to_phone,
-
-      addressLine1:
-        row.bill_to_address_line_1,
-
-      addressLine2:
-        row.bill_to_address_line_2,
-
-      city: row.bill_to_city,
-      state: row.bill_to_state,
-
-      postalCode:
-        row.bill_to_postal_code,
-
-      countryCode:
-        row.bill_to_country_code,
-    },
+    ...mapInvoiceRow(
+      row
+    ),
 
     items: (
-      itemRows as InvoiceItemRow[]
-    ).map(mapInvoiceItem),
+      itemRows as
+        InvoiceItemRow[]
+    ).map(
+      mapInvoiceItem
+    ),
   };
 }
 
 export async function saveInvoice(
   input: SaveInvoiceInput
-): Promise<SaveInvoiceResult> {
+): Promise<
+  SaveInvoiceResult
+> {
   try {
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const invoiceId =
-      input.invoiceId?.trim() || null;
+      input.invoiceId
+        ?.trim() || null;
 
     if (
       invoiceId &&
-      !isValidUuid(invoiceId)
+      !isValidUuid(
+        invoiceId
+      )
     ) {
       return {
         success: false,
-        code: 'INVALID_INVOICE_ID',
+        code:
+          'INVALID_INVOICE_ID',
+
         message:
           'O identificador da fatura é inválido.',
       };
     }
 
-    if (!isValidUuid(input.clientId)) {
-      return {
-        success: false,
-        code: 'INVALID_CLIENT',
-        message:
-          'Selecione um cliente válido.',
-      };
-    }
-
     if (
       input.projectId &&
-      !isValidUuid(input.projectId)
+      !isValidUuid(
+        input.projectId
+      )
     ) {
       return {
         success: false,
-        code: 'INVALID_PROJECT',
+        code:
+          'INVALID_PROJECT',
+
         message:
           'Selecione um projeto válido.',
       };
     }
 
-    if (!isValidMonth(input.referenceMonth)) {
+    if (
+      !isValidMonth(
+        input.referenceMonth
+      )
+    ) {
       return {
         success: false,
-        code: 'INVALID_REFERENCE_MONTH',
+        code:
+          'INVALID_REFERENCE_MONTH',
+
         message:
           'O mês de referência é inválido.',
       };
     }
 
-    if (!isValidDate(input.invoiceDate)) {
+    if (
+      !isValidDate(
+        input.invoiceDate
+      )
+    ) {
       return {
         success: false,
-        code: 'INVALID_INVOICE_DATE',
+        code:
+          'INVALID_INVOICE_DATE',
+
         message:
           'A data da fatura é inválida.',
       };
@@ -1094,11 +1622,15 @@ export async function saveInvoice(
 
     if (
       input.dueDate &&
-      !isValidDate(input.dueDate)
+      !isValidDate(
+        input.dueDate
+      )
     ) {
       return {
         success: false,
-        code: 'INVALID_DUE_DATE',
+        code:
+          'INVALID_DUE_DATE',
+
         message:
           'A data de vencimento é inválida.',
       };
@@ -1106,95 +1638,135 @@ export async function saveInvoice(
 
     if (
       input.dueDate &&
-      input.dueDate < input.invoiceDate
+      input.dueDate <
+        input.invoiceDate
     ) {
       return {
         success: false,
-        code: 'DUE_DATE_BEFORE_INVOICE',
+        code:
+          'DUE_DATE_BEFORE_INVOICE',
+
         message:
           'O vencimento não pode ser anterior à data da fatura.',
       };
     }
 
-    const currency = input.currency
-      .trim()
-      .toUpperCase();
+    const currency =
+      input.currency
+        .trim()
+        .toUpperCase();
 
-    if (!isValidCurrency(currency)) {
+    if (
+      !isValidCurrency(
+        currency
+      )
+    ) {
       return {
         success: false,
-        code: 'INVALID_CURRENCY',
+        code:
+          'INVALID_CURRENCY',
+
         message:
           'Informe uma moeda válida com três letras.',
       };
     }
 
     if (
-      !VALID_STATUSES.includes(input.status)
+      !VALID_STATUSES.includes(
+        input.status
+      )
     ) {
       return {
         success: false,
-        code: 'INVALID_STATUS',
+        code:
+          'INVALID_STATUS',
+
         message:
           'O status informado é inválido.',
       };
     }
 
-    const taxPercentage = Number(
-      input.taxPercentage
-    );
+    const taxPercentage =
+      Number(
+        input.taxPercentage
+      );
 
     if (
-      !Number.isFinite(taxPercentage) ||
+      !Number.isFinite(
+        taxPercentage
+      ) ||
       taxPercentage < 0
     ) {
       return {
         success: false,
-        code: 'INVALID_TAX',
+        code:
+          'INVALID_TAX',
+
         message:
           'A porcentagem de imposto é inválida.',
       };
     }
 
-    const normalized =
-      validateAndNormalizeItems(input.items);
+    const validatedBillTo =
+      validateBillTo(
+        input.billTo
+      );
 
-    if (!normalized.success) {
+    if (
+      !validatedBillTo.success
+    ) {
       return {
         success: false,
-        code: 'INVALID_ITEMS',
-        message: normalized.message,
-      };
-    }
+        code:
+          'INVALID_BILL_TO',
 
-    const client = await getOwnedClient({
-      clientId: input.clientId,
-      ownerId,
-    });
-
-    if (!client) {
-      return {
-        success: false,
-        code: 'CLIENT_NOT_FOUND',
         message:
-          'O cliente selecionado não foi encontrado.',
+          validatedBillTo.message,
       };
     }
 
-    if (input.projectId) {
+    const billTo =
+      validatedBillTo.billTo;
+
+    const normalized =
+      validateAndNormalizeItems(
+        input.items
+      );
+
+    if (
+      !normalized.success
+    ) {
+      return {
+        success: false,
+        code:
+          'INVALID_ITEMS',
+
+        message:
+          normalized.message,
+      };
+    }
+
+    if (
+      input.projectId
+    ) {
       const validProject =
         await validateProject({
-          projectId: input.projectId,
-          clientId: input.clientId,
+          projectId:
+            input.projectId,
+
           ownerId,
         });
 
-      if (!validProject) {
+      if (
+        !validProject
+      ) {
         return {
           success: false,
-          code: 'PROJECT_NOT_FOUND',
+          code:
+            'PROJECT_NOT_FOUND',
+
           message:
-            'O projeto não pertence ao cliente selecionado.',
+            'O projeto selecionado não foi encontrado.',
         };
       }
     }
@@ -1209,50 +1781,97 @@ export async function saveInvoice(
       if (!allowed) {
         return {
           success: false,
-          code: 'INVOICE_NOT_FOUND',
+          code:
+            'INVOICE_NOT_FOUND',
+
           message:
             'A fatura não foi encontrada.',
         };
       }
     }
 
-    const subtotal = normalized.subtotal;
+    const validRelations =
+      await validateReportEntryRelations({
+        items:
+          normalized.items,
 
-    const taxAmount = roundCurrency(
-      subtotal * (taxPercentage / 100)
-    );
+        ownerId,
 
-    const totalAmount = roundCurrency(
-      subtotal + taxAmount
-    );
+        projectId:
+          input.projectId,
 
-    const serializedItems = JSON.stringify(
-      normalized.items.map((item) => ({
-        description: item.description,
-        link: item.link,
+        invoiceId,
+      });
 
-        quantity: item.quantity,
-        rate: item.rate,
-        amount: item.amount,
+    if (
+      !validRelations
+    ) {
+      return {
+        success: false,
 
-        source: item.source,
-        position: item.position,
+        code:
+          'INVALID_REPORT_ENTRIES',
 
-        report_entry_ids:
-          item.reportEntryIds,
-      }))
-    );
+        message:
+          'Um ou mais lançamentos selecionados são inválidos, pertencem a outro projeto ou já foram faturados.',
+      };
+    }
 
-    /*
-     * O CTE executa a atualização da fatura,
-     * remoção dos vínculos anteriores, recriação
-     * dos itens e novos vínculos atomicamente.
-     */
+    const subtotal =
+      normalized.subtotal;
+
+    const taxAmount =
+      roundCurrency(
+        subtotal *
+          (
+            taxPercentage /
+            100
+          )
+      );
+
+    const totalAmount =
+      roundCurrency(
+        subtotal +
+          taxAmount
+      );
+
+    const serializedItems =
+      JSON.stringify(
+        normalized.items.map(
+          (item) => ({
+            description:
+              item.description,
+
+            link:
+              item.link,
+
+            quantity:
+              item.quantity,
+
+            rate:
+              item.rate,
+
+            amount:
+              item.amount,
+
+            source:
+              item.source,
+
+            position:
+              item.position,
+
+            report_entry_ids:
+              item.reportEntryIds,
+          })
+        )
+      );
+
     const result = await sql`
       WITH saved_invoice AS (
         INSERT INTO public.invoices (
           id,
 
+          owner_id,
           client_id,
           project_id,
 
@@ -1297,13 +1916,17 @@ export async function saveInvoice(
             gen_random_uuid()
           ),
 
-          ${input.clientId}::uuid,
-          ${input.projectId}::uuid,
+          ${ownerId}::uuid,
+
+          NULL,
+
+          ${input.projectId ?? null}::uuid,
 
           ${input.referenceMonth},
 
           ${input.invoiceDate}::date,
-          ${input.dueDate}::date,
+
+          ${input.dueDate ?? null}::date,
 
           ${currency},
 
@@ -1313,19 +1936,20 @@ export async function saveInvoice(
           ${totalAmount},
 
           ${input.status},
+
           ${input.notes?.trim() || null},
 
-          ${client.name},
-          ${client.company_name},
-          ${client.email},
-          ${client.phone},
+          ${billTo.name},
+          ${billTo.company},
+          ${billTo.email},
+          ${billTo.phone},
 
-          ${client.address_line_1},
-          ${client.address_line_2},
-          ${client.city},
-          ${client.state},
-          ${client.postal_code},
-          ${client.country_code},
+          ${billTo.addressLine1},
+          ${billTo.addressLine2},
+          ${billTo.city},
+          ${billTo.state},
+          ${billTo.postalCode},
+          ${billTo.countryCode},
 
           CASE
             WHEN ${input.status} IN (
@@ -1339,19 +1963,22 @@ export async function saveInvoice(
           END,
 
           CASE
-            WHEN ${input.status} = 'sent'
+            WHEN ${input.status} =
+              'sent'
             THEN NOW()
             ELSE NULL
           END,
 
           CASE
-            WHEN ${input.status} = 'paid'
+            WHEN ${input.status} =
+              'paid'
             THEN NOW()
             ELSE NULL
           END,
 
           CASE
-            WHEN ${input.status} = 'cancelled'
+            WHEN ${input.status} =
+              'cancelled'
             THEN NOW()
             ELSE NULL
           END,
@@ -1362,8 +1989,14 @@ export async function saveInvoice(
 
         ON CONFLICT (id)
         DO UPDATE SET
-          client_id = EXCLUDED.client_id,
-          project_id = EXCLUDED.project_id,
+          owner_id =
+            EXCLUDED.owner_id,
+
+          client_id =
+            NULL,
+
+          project_id =
+            EXCLUDED.project_id,
 
           reference_month =
             EXCLUDED.reference_month,
@@ -1371,20 +2004,29 @@ export async function saveInvoice(
           invoice_date =
             EXCLUDED.invoice_date,
 
-          due_date = EXCLUDED.due_date,
-          currency = EXCLUDED.currency,
+          due_date =
+            EXCLUDED.due_date,
+
+          currency =
+            EXCLUDED.currency,
 
           tax_percentage =
             EXCLUDED.tax_percentage,
 
-          subtotal = EXCLUDED.subtotal,
-          tax_amount = EXCLUDED.tax_amount,
+          subtotal =
+            EXCLUDED.subtotal,
+
+          tax_amount =
+            EXCLUDED.tax_amount,
 
           total_amount =
             EXCLUDED.total_amount,
 
-          status = EXCLUDED.status,
-          notes = EXCLUDED.notes,
+          status =
+            EXCLUDED.status,
+
+          notes =
+            EXCLUDED.notes,
 
           bill_to_name =
             EXCLUDED.bill_to_name,
@@ -1428,27 +2070,32 @@ export async function saveInvoice(
                 invoices.issued_at,
                 NOW()
               )
-              ELSE invoices.issued_at
+              ELSE
+                invoices.issued_at
             END,
 
           sent_at =
             CASE
-              WHEN EXCLUDED.status = 'sent'
+              WHEN EXCLUDED.status =
+                'sent'
               THEN COALESCE(
                 invoices.sent_at,
                 NOW()
               )
-              ELSE invoices.sent_at
+              ELSE
+                invoices.sent_at
             END,
 
           paid_at =
             CASE
-              WHEN EXCLUDED.status = 'paid'
+              WHEN EXCLUDED.status =
+                'paid'
               THEN COALESCE(
                 invoices.paid_at,
                 NOW()
               )
-              ELSE invoices.paid_at
+              ELSE
+                invoices.paid_at
             END,
 
           cancelled_at =
@@ -1459,10 +2106,12 @@ export async function saveInvoice(
                 invoices.cancelled_at,
                 NOW()
               )
-              ELSE invoices.cancelled_at
+              ELSE
+                invoices.cancelled_at
             END,
 
-          updated_at = NOW()
+          updated_at =
+            NOW()
 
         RETURNING
           id,
@@ -1482,7 +2131,8 @@ export async function saveInvoice(
       ),
 
       removed_items AS (
-        DELETE FROM public.invoice_items
+        DELETE FROM
+          public.invoice_items
 
         WHERE invoice_id = (
           SELECT id
@@ -1524,22 +2174,24 @@ export async function saveInvoice(
       ),
 
       inserted_items AS (
-        INSERT INTO public.invoice_items (
-          invoice_id,
+        INSERT INTO
+          public.invoice_items (
+            invoice_id,
 
-          description,
-          link,
+            description,
+            link,
 
-          quantity,
-          rate,
-          amount,
+            quantity,
+            rate,
+            amount,
 
-          source,
-          position,
+            source,
+            position,
 
-          created_at,
-          updated_at
-        )
+            created_at,
+            updated_at
+          )
+
         SELECT
           saved_invoice.id,
 
@@ -1558,7 +2210,9 @@ export async function saveInvoice(
 
         FROM saved_invoice
 
-        CROSS JOIN source_items source_item
+        CROSS JOIN
+          source_items
+          source_item
 
         RETURNING
           id,
@@ -1566,12 +2220,14 @@ export async function saveInvoice(
       ),
 
       inserted_relations AS (
-        INSERT INTO public.invoice_report_entries (
-          invoice_id,
-          invoice_item_id,
-          report_entry_id,
-          created_at
-        )
+        INSERT INTO
+          public.invoice_report_entries (
+            invoice_id,
+            invoice_item_id,
+            report_entry_id,
+            created_at
+          )
+
         SELECT
           saved_invoice.id,
 
@@ -1583,10 +2239,14 @@ export async function saveInvoice(
 
         FROM saved_invoice
 
-        INNER JOIN inserted_items inserted_item
+        INNER JOIN
+          inserted_items
+          inserted_item
           ON TRUE
 
-        INNER JOIN source_items source_item
+        INNER JOIN
+          source_items
+          source_item
           ON source_item.position =
             inserted_item.position
 
@@ -1601,15 +2261,20 @@ export async function saveInvoice(
       SELECT
         id,
         invoice_number
+
       FROM saved_invoice
     `;
 
-    const saved = result[0] as
-      | {
-          id: string;
-          invoice_number: string | number;
-        }
-      | undefined;
+    const saved =
+      result[0] as
+        | {
+            id: string;
+
+            invoice_number:
+              | string
+              | number;
+          }
+        | undefined;
 
     if (!saved) {
       throw new Error(
@@ -1617,26 +2282,44 @@ export async function saveInvoice(
       );
     }
 
-    revalidatePath('/faturas');
-    revalidatePath(`/faturas/${saved.id}`);
+    revalidatePath(
+      '/dashboard'
+    );
+
+    revalidatePath(
+      '/faturas'
+    );
+
+    revalidatePath(
+      `/faturas/${saved.id}`
+    );
+
     revalidatePath(
       `/faturas/${saved.id}/editar`
     );
 
-    if (input.projectId) {
+    if (
+      input.projectId
+    ) {
       revalidatePath(
         `/projetos/${input.projectId}`
       );
     }
 
-    revalidatePath('/relatorios');
+    revalidatePath(
+      '/relatorios'
+    );
 
     return {
       success: true,
-      invoiceId: String(saved.id),
-      invoiceNumber: String(
-        saved.invoice_number
-      ),
+
+      invoiceId:
+        String(saved.id),
+
+      invoiceNumber:
+        String(
+          saved.invoice_number
+        ),
     };
   } catch (error) {
     console.error(
@@ -1644,27 +2327,52 @@ export async function saveInvoice(
       error
     );
 
-    const databaseError = error as {
-      code?: string;
-      constraint?: string;
-    };
+    const databaseError =
+      error as {
+        code?: string;
+        constraint?: string;
+      };
 
     if (
-      databaseError.code === '23505' &&
+      databaseError.code ===
+        '23505' &&
       databaseError.constraint ===
         'invoice_report_entries_unique_entry'
     ) {
       return {
         success: false,
-        code: 'REPORT_ENTRY_ALREADY_INVOICED',
+
+        code:
+          'REPORT_ENTRY_ALREADY_INVOICED',
+
         message:
           'Um ou mais lançamentos selecionados já pertencem a outra fatura.',
       };
     }
 
+    if (
+      databaseError.code ===
+        '23505' &&
+      databaseError.constraint ===
+        'invoices_owner_reference_month_unique'
+    ) {
+      return {
+        success: false,
+
+        code:
+          'INVOICE_MONTH_ALREADY_EXISTS',
+
+        message:
+          'Já existe uma fatura cadastrada para esse mês.',
+      };
+    }
+
     return {
       success: false,
-      code: 'INVOICE_SAVE_FAILED',
+
+      code:
+        'INVOICE_SAVE_FAILED',
+
       message:
         'Não foi possível salvar a fatura.',
     };
@@ -1677,26 +2385,35 @@ export async function updateInvoiceStatus({
 }: {
   invoiceId: string;
   status: InvoiceStatus;
-}): Promise<InvoiceStatusResult> {
+}): Promise<
+  InvoiceStatusResult
+> {
   try {
     if (
-      !isValidUuid(invoiceId) ||
-      !VALID_STATUSES.includes(status)
+      !isValidUuid(
+        invoiceId
+      ) ||
+      !VALID_STATUSES.includes(
+        status
+      )
     ) {
       return {
         success: false,
+
         message:
           'Os dados informados são inválidos.',
       };
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const rows = await sql`
-      UPDATE public.invoices invoice
+      UPDATE public.invoices
+
       SET
-        status = ${status},
+        status =
+          ${status},
 
         issued_at =
           CASE
@@ -1715,7 +2432,8 @@ export async function updateInvoiceStatus({
 
         sent_at =
           CASE
-            WHEN ${status} = 'sent'
+            WHEN ${status} =
+              'sent'
             THEN COALESCE(
               sent_at,
               NOW()
@@ -1725,7 +2443,8 @@ export async function updateInvoiceStatus({
 
         paid_at =
           CASE
-            WHEN ${status} = 'paid'
+            WHEN ${status} =
+              'paid'
             THEN COALESCE(
               paid_at,
               NOW()
@@ -1735,7 +2454,8 @@ export async function updateInvoiceStatus({
 
         cancelled_at =
           CASE
-            WHEN ${status} = 'cancelled'
+            WHEN ${status} =
+              'cancelled'
             THEN COALESCE(
               cancelled_at,
               NOW()
@@ -1743,35 +2463,43 @@ export async function updateInvoiceStatus({
             ELSE cancelled_at
           END,
 
-        updated_at = NOW()
-
-      FROM public.clients client
+        updated_at =
+          NOW()
 
       WHERE
-        invoice.id = ${invoiceId}::uuid
+        id =
+          ${invoiceId}::uuid
 
-        AND client.id =
-          invoice.client_id
-
-        AND client.owner_id =
+        AND owner_id =
           ${ownerId}::uuid
 
-      RETURNING invoice.id
+      RETURNING id
     `;
 
     if (!rows[0]) {
       return {
         success: false,
+
         message:
           'A fatura não foi encontrada.',
       };
     }
 
-    revalidatePath('/faturas');
-    revalidatePath(`/faturas/${invoiceId}`);
+    revalidatePath(
+      '/dashboard'
+    );
+
+    revalidatePath(
+      '/faturas'
+    );
+
+    revalidatePath(
+      `/faturas/${invoiceId}`
+    );
 
     return {
       success: true,
+
       message:
         'Status atualizado com sucesso.',
     };
@@ -1783,6 +2511,7 @@ export async function updateInvoiceStatus({
 
     return {
       success: false,
+
       message:
         'Não foi possível atualizar o status.',
     };
@@ -1791,66 +2520,79 @@ export async function updateInvoiceStatus({
 
 export async function deleteInvoice(
   invoiceId: string
-): Promise<InvoiceStatusResult> {
+): Promise<
+  InvoiceStatusResult
+> {
   try {
-    if (!isValidUuid(invoiceId)) {
+    if (
+      !isValidUuid(
+        invoiceId
+      )
+    ) {
       return {
         success: false,
+
         message:
           'O identificador da fatura é inválido.',
       };
     }
 
     const ownerId =
-      await getCurrentAppUserId();
+      await getCurrentUserId();
 
     const rows = await sql`
-      DELETE FROM public.invoices invoice
-
-      USING public.clients client
+      DELETE FROM
+        public.invoices
 
       WHERE
-        invoice.id =
+        id =
           ${invoiceId}::uuid
 
-        AND client.id =
-          invoice.client_id
-
-        AND client.owner_id =
+        AND owner_id =
           ${ownerId}::uuid
 
       RETURNING
-        invoice.id,
-        invoice.project_id
+        id,
+        project_id
     `;
 
-    const deletedInvoice = rows[0] as
-      | {
-          id: string;
-          project_id: string | null;
-        }
-      | undefined;
+    const deletedInvoice =
+      rows[0] as
+        | {
+            id: string;
 
-    if (!deletedInvoice) {
+            project_id:
+              | string
+              | null;
+          }
+        | undefined;
+
+    if (
+      !deletedInvoice
+    ) {
       return {
         success: false,
+
         message:
           'A fatura não foi encontrada.',
       };
     }
 
-    /*
-     * invoice_items e invoice_report_entries
-     * são removidos pelas regras ON DELETE CASCADE.
-     *
-     * Com isso, os lançamentos anteriormente
-     * vinculados voltam a ficar disponíveis
-     * para uma nova fatura.
-     */
-    revalidatePath('/faturas');
-    revalidatePath('/relatorios');
+    revalidatePath(
+      '/dashboard'
+    );
 
-    if (deletedInvoice.project_id) {
+    revalidatePath(
+      '/faturas'
+    );
+
+    revalidatePath(
+      '/relatorios'
+    );
+
+    if (
+      deletedInvoice.project_id
+    ) {
       revalidatePath(
         `/projetos/${deletedInvoice.project_id}`
       );
@@ -1858,6 +2600,7 @@ export async function deleteInvoice(
 
     return {
       success: true,
+
       message:
         'Fatura excluída com sucesso.',
     };
@@ -1869,6 +2612,7 @@ export async function deleteInvoice(
 
     return {
       success: false,
+
       message:
         'Não foi possível excluir a fatura.',
     };

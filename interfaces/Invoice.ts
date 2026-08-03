@@ -14,6 +14,34 @@ export type InvoiceItemSource =
   | 'expense'
   | 'adjustment';
 
+export type InvoiceBillTo = {
+  name: string | null;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  countryCode: string | null;
+};
+
+export type InvoiceBillToInput = {
+  name: string;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  countryCode: string | null;
+};
+
 export type InvoiceItem = {
   id: string;
 
@@ -26,11 +54,6 @@ export type InvoiceItem = {
 
   source: InvoiceItemSource;
 
-  /*
-   * Lançamentos que deram origem ao item.
-   * Normalmente usado pelo item consolidado
-   * gerado a partir do relatório mensal.
-   */
   reportEntryIds: string[];
 };
 
@@ -50,11 +73,9 @@ export type InvoiceItemInput = {
 
 export type Invoice = {
   id: string;
-  invoiceNumber: string;
+  ownerId: string;
 
-  clientId: string | null;
-  clientName: string | null;
-  clientCompanyName: string | null;
+  invoiceNumber: string;
 
   projectId: string | null;
   projectName: string | null;
@@ -74,19 +95,7 @@ export type Invoice = {
   status: InvoiceStatus;
   notes: string | null;
 
-  billTo: {
-    name: string | null;
-    company: string | null;
-    email: string | null;
-    phone: string | null;
-
-    addressLine1: string | null;
-    addressLine2: string | null;
-    city: string | null;
-    state: string | null;
-    postalCode: string | null;
-    countryCode: string | null;
-  };
+  billTo: InvoiceBillTo;
 
   issuedAt: string | null;
   sentAt: string | null;
@@ -101,7 +110,7 @@ export type Invoice = {
 
 export type InvoiceSummary = Omit<
   Invoice,
-  'billTo' | 'items'
+  'items'
 >;
 
 export type SavedInvoiceItem = {
@@ -120,13 +129,6 @@ export type SavedInvoiceItem = {
   reportEntryIds: string[];
 };
 
-export type InvoiceClientOption = {
-  id: string;
-  name: string;
-  companyName: string | null;
-  email: string | null;
-  currency: string | null;
-};
 export type InvoiceProjectOption = {
   id: string;
   ownerId: string;
@@ -141,6 +143,7 @@ export type InvoiceReportEntryOption = {
   id: string;
 
   projectId: string;
+
   task: string;
   description: string;
 
@@ -157,7 +160,6 @@ export type InvoiceReportEntryOption = {
 export type SaveInvoiceInput = {
   invoiceId?: string;
 
-  clientId: string;
   projectId: string | null;
 
   referenceMonth: string;
@@ -171,6 +173,8 @@ export type SaveInvoiceInput = {
   notes: string | null;
 
   status: InvoiceStatus;
+
+  billTo: InvoiceBillToInput;
 
   items: InvoiceItemInput[];
 };
@@ -193,7 +197,6 @@ export type InvoiceStatusResult = {
 };
 
 export type InvoiceFilters = {
-  clientId?: string;
   projectId?: string;
   status?: InvoiceStatus;
   month?: string;
