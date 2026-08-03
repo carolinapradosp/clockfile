@@ -686,19 +686,16 @@ export async function updateProject(
   }
 }
 
-export async function archiveProject(
+export async function deleteProject(
   projectId: string
 ): Promise<{
   success: boolean;
   message: string;
 }> {
   try {
-    if (
-      !isValidUuid(projectId)
-    ) {
+    if (!isValidUuid(projectId)) {
       return {
         success: false,
-
         message:
           'Identificador do projeto inválido.',
       };
@@ -707,53 +704,205 @@ export async function archiveProject(
     const ownerId =
       await getCurrentUserId();
 
+    /*
+     * Uma única instrução verifica:
+     *
+     * 1. se o projeto existe e pertence ao usuário;
+     * 2. quantos lançamentos existem;
+     * 3. quantas faturas existem;
+     * 4. exclui somente quando não existem dependências.
+     *
+     * Isso reduz o risco de uma dependência ser criada entre
+     * uma consulta de validação e a exclusão.
+     */
     const rows = await sql`
-      UPDATE public.projects
+      WITH target_project AS (
+        SELECT id
 
-      SET
-        status = 'archived',
-        updated_at = NOW()
+        FROM public.projects
 
-      WHERE
-        id = ${projectId}::uuid
+        WHERE
+          id = ${projectId}::uuid
+          AND owner_id = ${ownerId}::uuid
 
-        AND owner_id =
-          ${ownerId}::uuid
+        LIMIT 1
+      ),
 
-      RETURNING id
+      dependency_counts AS (
+        SELECT
+          EXISTS (
+            SELECT 1
+            FROM target_project
+          ) AS project_exists,
+
+          (
+            SELECT COUNT(*)
+            FROM public.report_entries entry
+            WHERE entry.project_id = (
+              SELECT id
+              FROM target_project
+            )
+          ) AS report_entries_count,
+
+          (
+            SELECT COUNT(*)
+            FROM public.invoices invoice
+            WHERE invoice.project_id = (
+              SELECT id
+              FROM target_project
+            )
+          ) AS invoices_count
+      ),
+
+      deleted_project AS (
+        DELETE FROM public.projects project
+
+        WHERE
+          project.id = (
+            SELECT id
+            FROM target_project
+          )
+
+          AND NOT EXISTS (
+            SELECT 1
+            FROM public.report_entries entry
+            WHERE entry.project_id = project.id
+          )
+
+          AND NOT EXISTS (
+            SELECT 1
+            FROM public.invoices invoice
+            WHERE invoice.project_id = project.id
+          )
+
+        RETURNING project.id
+      )
+
+      SELECT
+        dependency.project_exists,
+        dependency.report_entries_count,
+        dependency.invoices_count,
+
+        EXISTS (
+          SELECT 1
+          FROM deleted_project
+        ) AS deleted
+
+      FROM dependency_counts dependency
     `;
 
-    if (!rows[0]) {
+    const result = rows[0] as
+      | {
+          project_exists: boolean;
+
+          report_entries_count:
+            | number
+            | string;
+
+          invoices_count:
+            | number
+            | string;
+
+          deleted: boolean;
+        }
+      | undefined;
+
+    if (
+      !result ||
+      !result.project_exists
+    ) {
       return {
         success: false,
-
         message:
           'Projeto não encontrado.',
       };
     }
 
-    revalidatePath('/projetos');
+    const reportEntriesCount =
+      Number(
+        result.report_entries_count
+      );
+
+    const invoicesCount =
+      Number(
+        result.invoices_count
+      );
+
+    if (!result.deleted) {
+      const dependencies: string[] = [];
+
+      if (reportEntriesCount > 0) {
+        dependencies.push(
+          `${reportEntriesCount} lançamento${
+            reportEntriesCount === 1
+              ? ''
+              : 's'
+          }`
+        );
+      }
+
+      if (invoicesCount > 0) {
+        dependencies.push(
+          `${invoicesCount} fatura${
+            invoicesCount === 1
+              ? ''
+              : 's'
+          }`
+        );
+      }
+
+      return {
+        success: false,
+
+        message:
+          dependencies.length > 0
+            ? `O projeto não pode ser excluído porque possui ${dependencies.join(
+                ' e '
+              )}. Remova ou transfira esses registros antes de continuar.`
+            : 'Não foi possível excluir o projeto.',
+      };
+    }
+
     revalidatePath('/dashboard');
+    revalidatePath('/projetos');
     revalidatePath('/relatorios');
     revalidatePath('/faturas');
 
     return {
       success: true,
-
       message:
-        'Projeto arquivado com sucesso.',
+        'Projeto excluído com sucesso.',
     };
   } catch (error) {
     console.error(
-      'Erro ao arquivar projeto:',
+      'Erro ao excluir projeto:',
       error
     );
 
+    const databaseError =
+      error as {
+        code?: string;
+      };
+
+    /*
+     * Foreign key violation.
+     * Funciona como uma proteção adicional caso outra tabela
+     * passe a apontar para projects no futuro.
+     */
+    if (
+      databaseError.code === '23503'
+    ) {
+      return {
+        success: false,
+        message:
+          'O projeto possui registros relacionados e não pode ser excluído.',
+      };
+    }
+
     return {
       success: false,
-
       message:
-        'Não foi possível arquivar o projeto.',
+        'Não foi possível excluir o projeto.',
     };
   }
 }

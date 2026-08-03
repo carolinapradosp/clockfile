@@ -238,12 +238,7 @@ export default function ProjectForm({
                                 Concluído
                             </option>
 
-                            {project?.status ===
-                                'archived' && (
-                                    <option value="archived">
-                                        Arquivado
-                                    </option>
-                                )}
+
                         </select>
                     </div>
 

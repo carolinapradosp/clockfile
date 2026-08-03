@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import {
     BriefcaseBusiness,
-    Building2,
     CalendarDays,
     CircleDollarSign,
     Plus,
@@ -177,14 +176,12 @@ export default async function ProjectsPage() {
                                         {project.name}
                                     </h2>
 
-                                    <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                                        <Building2
-                                            size={15}
-                                            className="shrink-0"
-                                        />
+                                    {project.description && (
+                                        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                                            {project.description}
+                                        </p>
+                                    )}
 
-
-                                    </p>
                                     <div>
                                         <h2 className="font-bold text-slate-900">
                                             {project.name}

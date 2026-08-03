@@ -22,7 +22,7 @@ import {
     getProjectReportSummary,
 } from '@/app/actions/report';
 
-import ArchiveProjectButton from '@/components/projects/ArchiveProjectButton';
+import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
 
 type ProjectDetailsPageProps = {
     params: Promise<{
@@ -213,22 +213,20 @@ export default async function ProjectDetailsPage({
 
                     {project.status !==
                         'archived' && (
-                            <>
-                                <Link
-                                    href={`/projetos/${project.id}/editar`}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-                                >
-                                    <Edit3 size={17} />
+                            <Link
+                                href={`/projetos/${project.id}/editar`}
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            >
+                                <Edit3 size={17} />
 
-                                    Editar
-                                </Link>
-
-                                <ArchiveProjectButton
-                                    projectId={project.id}
-                                    projectName={project.name}
-                                />
-                            </>
+                                Editar
+                            </Link>
                         )}
+
+                    <DeleteProjectButton
+                        projectId={project.id}
+                        projectName={project.name}
+                    />
                 </div>
             </header>
 
