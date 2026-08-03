@@ -1,27 +1,82 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+// proxy.ts
 
-export function proxy(request: NextRequest) {
-  const session = request.cookies.get('auth_session')?.value;
-  const { pathname } = request.nextUrl;
+import {
+  NextRequest,
+  NextResponse,
+} from 'next/server';
 
-  // Rotas que exigem autenticação
-  const isProtectedRoute = pathname.startsWith('/lancamento') || pathname.startsWith('/relatorios') || pathname.startsWith('/invoice-generator');
+const SESSION_COOKIE_NAME =
+  'clockfile_session';
 
-  // Se for uma rota protegida e o usuário NÃO tiver o cookie, redireciona para a home (login)
-  if (isProtectedRoute && !session) {
-    return NextResponse.redirect(new URL('/', request.url));
+const PUBLIC_ROUTES = new Set([
+  '/',
+  '/cadastro',
+]);
+
+const PROTECTED_ROUTE_PREFIXES = [
+  '/dashboard',
+  '/projetos',
+  '/relatorios',
+  '/faturas',
+  '/configuracoes',
+];
+
+function isProtectedRoute(
+  pathname: string
+): boolean {
+  return PROTECTED_ROUTE_PREFIXES.some(
+    (prefix) =>
+      pathname === prefix ||
+      pathname.startsWith(`${prefix}/`)
+  );
+}
+
+export function proxy(
+  request: NextRequest
+) {
+  const { pathname } =
+    request.nextUrl;
+
+  const sessionToken =
+    request.cookies.get(
+      SESSION_COOKIE_NAME
+    )?.value;
+
+  const isPublicRoute =
+    PUBLIC_ROUTES.has(pathname);
+
+  if (
+    isProtectedRoute(pathname) &&
+    !sessionToken
+  ) {
+    return NextResponse.redirect(
+      new URL('/', request.url)
+    );
   }
 
-  // Se o usuário já estiver logado e tentar ir para a Home (tela de login), manda direto para os lançamentos
-  if (pathname === '/' && session) {
-    return NextResponse.redirect(new URL('/lancamento', request.url));
+  if (
+    isPublicRoute &&
+    sessionToken
+  ) {
+    return NextResponse.redirect(
+      new URL(
+        '/dashboard',
+        request.url
+      )
+    );
   }
 
   return NextResponse.next();
 }
 
-// Configura quais caminhos o middleware deve avaliar (evita rodar em arquivos estáticos/imagens)
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/',
+    '/cadastro',
+    '/dashboard/:path*',
+    '/projetos/:path*',
+    '/relatorios/:path*',
+    '/faturas/:path*',
+    '/configuracoes/:path*',
+  ],
 };
