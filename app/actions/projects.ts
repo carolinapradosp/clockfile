@@ -686,6 +686,7 @@ export async function updateProject(
   }
 }
 
+
 export async function deleteProject(
   projectId: string
 ): Promise<{
@@ -705,30 +706,35 @@ export async function deleteProject(
       await getCurrentUserId();
 
     /*
-     * Uma única instrução verifica:
+     * Regra:
      *
-     * 1. se o projeto existe e pertence ao usuário;
-     * 2. quantos lançamentos existem;
-     * 3. quantas faturas existem;
-     * 4. exclui somente quando não existem dependências.
+     * - Se houver lançamentos, não exclui nada.
+     * - Se não houver lançamentos, exclui:
+     *   1. vínculos dos itens das faturas;
+     *   2. itens das faturas;
+     *   3. faturas;
+     *   4. projeto.
      *
-     * Isso reduz o risco de uma dependência ser criada entre
-     * uma consulta de validação e a exclusão.
+     * Tudo acontece em uma única instrução SQL.
      */
     const rows = await sql`
-      WITH target_project AS (
-        SELECT id
+      WITH target_project AS MATERIALIZED (
+        SELECT
+          project.id
 
-        FROM public.projects
+        FROM public.projects project
 
         WHERE
-          id = ${projectId}::uuid
-          AND owner_id = ${ownerId}::uuid
+          project.id =
+            ${projectId}::uuid
+
+          AND project.owner_id =
+            ${ownerId}::uuid
 
         LIMIT 1
       ),
 
-      dependency_counts AS (
+      dependency_counts AS MATERIALIZED (
         SELECT
           EXISTS (
             SELECT 1
@@ -737,25 +743,122 @@ export async function deleteProject(
 
           (
             SELECT COUNT(*)
+
             FROM public.report_entries entry
-            WHERE entry.project_id = (
-              SELECT id
-              FROM target_project
-            )
+
+            WHERE
+              entry.project_id = (
+                SELECT id
+                FROM target_project
+              )
           ) AS report_entries_count,
 
           (
             SELECT COUNT(*)
+
             FROM public.invoices invoice
-            WHERE invoice.project_id = (
-              SELECT id
-              FROM target_project
-            )
+
+            WHERE
+              invoice.project_id = (
+                SELECT id
+                FROM target_project
+              )
+
+              AND invoice.owner_id =
+                ${ownerId}::uuid
           ) AS invoices_count
       ),
 
+      target_invoices AS MATERIALIZED (
+        SELECT
+          invoice.id
+
+        FROM public.invoices invoice
+
+        WHERE
+          invoice.project_id = (
+            SELECT id
+            FROM target_project
+          )
+
+          AND invoice.owner_id =
+            ${ownerId}::uuid
+
+          AND (
+            SELECT
+              report_entries_count
+
+            FROM dependency_counts
+          ) = 0
+      ),
+
+      deleted_invoice_relations AS (
+        DELETE FROM
+          public.invoice_report_entries
+          AS relation
+
+        USING target_invoices
+          AS target_invoice
+
+        WHERE
+          relation.invoice_id =
+            target_invoice.id
+
+        RETURNING relation.id
+      ),
+
+      deleted_invoice_items AS (
+        DELETE FROM
+          public.invoice_items
+          AS item
+
+        USING target_invoices
+          AS target_invoice
+
+        WHERE
+          item.invoice_id =
+            target_invoice.id
+
+          /*
+           * Força a execução do CTE anterior
+           * antes da exclusão dos itens.
+           */
+          AND (
+            SELECT COUNT(*)
+            FROM deleted_invoice_relations
+          ) >= 0
+
+        RETURNING item.id
+      ),
+
+      deleted_invoices AS (
+        DELETE FROM
+          public.invoices
+          AS invoice
+
+        USING target_invoices
+          AS target_invoice
+
+        WHERE
+          invoice.id =
+            target_invoice.id
+
+          /*
+           * Força a exclusão dos itens
+           * antes da exclusão das faturas.
+           */
+          AND (
+            SELECT COUNT(*)
+            FROM deleted_invoice_items
+          ) >= 0
+
+        RETURNING invoice.id
+      ),
+
       deleted_project AS (
-        DELETE FROM public.projects project
+        DELETE FROM
+          public.projects
+          AS project
 
         WHERE
           project.id = (
@@ -763,32 +866,44 @@ export async function deleteProject(
             FROM target_project
           )
 
-          AND NOT EXISTS (
-            SELECT 1
-            FROM public.report_entries entry
-            WHERE entry.project_id = project.id
-          )
+          AND (
+            SELECT
+              report_entries_count
 
-          AND NOT EXISTS (
-            SELECT 1
-            FROM public.invoices invoice
-            WHERE invoice.project_id = project.id
-          )
+            FROM dependency_counts
+          ) = 0
+
+          /*
+           * Força a exclusão das faturas
+           * antes da exclusão do projeto.
+           */
+          AND (
+            SELECT COUNT(*)
+            FROM deleted_invoices
+          ) >= 0
 
         RETURNING project.id
       )
 
       SELECT
         dependency.project_exists,
+
         dependency.report_entries_count,
+
         dependency.invoices_count,
+
+        (
+          SELECT COUNT(*)
+          FROM deleted_invoices
+        ) AS deleted_invoices_count,
 
         EXISTS (
           SELECT 1
           FROM deleted_project
-        ) AS deleted
+        ) AS project_deleted
 
-      FROM dependency_counts dependency
+      FROM dependency_counts
+        AS dependency
     `;
 
     const result = rows[0] as
@@ -803,7 +918,11 @@ export async function deleteProject(
             | number
             | string;
 
-          deleted: boolean;
+          deleted_invoices_count:
+            | number
+            | string;
+
+          project_deleted: boolean;
         }
       | undefined;
 
@@ -828,38 +947,29 @@ export async function deleteProject(
         result.invoices_count
       );
 
-    if (!result.deleted) {
-      const dependencies: string[] = [];
+    const deletedInvoicesCount =
+      Number(
+        result.deleted_invoices_count
+      );
 
-      if (reportEntriesCount > 0) {
-        dependencies.push(
-          `${reportEntriesCount} lançamento${
-            reportEntriesCount === 1
-              ? ''
-              : 's'
-          }`
-        );
-      }
-
-      if (invoicesCount > 0) {
-        dependencies.push(
-          `${invoicesCount} fatura${
-            invoicesCount === 1
-              ? ''
-              : 's'
-          }`
-        );
-      }
-
+    if (reportEntriesCount > 0) {
       return {
         success: false,
 
         message:
-          dependencies.length > 0
-            ? `O projeto não pode ser excluído porque possui ${dependencies.join(
-                ' e '
-              )}. Remova ou transfira esses registros antes de continuar.`
-            : 'Não foi possível excluir o projeto.',
+          `O projeto não pode ser excluído porque possui ${reportEntriesCount} lançamento${
+            reportEntriesCount === 1
+              ? ''
+              : 's'
+          }. Exclua ou transfira os lançamentos antes de continuar.`,
+      };
+    }
+
+    if (!result.project_deleted) {
+      return {
+        success: false,
+        message:
+          'Não foi possível excluir o projeto.',
       };
     }
 
@@ -870,8 +980,19 @@ export async function deleteProject(
 
     return {
       success: true,
+
       message:
-        'Projeto excluído com sucesso.',
+        invoicesCount > 0
+          ? `Projeto excluído com sucesso. ${deletedInvoicesCount} fatura${
+              deletedInvoicesCount === 1
+                ? ''
+                : 's'
+            } também ${
+              deletedInvoicesCount === 1
+                ? 'foi excluída'
+                : 'foram excluídas'
+            }.`
+          : 'Projeto excluído com sucesso.',
     };
   } catch (error) {
     console.error(
@@ -884,18 +1005,15 @@ export async function deleteProject(
         code?: string;
       };
 
-    /*
-     * Foreign key violation.
-     * Funciona como uma proteção adicional caso outra tabela
-     * passe a apontar para projects no futuro.
-     */
     if (
-      databaseError.code === '23503'
+      databaseError.code ===
+      '23503'
     ) {
       return {
         success: false,
+
         message:
-          'O projeto possui registros relacionados e não pode ser excluído.',
+          'O projeto ainda possui registros relacionados que impedem sua exclusão.',
       };
     }
 

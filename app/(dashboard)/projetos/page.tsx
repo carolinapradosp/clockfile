@@ -182,17 +182,7 @@ export default async function ProjectsPage() {
                                         </p>
                                     )}
 
-                                    <div>
-                                        <h2 className="font-bold text-slate-900">
-                                            {project.name}
-                                        </h2>
 
-                                        {project.description && (
-                                            <p className="mt-1 line-clamp-2 text-sm text-slate-500">
-                                                {project.description}
-                                            </p>
-                                        )}
-                                    </div>
                                 </div>
 
                                 <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
