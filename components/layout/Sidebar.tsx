@@ -190,11 +190,11 @@ export default function Sidebar({
         `}
             >
                 {/* Logo */}
-                <div className="flex h-20 shrink-0 items-center justify-between border-b border-slate-100 px-5">
+                <div className="flex h-20 shrink-0 items-center justify-center border-b border-slate-100 px-5">
                     <div
                         className={
                             collapsed
-                                ? 'hidden lg:block lg:overflow-hidden'
+                                ? 'hidden lg:overflow-hidden'
                                 : ''
                         }
                     >
@@ -211,7 +211,7 @@ export default function Sidebar({
                         <Link
                             href="/dashboard"
                             aria-label="Clockfile Dashboard"
-                            className="hidden h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-black text-white lg:flex"
+                            className="hidden h-10 w-10 items-center justify-center text-indigo-950  text-4xl font-black lg:flex"
                         >
                             C
                         </Link>

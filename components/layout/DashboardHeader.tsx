@@ -17,7 +17,7 @@ export default function DashboardHeader() {
             <div className="ml-14 flex w-full items-center justify-between lg:ml-0">
                 <div>
                     <p className="text-sm text-slate-500">
-                        Bem-vinda ao
+                        Bem-vindo ao
                     </p>
 
                     <h1 className="text-lg font-bold text-slate-900">
