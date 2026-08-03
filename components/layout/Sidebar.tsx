@@ -8,6 +8,7 @@ import {
     ChevronRight,
     FileClock,
     FileText,
+    Settings,
     LayoutDashboard,
     Menu,
     X,
@@ -51,6 +52,11 @@ const navigationItems: NavigationItem[] = [
         label: 'Faturas',
         href: '/faturas',
         icon: FileText,
+    },
+    {
+        label: 'Configurações',
+        href: '/configuracoes',
+        icon: Settings,
     },
 ];
 
@@ -340,8 +346,8 @@ export default function Sidebar({
 
                             <div
                                 className={`min-w-0 ${collapsed
-                                        ? 'lg:hidden'
-                                        : ''
+                                    ? 'lg:hidden'
+                                    : ''
                                     }`}
                             >
                                 <p className="truncate text-sm font-semibold text-slate-800">
