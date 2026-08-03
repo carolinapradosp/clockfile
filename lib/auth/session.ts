@@ -96,10 +96,7 @@ function normalizeIpAddress(
     return null;
   }
 
-  /*
-   * x-forwarded-for pode conter uma lista:
-   * cliente, proxy1, proxy2.
-   */
+
   const firstAddress =
     value.split(',')[0]?.trim();
 

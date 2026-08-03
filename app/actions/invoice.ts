@@ -1868,132 +1868,123 @@ export async function saveInvoice(
 
     const result = await sql`
       WITH saved_invoice AS (
-        INSERT INTO public.invoices (
-          id,
+       INSERT INTO public.invoices (
+  id,
 
-          owner_id,
-          client_id,
-          project_id,
+  owner_id,
+  project_id,
 
-          reference_month,
+  reference_month,
 
-          invoice_date,
-          due_date,
+  invoice_date,
+  due_date,
 
-          currency,
+  currency,
 
-          tax_percentage,
-          subtotal,
-          tax_amount,
-          total_amount,
+  tax_percentage,
+  subtotal,
+  tax_amount,
+  total_amount,
 
-          status,
-          notes,
+  status,
+  notes,
 
-          bill_to_name,
-          bill_to_company,
-          bill_to_email,
-          bill_to_phone,
+  bill_to_name,
+  bill_to_company,
+  bill_to_email,
+  bill_to_phone,
 
-          bill_to_address_line_1,
-          bill_to_address_line_2,
-          bill_to_city,
-          bill_to_state,
-          bill_to_postal_code,
-          bill_to_country_code,
+  bill_to_address_line_1,
+  bill_to_address_line_2,
+  bill_to_city,
+  bill_to_state,
+  bill_to_postal_code,
+  bill_to_country_code,
 
-          issued_at,
-          sent_at,
-          paid_at,
-          cancelled_at,
+  issued_at,
+  sent_at,
+  paid_at,
+  cancelled_at,
 
-          created_at,
-          updated_at
-        )
-        VALUES (
-          COALESCE(
-            ${invoiceId}::uuid,
-            gen_random_uuid()
-          ),
+  created_at,
+  updated_at
+)
+VALUES (
+  COALESCE(
+    ${invoiceId}::uuid,
+    gen_random_uuid()
+  ),
 
-          ${ownerId}::uuid,
+  ${ownerId}::uuid,
 
-          NULL,
+  ${input.projectId ?? null}::uuid,
 
-          ${input.projectId ?? null}::uuid,
+  ${input.referenceMonth},
 
-          ${input.referenceMonth},
+  ${input.invoiceDate}::date,
 
-          ${input.invoiceDate}::date,
+  ${input.dueDate ?? null}::date,
 
-          ${input.dueDate ?? null}::date,
+  ${currency},
 
-          ${currency},
+  ${taxPercentage},
+  ${subtotal},
+  ${taxAmount},
+  ${totalAmount},
 
-          ${taxPercentage},
-          ${subtotal},
-          ${taxAmount},
-          ${totalAmount},
+  ${input.status},
 
-          ${input.status},
+  ${input.notes?.trim() || null},
 
-          ${input.notes?.trim() || null},
+  ${billTo.name},
+  ${billTo.company},
+  ${billTo.email},
+  ${billTo.phone},
 
-          ${billTo.name},
-          ${billTo.company},
-          ${billTo.email},
-          ${billTo.phone},
+  ${billTo.addressLine1},
+  ${billTo.addressLine2},
+  ${billTo.city},
+  ${billTo.state},
+  ${billTo.postalCode},
+  ${billTo.countryCode},
 
-          ${billTo.addressLine1},
-          ${billTo.addressLine2},
-          ${billTo.city},
-          ${billTo.state},
-          ${billTo.postalCode},
-          ${billTo.countryCode},
+  CASE
+    WHEN ${input.status} IN (
+      'issued',
+      'sent',
+      'paid',
+      'overdue'
+    )
+    THEN NOW()
+    ELSE NULL
+  END,
 
-          CASE
-            WHEN ${input.status} IN (
-              'issued',
-              'sent',
-              'paid',
-              'overdue'
-            )
-            THEN NOW()
-            ELSE NULL
-          END,
+  CASE
+    WHEN ${input.status} = 'sent'
+    THEN NOW()
+    ELSE NULL
+  END,
 
-          CASE
-            WHEN ${input.status} =
-              'sent'
-            THEN NOW()
-            ELSE NULL
-          END,
+  CASE
+    WHEN ${input.status} = 'paid'
+    THEN NOW()
+    ELSE NULL
+  END,
 
-          CASE
-            WHEN ${input.status} =
-              'paid'
-            THEN NOW()
-            ELSE NULL
-          END,
+  CASE
+    WHEN ${input.status} = 'cancelled'
+    THEN NOW()
+    ELSE NULL
+  END,
 
-          CASE
-            WHEN ${input.status} =
-              'cancelled'
-            THEN NOW()
-            ELSE NULL
-          END,
-
-          NOW(),
-          NOW()
-        )
+  NOW(),
+  NOW()
+)
 
         ON CONFLICT (id)
         DO UPDATE SET
           owner_id =
             EXCLUDED.owner_id,
-
-          client_id =
-            NULL,
 
           project_id =
             EXCLUDED.project_id,

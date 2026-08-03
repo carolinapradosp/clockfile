@@ -57,7 +57,7 @@ const quickActions = [
         label: 'Criar fatura',
         description:
             'Importe horas registradas ou adicione itens manualmente.',
-        href: '/faturas/nova',
+        href: '/faturas/novo',
         icon: FileText,
     },
 ];

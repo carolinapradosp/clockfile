@@ -173,12 +173,6 @@ export default function InvoicesTable({
                                                 />
 
                                                 <div>
-                                                    {/* <p className="text-sm font-semibold text-slate-800">
-                                                        {invoice.clientCompanyName ??
-                                                            invoice.clientName ??
-                                                            'Cliente não informado'}
-                                                    </p> */}
-
                                                     {invoice.projectName && (
                                                         <p className="mt-1 text-xs text-slate-400">
                                                             {invoice.projectName}
@@ -291,12 +285,6 @@ export default function InvoicesTable({
                         </div>
 
                         <div className="mt-5 border-t border-slate-100 pt-4">
-                            {/* <p className="text-sm font-semibold text-slate-800">
-                                {invoice.clientCompanyName ??
-                                    invoice.clientName ??
-                                    'Cliente não informado'}
-                            </p> */}
-
                             {invoice.projectName && (
                                 <p className="mt-1 text-sm text-slate-500">
                                     {invoice.projectName}
