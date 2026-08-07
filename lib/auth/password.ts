@@ -109,6 +109,22 @@ export function validatePassword(
     };
   }
 
+  if (!/[A-Z]/.test(password)) {
+    return {
+      valid: false,
+      message:
+        'A senha deve possuir pelo menos uma letra maiúscula.',
+    };
+  }
+
+  if (!/\d/.test(password)) {
+    return {
+      valid: false,
+      message:
+        'A senha deve possuir pelo menos um número.',
+    };
+  }
+
   return {
     valid: true,
   };
