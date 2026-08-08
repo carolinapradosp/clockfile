@@ -5,12 +5,14 @@
 import Link from 'next/link';
 
 import {
+    Check,
     Eye,
     EyeOff,
     Lock,
     Mail,
     Phone,
     User,
+    X,
 } from 'lucide-react';
 
 import {
@@ -62,6 +64,39 @@ function FieldError({
     );
 }
 
+function PasswordRequirement({
+    valid,
+    children,
+}: {
+    valid: boolean;
+    children: React.ReactNode;
+}) {
+    return (
+        <div
+            className={`flex items-center gap-2 text-xs transition-colors ${valid
+                ? 'text-emerald-600'
+                : 'text-slate-400'
+                }`}
+        >
+            {valid ? (
+                <Check
+                    size={14}
+                    className="shrink-0"
+                />
+            ) : (
+                <X
+                    size={14}
+                    className="shrink-0"
+                />
+            )}
+
+            <span>
+                {children}
+            </span>
+        </div>
+    );
+}
+
 export default function SignUpForm() {
     const [
         state,
@@ -82,19 +117,57 @@ export default function SignUpForm() {
         setShowPasswordConfirmation,
     ] = useState(false);
 
+    const [
+        password,
+        setPassword,
+    ] = useState('');
+
+    const [
+        passwordConfirmation,
+        setPasswordConfirmation,
+    ] = useState('');
+
+    const hasMinimumLength =
+        password.length >= 8;
+
+    const hasUppercase =
+        /[A-Z]/.test(password);
+
+    const hasNumber =
+        /\d/.test(password);
+
+    const passwordIsStrong =
+        hasMinimumLength &&
+        hasUppercase &&
+        hasNumber;
+
+    const passwordsMatch =
+        password.length > 0 &&
+        passwordConfirmation.length > 0 &&
+        password ===
+        passwordConfirmation;
+
+    const canSubmit =
+        passwordIsStrong &&
+        passwordsMatch &&
+        !isPending;
+
     return (
         <form
             action={formAction}
             className="space-y-5"
         >
-            {state && !state.success && (
-                <div
-                    role="alert"
-                    className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
-                >
-                    {state.message}
-                </div>
-            )}
+            {state &&
+                !state.success && (
+                    <div
+                        role="alert"
+                        className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
+                    >
+                        {state.message}
+                    </div>
+                )}
+
+            {/* NOME */}
 
             <div>
                 <label
@@ -117,16 +190,22 @@ export default function SignUpForm() {
                         autoComplete="name"
                         required
                         placeholder="Seu nome completo"
-                        className={inputClassName}
+                        className={
+                            inputClassName
+                        }
                     />
                 </div>
 
                 <FieldError
                     message={
-                        state?.fieldErrors?.name
+                        state
+                            ?.fieldErrors
+                            ?.name
                     }
                 />
             </div>
+
+            {/* EMAIL */}
 
             <div>
                 <label
@@ -149,16 +228,22 @@ export default function SignUpForm() {
                         autoComplete="email"
                         required
                         placeholder="voce@exemplo.com"
-                        className={inputClassName}
+                        className={
+                            inputClassName
+                        }
                     />
                 </div>
 
                 <FieldError
                     message={
-                        state?.fieldErrors?.email
+                        state
+                            ?.fieldErrors
+                            ?.email
                     }
                 />
             </div>
+
+            {/* TELEFONE */}
 
             <div>
                 <label
@@ -181,16 +266,22 @@ export default function SignUpForm() {
                         autoComplete="tel"
                         required
                         placeholder="+55 11 99999-9999"
-                        className={inputClassName}
+                        className={
+                            inputClassName
+                        }
                     />
                 </div>
 
                 <FieldError
                     message={
-                        state?.fieldErrors?.phone
+                        state
+                            ?.fieldErrors
+                            ?.phone
                     }
                 />
             </div>
+
+            {/* SENHA */}
 
             <div>
                 <label
@@ -218,7 +309,17 @@ export default function SignUpForm() {
                         required
                         minLength={8}
                         maxLength={128}
-                        placeholder="Mínimo de 8 caracteres"
+                        value={password}
+                        onChange={(
+                            event
+                        ) =>
+                            setPassword(
+                                event
+                                    .target
+                                    .value
+                            )
+                        }
+                        placeholder="Crie uma senha forte"
                         className={`${inputClassName} pr-12`}
                     />
 
@@ -226,7 +327,10 @@ export default function SignUpForm() {
                         type="button"
                         onClick={() =>
                             setShowPassword(
-                                (current) => !current
+                                (
+                                    current
+                                ) =>
+                                    !current
                             )
                         }
                         aria-label={
@@ -237,19 +341,59 @@ export default function SignUpForm() {
                         className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                     >
                         {showPassword ? (
-                            <EyeOff size={18} />
+                            <EyeOff
+                                size={18}
+                            />
                         ) : (
-                            <Eye size={18} />
+                            <Eye
+                                size={18}
+                            />
                         )}
                     </button>
                 </div>
 
+                {/* REGRAS DA SENHA */}
+
+                <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-3">
+                    <p className="mb-2 text-xs font-semibold text-slate-600">
+                        Sua senha deve conter:
+                    </p>
+
+                    <PasswordRequirement
+                        valid={
+                            hasMinimumLength
+                        }
+                    >
+                        Pelo menos 8 caracteres
+                    </PasswordRequirement>
+
+                    <PasswordRequirement
+                        valid={
+                            hasUppercase
+                        }
+                    >
+                        Pelo menos uma letra maiúscula
+                    </PasswordRequirement>
+
+                    <PasswordRequirement
+                        valid={
+                            hasNumber
+                        }
+                    >
+                        Pelo menos um número
+                    </PasswordRequirement>
+                </div>
+
                 <FieldError
                     message={
-                        state?.fieldErrors?.password
+                        state
+                            ?.fieldErrors
+                            ?.password
                     }
                 />
             </div>
+
+            {/* CONFIRMAÇÃO */}
 
             <div>
                 <label
@@ -277,6 +421,18 @@ export default function SignUpForm() {
                         required
                         minLength={8}
                         maxLength={128}
+                        value={
+                            passwordConfirmation
+                        }
+                        onChange={(
+                            event
+                        ) =>
+                            setPasswordConfirmation(
+                                event
+                                    .target
+                                    .value
+                            )
+                        }
                         placeholder="Digite a senha novamente"
                         className={`${inputClassName} pr-12`}
                     />
@@ -285,7 +441,10 @@ export default function SignUpForm() {
                         type="button"
                         onClick={() =>
                             setShowPasswordConfirmation(
-                                (current) => !current
+                                (
+                                    current
+                                ) =>
+                                    !current
                             )
                         }
                         aria-label={
@@ -296,25 +455,48 @@ export default function SignUpForm() {
                         className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                     >
                         {showPasswordConfirmation ? (
-                            <EyeOff size={18} />
+                            <EyeOff
+                                size={18}
+                            />
                         ) : (
-                            <Eye size={18} />
+                            <Eye
+                                size={18}
+                            />
                         )}
                     </button>
                 </div>
 
+                {passwordConfirmation && (
+                    <div className="mt-3">
+                        <PasswordRequirement
+                            valid={
+                                passwordsMatch
+                            }
+                        >
+                            {passwordsMatch
+                                ? 'As senhas coincidem'
+                                : 'As senhas não coincidem'}
+                        </PasswordRequirement>
+                    </div>
+                )}
+
                 <FieldError
                     message={
-                        state?.fieldErrors
+                        state
+                            ?.fieldErrors
                             ?.passwordConfirmation
                     }
                 />
             </div>
 
+            {/* SUBMIT */}
+
             <button
                 type="submit"
-                disabled={isPending}
-                className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
+                disabled={
+                    !canSubmit
+                }
+                className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 {isPending
                     ? 'Criando conta...'
@@ -323,6 +505,7 @@ export default function SignUpForm() {
 
             <p className="text-center text-sm text-slate-500">
                 Já possui uma conta?{' '}
+
                 <Link
                     href="/"
                     className="font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline"

@@ -1,14 +1,18 @@
-// components/projects/DeleteProjectButton.tsx
-
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import {
+    LoaderCircle,
+    Trash2,
+} from 'lucide-react';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import {
     deleteProject,
 } from '@/app/actions/projects';
+
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 type DeleteProjectButtonProps = {
     projectId: string;
@@ -27,20 +31,29 @@ export default function DeleteProjectButton({
     ] = useState(false);
 
     const [
+        isConfirmOpen,
+        setIsConfirmOpen,
+    ] = useState(false);
+
+    const [
         error,
         setError,
     ] = useState('');
 
-    async function handleDelete() {
-        const confirmed =
-            window.confirm(
-                `Deseja excluir permanentemente o projeto "${projectName}"?\n\nEssa ação não poderá ser desfeita.`
-            );
+    function handleOpenConfirmation() {
+        setError('');
+        setIsConfirmOpen(true);
+    }
 
-        if (!confirmed) {
+    function handleCancelConfirmation() {
+        if (isPending) {
             return;
         }
 
+        setIsConfirmOpen(false);
+    }
+
+    async function handleConfirmDelete() {
         try {
             setIsPending(true);
             setError('');
@@ -57,6 +70,8 @@ export default function DeleteProjectButton({
 
                 return;
             }
+
+            setIsConfirmOpen(false);
 
             router.replace('/projetos');
             router.refresh();
@@ -75,28 +90,55 @@ export default function DeleteProjectButton({
     }
 
     return (
-        <div>
-            <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isPending}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 text-sm font-semibold text-red-600 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
-            >
-                <Trash2 size={17} />
-
-                {isPending
-                    ? 'Excluindo...'
-                    : 'Excluir'}
-            </button>
-
-            {error && (
-                <p
-                    role="alert"
-                    className="mt-2 max-w-sm text-sm font-medium leading-relaxed text-red-600"
+        <>
+            <div>
+                <button
+                    type="button"
+                    onClick={
+                        handleOpenConfirmation
+                    }
+                    disabled={isPending}
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 text-sm font-semibold text-red-600 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
                 >
-                    {error}
-                </p>
-            )}
-        </div>
+                    {isPending ? (
+                        <LoaderCircle
+                            size={17}
+                            className="animate-spin"
+                        />
+                    ) : (
+                        <Trash2 size={17} />
+                    )}
+
+                    {isPending
+                        ? 'Excluindo...'
+                        : 'Excluir'}
+                </button>
+
+                {error && (
+                    <p
+                        role="alert"
+                        className="mt-2 max-w-sm text-sm font-medium leading-relaxed text-red-600"
+                    >
+                        {error}
+                    </p>
+                )}
+            </div>
+
+            <ConfirmModal
+                open={isConfirmOpen}
+                title="Excluir projeto?"
+                description={`Deseja excluir permanentemente o projeto "${projectName}"? Faturas vinculadas ao projeto também poderão ser removidas conforme as regras atuais do sistema. Essa ação não poderá ser desfeita.`}
+                confirmLabel="Excluir projeto"
+                cancelLabel="Cancelar"
+                loading={isPending}
+                variant="danger"
+                onConfirm={
+                    handleConfirmDelete
+                }
+                onCancel={
+                    handleCancelConfirmation
+                }
+            />
+        </>
     );
 }

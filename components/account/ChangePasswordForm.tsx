@@ -3,14 +3,17 @@
 'use client';
 
 import {
+    Check,
+    Eye,
+    EyeOff,
     KeyRound,
     Save,
+    X,
 } from 'lucide-react';
 
 import {
     useActionState,
-    useEffect,
-    useRef,
+    useState,
 } from 'react';
 
 import {
@@ -29,6 +32,7 @@ const inputClassName = `
   border-slate-200
   bg-white
   px-4
+  pr-12
   text-sm
   text-slate-900
   outline-none
@@ -42,12 +46,47 @@ const inputClassName = `
 const initialState: ChangePasswordActionState =
     null;
 
-export default function ChangePasswordForm() {
-    const formRef =
-        useRef<HTMLFormElement>(
-            null
-        );
+function PasswordRequirement({
+    valid,
+    children,
+}: {
+    valid: boolean;
+    children: React.ReactNode;
+}) {
+    return (
+        <div
+            className={`
+                flex
+                items-center
+                gap-2
+                text-xs
+                transition-colors
+                ${valid
+                    ? 'text-emerald-600'
+                    : 'text-slate-400'
+                }
+            `}
+        >
+            {valid ? (
+                <Check
+                    size={14}
+                    className="shrink-0"
+                />
+            ) : (
+                <X
+                    size={14}
+                    className="shrink-0"
+                />
+            )}
 
+            <span>
+                {children}
+            </span>
+        </div>
+    );
+}
+
+export default function ChangePasswordForm() {
     const [
         state,
         formAction,
@@ -57,17 +96,80 @@ export default function ChangePasswordForm() {
         initialState
     );
 
-    useEffect(() => {
-        if (state?.success) {
-            formRef.current?.reset();
-        }
-    }, [state]);
+    const [
+        currentPassword,
+        setCurrentPassword,
+    ] = useState('');
+
+    const [
+        newPassword,
+        setNewPassword,
+    ] = useState('');
+
+    const [
+        passwordConfirmation,
+        setPasswordConfirmation,
+    ] = useState('');
+
+    const [
+        showCurrentPassword,
+        setShowCurrentPassword,
+    ] = useState(false);
+
+    const [
+        showNewPassword,
+        setShowNewPassword,
+    ] = useState(false);
+
+    const [
+        showPasswordConfirmation,
+        setShowPasswordConfirmation,
+    ] = useState(false);
+
+    const hasMinimumLength =
+        newPassword.length >= 8;
+
+    const hasUppercase =
+        /[A-Z]/.test(
+            newPassword
+        );
+
+    const hasNumber =
+        /\d/.test(
+            newPassword
+        );
+
+    const passwordIsStrong =
+        hasMinimumLength &&
+        hasUppercase &&
+        hasNumber;
+
+    const passwordsMatch =
+        newPassword.length > 0 &&
+        passwordConfirmation.length > 0 &&
+        newPassword ===
+        passwordConfirmation;
+
+    const isDifferentFromCurrent =
+        currentPassword.length > 0 &&
+        newPassword.length > 0 &&
+        currentPassword !==
+        newPassword;
+
+    const canSubmit =
+        currentPassword.length > 0 &&
+        passwordIsStrong &&
+        passwordsMatch &&
+        isDifferentFromCurrent &&
+        !isPending;
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
             <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                    <KeyRound size={21} />
+                    <KeyRound
+                        size={21}
+                    />
                 </div>
 
                 <div>
@@ -82,10 +184,11 @@ export default function ChangePasswordForm() {
             </div>
 
             <form
-                ref={formRef}
                 action={formAction}
                 className="mt-7 space-y-5"
             >
+                {/* SENHA ATUAL */}
+
                 <div>
                     <label
                         htmlFor="current-password"
@@ -94,14 +197,60 @@ export default function ChangePasswordForm() {
                         Senha atual
                     </label>
 
-                    <input
-                        id="current-password"
-                        name="currentPassword"
-                        type="password"
-                        required
-                        autoComplete="current-password"
-                        className={inputClassName}
-                    />
+                    <div className="relative">
+                        <input
+                            id="current-password"
+                            name="currentPassword"
+                            type={
+                                showCurrentPassword
+                                    ? 'text'
+                                    : 'password'
+                            }
+                            value={
+                                currentPassword
+                            }
+                            onChange={(
+                                event
+                            ) =>
+                                setCurrentPassword(
+                                    event.target.value
+                                )
+                            }
+                            required
+                            autoComplete="current-password"
+                            className={
+                                inputClassName
+                            }
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowCurrentPassword(
+                                    (
+                                        current
+                                    ) =>
+                                        !current
+                                )
+                            }
+                            aria-label={
+                                showCurrentPassword
+                                    ? 'Ocultar senha atual'
+                                    : 'Mostrar senha atual'
+                            }
+                            className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                        >
+                            {showCurrentPassword ? (
+                                <EyeOff
+                                    size={18}
+                                />
+                            ) : (
+                                <Eye
+                                    size={18}
+                                />
+                            )}
+                        </button>
+                    </div>
 
                     {state &&
                         !state.success &&
@@ -109,12 +258,15 @@ export default function ChangePasswordForm() {
                             ?.currentPassword && (
                             <p className="mt-2 text-sm font-medium text-red-600">
                                 {
-                                    state.fieldErrors
+                                    state
+                                        .fieldErrors
                                         .currentPassword
                                 }
                             </p>
                         )}
                 </div>
+
+                {/* NOVA SENHA */}
 
                 <div>
                     <label
@@ -124,20 +276,101 @@ export default function ChangePasswordForm() {
                         Nova senha
                     </label>
 
-                    <input
-                        id="new-password"
-                        name="newPassword"
-                        type="password"
-                        required
-                        minLength={8}
-                        maxLength={128}
-                        autoComplete="new-password"
-                        className={inputClassName}
-                    />
+                    <div className="relative">
+                        <input
+                            id="new-password"
+                            name="newPassword"
+                            type={
+                                showNewPassword
+                                    ? 'text'
+                                    : 'password'
+                            }
+                            value={
+                                newPassword
+                            }
+                            onChange={(
+                                event
+                            ) =>
+                                setNewPassword(
+                                    event.target.value
+                                )
+                            }
+                            required
+                            minLength={8}
+                            maxLength={128}
+                            autoComplete="new-password"
+                            placeholder="Crie uma senha forte"
+                            className={
+                                inputClassName
+                            }
+                        />
 
-                    <p className="mt-2 text-xs text-slate-400">
-                        Utilize entre 8 e 128 caracteres.
-                    </p>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowNewPassword(
+                                    (
+                                        current
+                                    ) =>
+                                        !current
+                                )
+                            }
+                            aria-label={
+                                showNewPassword
+                                    ? 'Ocultar nova senha'
+                                    : 'Mostrar nova senha'
+                            }
+                            className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                        >
+                            {showNewPassword ? (
+                                <EyeOff
+                                    size={18}
+                                />
+                            ) : (
+                                <Eye
+                                    size={18}
+                                />
+                            )}
+                        </button>
+                    </div>
+
+                    <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-3">
+                        <p className="mb-2 text-xs font-semibold text-slate-600">
+                            Sua nova senha deve conter:
+                        </p>
+
+                        <PasswordRequirement
+                            valid={
+                                hasMinimumLength
+                            }
+                        >
+                            Pelo menos 8 caracteres
+                        </PasswordRequirement>
+
+                        <PasswordRequirement
+                            valid={
+                                hasUppercase
+                            }
+                        >
+                            Pelo menos uma letra maiúscula
+                        </PasswordRequirement>
+
+                        <PasswordRequirement
+                            valid={
+                                hasNumber
+                            }
+                        >
+                            Pelo menos um número
+                        </PasswordRequirement>
+
+                        <PasswordRequirement
+                            valid={
+                                isDifferentFromCurrent
+                            }
+                        >
+                            Ser diferente da senha atual
+                        </PasswordRequirement>
+                    </div>
 
                     {state &&
                         !state.success &&
@@ -145,12 +378,15 @@ export default function ChangePasswordForm() {
                             ?.newPassword && (
                             <p className="mt-2 text-sm font-medium text-red-600">
                                 {
-                                    state.fieldErrors
+                                    state
+                                        .fieldErrors
                                         .newPassword
                                 }
                             </p>
                         )}
                 </div>
+
+                {/* CONFIRMAÇÃO */}
 
                 <div>
                     <label
@@ -160,16 +396,77 @@ export default function ChangePasswordForm() {
                         Confirmar nova senha
                     </label>
 
-                    <input
-                        id="password-confirmation"
-                        name="passwordConfirmation"
-                        type="password"
-                        required
-                        minLength={8}
-                        maxLength={128}
-                        autoComplete="new-password"
-                        className={inputClassName}
-                    />
+                    <div className="relative">
+                        <input
+                            id="password-confirmation"
+                            name="passwordConfirmation"
+                            type={
+                                showPasswordConfirmation
+                                    ? 'text'
+                                    : 'password'
+                            }
+                            value={
+                                passwordConfirmation
+                            }
+                            onChange={(
+                                event
+                            ) =>
+                                setPasswordConfirmation(
+                                    event.target.value
+                                )
+                            }
+                            required
+                            minLength={8}
+                            maxLength={128}
+                            autoComplete="new-password"
+                            placeholder="Digite a nova senha novamente"
+                            className={
+                                inputClassName
+                            }
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowPasswordConfirmation(
+                                    (
+                                        current
+                                    ) =>
+                                        !current
+                                )
+                            }
+                            aria-label={
+                                showPasswordConfirmation
+                                    ? 'Ocultar confirmação'
+                                    : 'Mostrar confirmação'
+                            }
+                            className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                        >
+                            {showPasswordConfirmation ? (
+                                <EyeOff
+                                    size={18}
+                                />
+                            ) : (
+                                <Eye
+                                    size={18}
+                                />
+                            )}
+                        </button>
+                    </div>
+
+                    {passwordConfirmation && (
+                        <div className="mt-3">
+                            <PasswordRequirement
+                                valid={
+                                    passwordsMatch
+                                }
+                            >
+                                {passwordsMatch
+                                    ? 'As senhas coincidem'
+                                    : 'As senhas não coincidem'}
+                            </PasswordRequirement>
+                        </div>
+                    )}
 
                     {state &&
                         !state.success &&
@@ -177,12 +474,15 @@ export default function ChangePasswordForm() {
                             ?.passwordConfirmation && (
                             <p className="mt-2 text-sm font-medium text-red-600">
                                 {
-                                    state.fieldErrors
+                                    state
+                                        .fieldErrors
                                         .passwordConfirmation
                                 }
                             </p>
                         )}
                 </div>
+
+                {/* FEEDBACK */}
 
                 {state && (
                     <div
@@ -193,17 +493,25 @@ export default function ChangePasswordForm() {
                                 : 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700'
                         }
                     >
-                        {state.message}
+                        {
+                            state.message
+                        }
                     </div>
                 )}
+
+                {/* SUBMIT */}
 
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={isPending}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+                        disabled={
+                            !canSubmit
+                        }
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <Save size={17} />
+                        <Save
+                            size={17}
+                        />
 
                         {isPending
                             ? 'Alterando...'
