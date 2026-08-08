@@ -14,7 +14,7 @@ export default function LoginPage() {
             <Logo />
 
 
-            <p className="mt-3 text-sm leading-relaxed text-slate-500">
+            <p className="mt-3 text-sm leading-relaxed text-slate-500 text-center">
               Acesse sua conta para gerenciar projetos, horas e faturas.
             </p>
           </div>
