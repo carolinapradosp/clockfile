@@ -42,6 +42,30 @@ type ProjectRow = {
     | Date
     | null;
 
+    billing_name: string | null;
+billing_company: string | null;
+billing_email: string | null;
+billing_phone: string | null;
+
+billing_address_line_1:
+    | string
+    | null;
+
+billing_address_line_2:
+    | string
+    | null;
+
+billing_city: string | null;
+billing_state: string | null;
+
+billing_postal_code:
+    | string
+    | null;
+
+billing_country_code:
+    | string
+    | null;
+
   created_at: string | Date;
   updated_at: string | Date;
 };
@@ -116,6 +140,38 @@ function mapProjectRow(
     endDate: normalizeDate(
       row.end_date
     ),
+
+    billing: {
+    name:
+        row.billing_name,
+
+    company:
+        row.billing_company,
+
+    email:
+        row.billing_email,
+
+    phone:
+        row.billing_phone,
+
+    addressLine1:
+        row.billing_address_line_1,
+
+    addressLine2:
+        row.billing_address_line_2,
+
+    city:
+        row.billing_city,
+
+    state:
+        row.billing_state,
+
+    postalCode:
+        row.billing_postal_code,
+
+    countryCode:
+        row.billing_country_code,
+},
 
     createdAt: normalizeDateTime(
       row.created_at
@@ -198,6 +254,66 @@ function parseProjectFormData(
       'endDate'
     );
 
+    const billingName =
+    getString(
+        formData,
+        'billingName'
+    );
+
+const billingCompany =
+    getString(
+        formData,
+        'billingCompany'
+    );
+
+const billingEmail =
+    getString(
+        formData,
+        'billingEmail'
+    ).toLowerCase();
+
+const billingPhone =
+    getString(
+        formData,
+        'billingPhone'
+    );
+
+const billingAddressLine1 =
+    getString(
+        formData,
+        'billingAddressLine1'
+    );
+
+const billingAddressLine2 =
+    getString(
+        formData,
+        'billingAddressLine2'
+    );
+
+const billingCity =
+    getString(
+        formData,
+        'billingCity'
+    );
+
+const billingState =
+    getString(
+        formData,
+        'billingState'
+    );
+
+const billingPostalCode =
+    getString(
+        formData,
+        'billingPostalCode'
+    );
+
+const billingCountryCode =
+    getString(
+        formData,
+        'billingCountryCode'
+    ).toUpperCase();
+
   const status =
     VALID_STATUSES.includes(
       rawStatus
@@ -271,6 +387,42 @@ function parseProjectFormData(
   }
 
   if (
+    billingEmail &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        billingEmail
+    )
+) {
+    fieldErrors.billingEmail =
+        'Informe um e-mail válido.';
+}
+
+if (
+    billingCountryCode &&
+    !/^[A-Z]{2}$/.test(
+        billingCountryCode
+    )
+) {
+    fieldErrors.billingCountryCode =
+        'Informe o país usando duas letras, por exemplo BR ou US.';
+}
+
+if (billingPhone) {
+    const phoneDigits =
+        billingPhone.replace(
+            /\D/g,
+            ''
+        );
+
+    if (
+        phoneDigits.length < 8 ||
+        phoneDigits.length > 15
+    ) {
+        fieldErrors.billingPhone =
+            'Informe um telefone válido.';
+    }
+}
+
+  if (
     Object.keys(
       fieldErrors
     ).length > 0
@@ -300,6 +452,18 @@ function parseProjectFormData(
       status,
       startDate,
       endDate,
+      billingName,
+billingCompany,
+billingEmail,
+billingPhone,
+
+billingAddressLine1,
+billingAddressLine2,
+
+billingCity,
+billingState,
+billingPostalCode,
+billingCountryCode,
     },
   };
 }
@@ -326,6 +490,17 @@ export async function getProjects({
 
       start_date,
       end_date,
+      billing_name,
+billing_company,
+billing_email,
+billing_phone,
+
+billing_address_line_1,
+billing_address_line_2,
+billing_city,
+billing_state,
+billing_postal_code,
+billing_country_code,
 
       created_at,
       updated_at
@@ -375,7 +550,17 @@ export async function getProjectById(
 
       start_date,
       end_date,
+billing_name,
+billing_company,
+billing_email,
+billing_phone,
 
+billing_address_line_1,
+billing_address_line_2,
+billing_city,
+billing_state,
+billing_postal_code,
+billing_country_code,
       created_at,
       updated_at
 
@@ -441,7 +626,17 @@ export async function createProject(
 
         start_date,
         end_date,
+billing_name,
+billing_company,
+billing_email,
+billing_phone,
 
+billing_address_line_1,
+billing_address_line_2,
+billing_city,
+billing_state,
+billing_postal_code,
+billing_country_code,
         created_at,
         updated_at
       )
@@ -466,6 +661,45 @@ export async function createProject(
         ${optionalText(
           data.endDate
         )}::date,
+        ${optionalText(
+    data.billingName
+)},
+
+${optionalText(
+    data.billingCompany
+)},
+
+${optionalText(
+    data.billingEmail
+)},
+
+${optionalText(
+    data.billingPhone
+)},
+
+${optionalText(
+    data.billingAddressLine1
+)},
+
+${optionalText(
+    data.billingAddressLine2
+)},
+
+${optionalText(
+    data.billingCity
+)},
+
+${optionalText(
+    data.billingState
+)},
+
+${optionalText(
+    data.billingPostalCode
+)},
+
+${optionalText(
+    data.billingCountryCode
+)},
 
         NOW(),
         NOW()
@@ -606,6 +840,56 @@ export async function updateProject(
           ${optionalText(
             data.endDate
           )}::date,
+
+          billing_name =
+    ${optionalText(
+        data.billingName
+    )},
+
+billing_company =
+    ${optionalText(
+        data.billingCompany
+    )},
+
+billing_email =
+    ${optionalText(
+        data.billingEmail
+    )},
+
+billing_phone =
+    ${optionalText(
+        data.billingPhone
+    )},
+
+billing_address_line_1 =
+    ${optionalText(
+        data.billingAddressLine1
+    )},
+
+billing_address_line_2 =
+    ${optionalText(
+        data.billingAddressLine2
+    )},
+
+billing_city =
+    ${optionalText(
+        data.billingCity
+    )},
+
+billing_state =
+    ${optionalText(
+        data.billingState
+    )},
+
+billing_postal_code =
+    ${optionalText(
+        data.billingPostalCode
+    )},
+
+billing_country_code =
+    ${optionalText(
+        data.billingCountryCode
+    )},
 
         updated_at = NOW()
 

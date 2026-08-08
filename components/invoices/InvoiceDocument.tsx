@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 
-import logoPV from '@/public/logo-p-v.png';
+import logoPV from '@/public/logo-300.png';
 
 import type {
     CurrentUser,
@@ -233,7 +233,7 @@ export default function InvoiceDocument({
                 </div>
 
                 <div className="space-y-4 sm:text-right">
-                    <div>
+                    {/* <div>
                         <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
                             Invoice date
                         </p>
@@ -243,7 +243,7 @@ export default function InvoiceDocument({
                                 invoice.invoiceDate
                             )}
                         </p>
-                    </div>
+                    </div> */}
 
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
@@ -456,11 +456,7 @@ export default function InvoiceDocument({
                 </section>
             )}
 
-            <footer className="mt-12 border-t border-slate-200 pt-5 text-center text-xs text-slate-400">
-                <p>
-                    Thank you for your business.
-                </p>
-            </footer>
+
         </article>
     );
 }

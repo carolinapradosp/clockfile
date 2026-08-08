@@ -162,6 +162,30 @@ type InvoiceProjectOptionRow = {
     | null;
 
   currency: string;
+
+  billing_name: string | null;
+  billing_company: string | null;
+  billing_email: string | null;
+  billing_phone: string | null;
+
+  billing_address_line_1:
+    | string
+    | null;
+
+  billing_address_line_2:
+    | string
+    | null;
+
+  billing_city: string | null;
+  billing_state: string | null;
+
+  billing_postal_code:
+    | string
+    | null;
+
+  billing_country_code:
+    | string
+    | null;
 };
 
 type InvoiceReportEntryRow = {
@@ -1024,8 +1048,23 @@ export async function getInvoiceProjectOptions(): Promise<
       id,
       owner_id,
       name,
+
       default_hourly_rate,
-      currency
+      currency,
+
+      billing_name,
+      billing_company,
+      billing_email,
+      billing_phone,
+
+      billing_address_line_1,
+      billing_address_line_2,
+
+      billing_city,
+      billing_state,
+
+      billing_postal_code,
+      billing_country_code
 
     FROM public.projects
 
@@ -1065,6 +1104,38 @@ export async function getInvoiceProjectOptions(): Promise<
 
       currency:
         row.currency,
+
+      billing: {
+        name:
+          row.billing_name,
+
+        company:
+          row.billing_company,
+
+        email:
+          row.billing_email,
+
+        phone:
+          row.billing_phone,
+
+        addressLine1:
+          row.billing_address_line_1,
+
+        addressLine2:
+          row.billing_address_line_2,
+
+        city:
+          row.billing_city,
+
+        state:
+          row.billing_state,
+
+        postalCode:
+          row.billing_postal_code,
+
+        countryCode:
+          row.billing_country_code,
+      },
     })
   );
 }
@@ -1566,6 +1637,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_INVOICE_ID',
 
@@ -1582,6 +1654,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_PROJECT',
 
@@ -1597,6 +1670,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_REFERENCE_MONTH',
 
@@ -1612,6 +1686,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_INVOICE_DATE',
 
@@ -1628,6 +1703,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_DUE_DATE',
 
@@ -1643,6 +1719,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'DUE_DATE_BEFORE_INVOICE',
 
@@ -1663,6 +1740,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_CURRENCY',
 
@@ -1678,6 +1756,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_STATUS',
 
@@ -1699,6 +1778,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_TAX',
 
@@ -1717,6 +1797,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_BILL_TO',
 
@@ -1738,6 +1819,7 @@ export async function saveInvoice(
     ) {
       return {
         success: false,
+
         code:
           'INVALID_ITEMS',
 
@@ -1746,6 +1828,10 @@ export async function saveInvoice(
       };
     }
 
+    /*
+     * Valida se o projeto pertence
+     * ao usuário autenticado.
+     */
     if (
       input.projectId
     ) {
@@ -1762,6 +1848,7 @@ export async function saveInvoice(
       ) {
         return {
           success: false,
+
           code:
             'PROJECT_NOT_FOUND',
 
@@ -1771,6 +1858,10 @@ export async function saveInvoice(
       }
     }
 
+    /*
+     * Em uma edição, garante que
+     * a fatura pertence ao usuário.
+     */
     if (invoiceId) {
       const allowed =
         await invoiceBelongsToOwner({
@@ -1781,6 +1872,7 @@ export async function saveInvoice(
       if (!allowed) {
         return {
           success: false,
+
           code:
             'INVOICE_NOT_FOUND',
 
@@ -1790,6 +1882,16 @@ export async function saveInvoice(
       }
     }
 
+    /*
+     * Valida os lançamentos.
+     *
+     * Um lançamento sem vínculo pode
+     * ser utilizado.
+     *
+     * Durante uma edição, um lançamento
+     * já vinculado à própria fatura
+     * também é considerado válido.
+     */
     const validRelations =
       await validateReportEntryRelations({
         items:
@@ -1835,6 +1937,11 @@ export async function saveInvoice(
           taxAmount
       );
 
+    /*
+     * Serializamos os itens uma única vez
+     * para utilizar jsonb_to_recordset
+     * dentro da query.
+     */
     const serializedItems =
       JSON.stringify(
         normalized.items.map(
@@ -1867,121 +1974,164 @@ export async function saveInvoice(
       );
 
     const result = await sql`
-      WITH saved_invoice AS (
-       INSERT INTO public.invoices (
-  id,
+      WITH
 
-  owner_id,
-  project_id,
+      /*
+       * Cria ou atualiza a própria
+       * fatura.
+       */
+      saved_invoice AS (
+        INSERT INTO
+          public.invoices (
+            id,
 
-  reference_month,
+            owner_id,
+            project_id,
 
-  invoice_date,
-  due_date,
+            reference_month,
 
-  currency,
+            invoice_date,
+            due_date,
 
-  tax_percentage,
-  subtotal,
-  tax_amount,
-  total_amount,
+            currency,
 
-  status,
-  notes,
+            tax_percentage,
+            subtotal,
+            tax_amount,
+            total_amount,
 
-  bill_to_name,
-  bill_to_company,
-  bill_to_email,
-  bill_to_phone,
+            status,
+            notes,
 
-  bill_to_address_line_1,
-  bill_to_address_line_2,
-  bill_to_city,
-  bill_to_state,
-  bill_to_postal_code,
-  bill_to_country_code,
+            bill_to_name,
+            bill_to_company,
+            bill_to_email,
+            bill_to_phone,
 
-  issued_at,
-  sent_at,
-  paid_at,
-  cancelled_at,
+            bill_to_address_line_1,
+            bill_to_address_line_2,
+            bill_to_city,
+            bill_to_state,
+            bill_to_postal_code,
+            bill_to_country_code,
 
-  created_at,
-  updated_at
-)
-VALUES (
-  COALESCE(
-    ${invoiceId}::uuid,
-    gen_random_uuid()
-  ),
+            issued_at,
+            sent_at,
+            paid_at,
+            cancelled_at,
 
-  ${ownerId}::uuid,
+            created_at,
+            updated_at
+          )
 
-  ${input.projectId ?? null}::uuid,
+        VALUES (
+          COALESCE(
+            ${invoiceId}::uuid,
+            gen_random_uuid()
+          ),
 
-  ${input.referenceMonth},
+          ${ownerId}::uuid,
 
-  ${input.invoiceDate}::date,
+          ${
+            input.projectId ??
+            null
+          }::uuid,
 
-  ${input.dueDate ?? null}::date,
+          ${
+            input.referenceMonth
+          },
 
-  ${currency},
+          ${
+            input.invoiceDate
+          }::date,
 
-  ${taxPercentage},
-  ${subtotal},
-  ${taxAmount},
-  ${totalAmount},
+          ${
+            input.dueDate ??
+            null
+          }::date,
 
-  ${input.status},
+          ${currency},
 
-  ${input.notes?.trim() || null},
+          ${taxPercentage},
+          ${subtotal},
+          ${taxAmount},
+          ${totalAmount},
 
-  ${billTo.name},
-  ${billTo.company},
-  ${billTo.email},
-  ${billTo.phone},
+          ${input.status},
 
-  ${billTo.addressLine1},
-  ${billTo.addressLine2},
-  ${billTo.city},
-  ${billTo.state},
-  ${billTo.postalCode},
-  ${billTo.countryCode},
+          ${
+            input.notes
+              ?.trim() ||
+            null
+          },
 
-  CASE
-    WHEN ${input.status} IN (
-      'issued',
-      'sent',
-      'paid',
-      'overdue'
-    )
-    THEN NOW()
-    ELSE NULL
-  END,
+          ${billTo.name},
+          ${billTo.company},
+          ${billTo.email},
+          ${billTo.phone},
 
-  CASE
-    WHEN ${input.status} = 'sent'
-    THEN NOW()
-    ELSE NULL
-  END,
+          ${
+            billTo.addressLine1
+          },
 
-  CASE
-    WHEN ${input.status} = 'paid'
-    THEN NOW()
-    ELSE NULL
-  END,
+          ${
+            billTo.addressLine2
+          },
 
-  CASE
-    WHEN ${input.status} = 'cancelled'
-    THEN NOW()
-    ELSE NULL
-  END,
+          ${billTo.city},
+          ${billTo.state},
 
-  NOW(),
-  NOW()
-)
+          ${
+            billTo.postalCode
+          },
+
+          ${
+            billTo.countryCode
+          },
+
+          CASE
+            WHEN ${
+              input.status
+            } IN (
+              'issued',
+              'sent',
+              'paid',
+              'overdue'
+            )
+            THEN NOW()
+            ELSE NULL
+          END,
+
+          CASE
+            WHEN ${
+              input.status
+            } = 'sent'
+            THEN NOW()
+            ELSE NULL
+          END,
+
+          CASE
+            WHEN ${
+              input.status
+            } = 'paid'
+            THEN NOW()
+            ELSE NULL
+          END,
+
+          CASE
+            WHEN ${
+              input.status
+            } = 'cancelled'
+            THEN NOW()
+            ELSE NULL
+          END,
+
+          NOW(),
+          NOW()
+        )
 
         ON CONFLICT (id)
+
         DO UPDATE SET
           owner_id =
             EXCLUDED.owner_id,
@@ -2051,52 +2201,60 @@ VALUES (
 
           issued_at =
             CASE
-              WHEN EXCLUDED.status IN (
-                'issued',
-                'sent',
-                'paid',
-                'overdue'
-              )
+              WHEN EXCLUDED.status
+                IN (
+                  'issued',
+                  'sent',
+                  'paid',
+                  'overdue'
+                )
               THEN COALESCE(
                 invoices.issued_at,
                 NOW()
               )
+
               ELSE
                 invoices.issued_at
             END,
 
           sent_at =
             CASE
-              WHEN EXCLUDED.status =
+              WHEN
+                EXCLUDED.status =
                 'sent'
               THEN COALESCE(
                 invoices.sent_at,
                 NOW()
               )
+
               ELSE
                 invoices.sent_at
             END,
 
           paid_at =
             CASE
-              WHEN EXCLUDED.status =
+              WHEN
+                EXCLUDED.status =
                 'paid'
               THEN COALESCE(
                 invoices.paid_at,
                 NOW()
               )
+
               ELSE
                 invoices.paid_at
             END,
 
           cancelled_at =
             CASE
-              WHEN EXCLUDED.status =
+              WHEN
+                EXCLUDED.status =
                 'cancelled'
               THEN COALESCE(
                 invoices.cancelled_at,
                 NOW()
               )
+
               ELSE
                 invoices.cancelled_at
             END,
@@ -2109,31 +2267,10 @@ VALUES (
           invoice_number
       ),
 
-      removed_relations AS (
-        DELETE FROM
-          public.invoice_report_entries
-
-        WHERE invoice_id = (
-          SELECT id
-          FROM saved_invoice
-        )
-
-        RETURNING id
-      ),
-
-      removed_items AS (
-        DELETE FROM
-          public.invoice_items
-
-        WHERE invoice_id = (
-          SELECT id
-          FROM saved_invoice
-        )
-
-        RETURNING id
-      ),
-
-      source_items AS (
+      /*
+       * Itens recebidos do formulário.
+       */
+      source_items AS MATERIALIZED (
         SELECT
           item.description,
           item.link,
@@ -2164,6 +2301,112 @@ VALUES (
         )
       ),
 
+      /*
+       * Lançamentos que devem continuar
+       * associados à fatura após o save.
+       */
+      selected_report_entries
+        AS MATERIALIZED (
+        SELECT DISTINCT
+          report_entry_id.value::uuid
+            AS report_entry_id
+
+        FROM source_items
+          source_item
+
+        CROSS JOIN LATERAL
+          jsonb_array_elements_text(
+            source_item.report_entry_ids
+          ) AS report_entry_id(
+            value
+          )
+      ),
+
+      /*
+       * Remove somente as relações de
+       * lançamentos que o usuário retirou
+       * da fatura.
+       *
+       * Relações que continuam selecionadas
+       * NÃO são apagadas.
+       */
+      removed_unused_relations AS (
+        DELETE FROM
+          public.invoice_report_entries
+            relation
+
+        WHERE
+          relation.invoice_id = (
+            SELECT id
+            FROM saved_invoice
+          )
+
+          AND NOT EXISTS (
+            SELECT 1
+
+            FROM selected_report_entries
+              selected
+
+            WHERE
+              selected.report_entry_id =
+                relation.report_entry_id
+          )
+
+        RETURNING
+          relation.id
+      ),
+
+      /*
+       * Captura quais itens pertenciam
+       * anteriormente à fatura.
+       *
+       * MATERIALIZED é importante para que
+       * tenhamos esse snapshot antes dos
+       * novos itens serem inseridos.
+       */
+      old_items AS MATERIALIZED (
+        SELECT
+          item.id
+
+        FROM public.invoice_items
+          item
+
+        WHERE
+          item.invoice_id = (
+            SELECT id
+            FROM saved_invoice
+          )
+      ),
+
+      /*
+       * Remove os itens antigos.
+       *
+       * A FK de
+       * invoice_report_entries.invoice_item_id
+       * possui ON DELETE SET NULL.
+       *
+       * Portanto os vínculos dos lançamentos
+       * existentes continuam vivos e apenas
+       * ficam temporariamente sem item.
+       */
+      removed_items AS (
+        DELETE FROM
+          public.invoice_items
+            item
+
+        WHERE
+          item.id IN (
+            SELECT id
+            FROM old_items
+          )
+
+        RETURNING
+          item.id
+      ),
+
+      /*
+       * Insere a nova versão dos itens.
+       */
       inserted_items AS (
         INSERT INTO
           public.invoice_items (
@@ -2203,14 +2446,39 @@ VALUES (
 
         CROSS JOIN
           source_items
-          source_item
+            source_item
+
+        /*
+         * Cria uma dependência explícita
+         * com removed_items.
+         *
+         * Mesmo quando não há itens antigos,
+         * aggregate sempre produz uma linha.
+         */
+        CROSS JOIN LATERAL (
+          SELECT
+            COUNT(*) AS
+              removed_count
+
+          FROM removed_items
+        ) removal_gate
 
         RETURNING
           id,
           position
       ),
 
-      inserted_relations AS (
+      /*
+       * Cria os vínculos para lançamentos
+       * novos e atualiza os vínculos que já
+       * pertenciam à própria fatura.
+       *
+       * A constraint UNIQUE(report_entry_id)
+       * deixa de ser um problema porque
+       * ON CONFLICT transforma a reinserção
+       * em UPDATE.
+       */
+      upserted_relations AS (
         INSERT INTO
           public.invoice_report_entries (
             invoice_id,
@@ -2232,28 +2500,76 @@ VALUES (
 
         INNER JOIN
           inserted_items
-          inserted_item
+            inserted_item
           ON TRUE
 
         INNER JOIN
           source_items
-          source_item
-          ON source_item.position =
+            source_item
+          ON
+            source_item.position =
             inserted_item.position
 
         CROSS JOIN LATERAL
           jsonb_array_elements_text(
             source_item.report_entry_ids
-          ) AS report_entry_id(value)
+          ) AS report_entry_id(
+            value
+          )
 
-        RETURNING id
+        ON CONFLICT (
+          report_entry_id
+        )
+
+        DO UPDATE SET
+          invoice_item_id =
+            EXCLUDED.invoice_item_id
+
+        /*
+         * Segurança adicional:
+         *
+         * o conflito somente pode atualizar
+         * uma relação que já pertença à
+         * própria fatura que está sendo salva.
+         *
+         * Relação de outra fatura não será
+         * apropriada por esta operação.
+         */
+        WHERE
+          invoice_report_entries.invoice_id =
+            EXCLUDED.invoice_id
+
+        RETURNING
+          id,
+          report_entry_id
+      ),
+
+      /*
+       * Apenas cria uma dependência final
+       * para garantir que todos os efeitos
+       * anteriores façam parte da operação.
+       */
+      completed_save AS (
+        SELECT
+          (
+            SELECT COUNT(*)
+            FROM
+              removed_unused_relations
+          ) AS removed_relations,
+
+          (
+            SELECT COUNT(*)
+            FROM upserted_relations
+          ) AS saved_relations
       )
 
       SELECT
-        id,
-        invoice_number
+        saved_invoice.id,
+        saved_invoice.invoice_number
 
       FROM saved_invoice
+
+      CROSS JOIN completed_save
     `;
 
     const saved =
@@ -2324,11 +2640,36 @@ VALUES (
         constraint?: string;
       };
 
+    /*
+     * Proteção principal contra
+     * faturamento duplicado.
+     */
     if (
       databaseError.code ===
         '23505' &&
       databaseError.constraint ===
         'invoice_report_entries_unique_entry'
+    ) {
+      return {
+        success: false,
+
+        code:
+          'REPORT_ENTRY_ALREADY_INVOICED',
+
+        message:
+          'Um ou mais lançamentos selecionados já pertencem a outra fatura.',
+      };
+    }
+
+    /*
+     * Mantém compatibilidade caso o
+     * banco retorne a constraint composta.
+     */
+    if (
+      databaseError.code ===
+        '23505' &&
+      databaseError.constraint ===
+        'invoice_report_entries_unique_relation'
     ) {
       return {
         success: false,

@@ -326,6 +326,258 @@ export default function ProjectForm({
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
                     <h2 className="text-lg font-bold text-slate-900">
+                        Dados de faturamento
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Estes dados serão preenchidos automaticamente ao criar uma fatura para este projeto.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <label
+                            htmlFor="billingName"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Nome do destinatário
+                        </label>
+
+                        <input
+                            id="billingName"
+                            name="billingName"
+                            type="text"
+                            defaultValue={
+                                project?.billing.name ??
+                                ''
+                            }
+                            placeholder="Nome do destinatário"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingCompany"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Empresa
+                        </label>
+
+                        <input
+                            id="billingCompany"
+                            name="billingCompany"
+                            type="text"
+                            defaultValue={
+                                project?.billing.company ??
+                                ''
+                            }
+                            placeholder="Nome da empresa"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingEmail"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            E-mail
+                        </label>
+
+                        <input
+                            id="billingEmail"
+                            name="billingEmail"
+                            type="email"
+                            defaultValue={
+                                project?.billing.email ??
+                                ''
+                            }
+                            placeholder="cliente@empresa.com"
+                            className={inputClassName}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state
+                                        ?.fieldErrors
+                                        ?.billingEmail
+                                    : undefined
+                            }
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingPhone"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Telefone
+                        </label>
+
+                        <input
+                            id="billingPhone"
+                            name="billingPhone"
+                            type="tel"
+                            defaultValue={
+                                project?.billing.phone ??
+                                ''
+                            }
+                            placeholder="+55 11 99999-9999"
+                            className={inputClassName}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state
+                                        ?.fieldErrors
+                                        ?.billingPhone
+                                    : undefined
+                            }
+                        />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="billingAddressLine1"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Endereço
+                        </label>
+
+                        <input
+                            id="billingAddressLine1"
+                            name="billingAddressLine1"
+                            type="text"
+                            defaultValue={
+                                project?.billing
+                                    .addressLine1 ?? ''
+                            }
+                            placeholder="Rua, número e endereço principal"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="billingAddressLine2"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Complemento
+                        </label>
+
+                        <input
+                            id="billingAddressLine2"
+                            name="billingAddressLine2"
+                            type="text"
+                            defaultValue={
+                                project?.billing
+                                    .addressLine2 ?? ''
+                            }
+                            placeholder="Sala, apartamento ou complemento"
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingCity"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Cidade
+                        </label>
+
+                        <input
+                            id="billingCity"
+                            name="billingCity"
+                            type="text"
+                            defaultValue={
+                                project?.billing.city ??
+                                ''
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingState"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Estado
+                        </label>
+
+                        <input
+                            id="billingState"
+                            name="billingState"
+                            type="text"
+                            defaultValue={
+                                project?.billing.state ??
+                                ''
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingPostalCode"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            CEP / Código postal
+                        </label>
+
+                        <input
+                            id="billingPostalCode"
+                            name="billingPostalCode"
+                            type="text"
+                            defaultValue={
+                                project?.billing
+                                    .postalCode ?? ''
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="billingCountryCode"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            País
+                        </label>
+
+                        <input
+                            id="billingCountryCode"
+                            name="billingCountryCode"
+                            type="text"
+                            maxLength={2}
+                            defaultValue={
+                                project?.billing
+                                    .countryCode ?? 'BR'
+                            }
+                            placeholder="BR"
+                            className={`${inputClassName} uppercase`}
+                        />
+
+                        <FieldError
+                            message={
+                                !state?.success
+                                    ? state
+                                        ?.fieldErrors
+                                        ?.billingCountryCode
+                                    : undefined
+                            }
+                        />
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">
                         Período
                     </h2>
 

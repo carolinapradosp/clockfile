@@ -202,6 +202,57 @@ function createInitialBillTo(
     };
 }
 
+
+function createBillToFromProject(
+    project?: InvoiceProjectOption
+): InvoiceBillToInput {
+    return {
+        name:
+            project?.billing.name ??
+            '',
+
+        company:
+            project?.billing.company ??
+            '',
+
+        email:
+            project?.billing.email ??
+            '',
+
+        phone:
+            project?.billing.phone ??
+            '',
+
+        addressLine1:
+            project?.billing
+                .addressLine1 ??
+            '',
+
+        addressLine2:
+            project?.billing
+                .addressLine2 ??
+            '',
+
+        city:
+            project?.billing.city ??
+            '',
+
+        state:
+            project?.billing.state ??
+            '',
+
+        postalCode:
+            project?.billing
+                .postalCode ??
+            '',
+
+        countryCode:
+            project?.billing
+                .countryCode ??
+            '',
+    };
+}
+
 function roundCurrency(
     value: number
 ) {
@@ -380,15 +431,26 @@ export default function InvoiceForm({
     initialProjectId,
     initialMonth,
 }: InvoiceFormProps) {
+
+    const initialProject =
+        projects.find(
+            (project) =>
+                project.id ===
+                initialProjectId
+        );
     const router = useRouter();
 
     const [
         billTo,
         setBillTo,
     ] = useState<InvoiceBillToInput>(
-        createInitialBillTo(
-            invoice
-        )
+        invoice
+            ? createInitialBillTo(
+                invoice
+            )
+            : createBillToFromProject(
+                initialProject
+            )
     );
 
     const [
@@ -571,9 +633,28 @@ export default function InvoiceForm({
                     item.id === value
             );
 
-        if (project) {
-            setCurrency(
-                project.currency
+        if (!project) {
+            return;
+        }
+
+        setCurrency(
+            project.currency
+        );
+
+        /*
+         * Em uma fatura nova,
+         * o projeto é a fonte dos
+         * dados padrão do destinatário.
+         *
+         * Em edição, evitamos sobrescrever
+         * automaticamente o snapshot
+         * salvo na fatura.
+         */
+        if (!invoice) {
+            setBillTo(
+                createBillToFromProject(
+                    project
+                )
             );
         }
     }
@@ -1017,6 +1098,182 @@ export default function InvoiceForm({
                 </div>
             )}
 
+
+
+            {/* INFORMAÇÕES DA FATURA */}
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900">
+                        Informações da fatura
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Selecione o projeto, período e moeda da cobrança.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <label
+                            htmlFor="invoice-project"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Projeto
+                        </label>
+
+                        <select
+                            id="invoice-project"
+                            value={projectId}
+                            onChange={(event) =>
+                                handleProjectChange(
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        >
+                            <option value="">
+                                Sem projeto específico
+                            </option>
+
+                            {projects.map(
+                                (project) => (
+                                    <option
+                                        key={
+                                            project.id
+                                        }
+                                        value={
+                                            project.id
+                                        }
+                                    >
+                                        {project.name}
+                                    </option>
+                                )
+                            )}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="reference-month"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Mês de referência *
+                        </label>
+
+                        <input
+                            id="reference-month"
+                            type="month"
+                            value={
+                                referenceMonth
+                            }
+                            onChange={(event) =>
+                                setReferenceMonth(
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="currency"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Moeda *
+                        </label>
+
+                        <input
+                            id="currency"
+                            type="text"
+                            maxLength={3}
+                            value={currency}
+                            onChange={(event) =>
+                                setCurrency(
+                                    event.target.value
+                                        .toUpperCase()
+                                )
+                            }
+                            className={`${inputClassName} uppercase`}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="invoice-date"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Data da fatura *
+                        </label>
+
+                        <input
+                            id="invoice-date"
+                            type="date"
+                            value={invoiceDate}
+                            onChange={(event) =>
+                                setInvoiceDate(
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="due-date"
+                            className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                            Vencimento
+                        </label>
+
+                        <input
+                            id="due-date"
+                            type="date"
+                            value={dueDate}
+                            onChange={(event) =>
+                                setDueDate(
+                                    event.target.value
+                                )
+                            }
+                            className={inputClassName}
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-5">
+                    <button
+                        type="button"
+                        onClick={
+                            importReportEntries
+                        }
+                        disabled={
+                            isImporting ||
+                            !projectId ||
+                            !referenceMonth
+                        }
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {isImporting ? (
+                            <LoaderCircle
+                                size={17}
+                                className="animate-spin"
+                            />
+                        ) : (
+                            <Download
+                                size={17}
+                            />
+                        )}
+
+                        {isImporting
+                            ? 'Importando...'
+                            : 'Importar horas do mês'}
+                    </button>
+                </div>
+            </section>
+
+
             {/* DESTINATÁRIO */}
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
@@ -1285,179 +1542,6 @@ export default function InvoiceForm({
                             className={`${inputClassName} uppercase`}
                         />
                     </div>
-                </div>
-            </section>
-
-            {/* INFORMAÇÕES DA FATURA */}
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Informações da fatura
-                    </h2>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        Selecione o projeto, período e moeda da cobrança.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div>
-                        <label
-                            htmlFor="invoice-project"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Projeto
-                        </label>
-
-                        <select
-                            id="invoice-project"
-                            value={projectId}
-                            onChange={(event) =>
-                                handleProjectChange(
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassName}
-                        >
-                            <option value="">
-                                Sem projeto específico
-                            </option>
-
-                            {projects.map(
-                                (project) => (
-                                    <option
-                                        key={
-                                            project.id
-                                        }
-                                        value={
-                                            project.id
-                                        }
-                                    >
-                                        {project.name}
-                                    </option>
-                                )
-                            )}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="reference-month"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Mês de referência *
-                        </label>
-
-                        <input
-                            id="reference-month"
-                            type="month"
-                            value={
-                                referenceMonth
-                            }
-                            onChange={(event) =>
-                                setReferenceMonth(
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassName}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="currency"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Moeda *
-                        </label>
-
-                        <input
-                            id="currency"
-                            type="text"
-                            maxLength={3}
-                            value={currency}
-                            onChange={(event) =>
-                                setCurrency(
-                                    event.target.value
-                                        .toUpperCase()
-                                )
-                            }
-                            className={`${inputClassName} uppercase`}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="invoice-date"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Data da fatura *
-                        </label>
-
-                        <input
-                            id="invoice-date"
-                            type="date"
-                            value={invoiceDate}
-                            onChange={(event) =>
-                                setInvoiceDate(
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassName}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="due-date"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Vencimento
-                        </label>
-
-                        <input
-                            id="due-date"
-                            type="date"
-                            value={dueDate}
-                            onChange={(event) =>
-                                setDueDate(
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassName}
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-5">
-                    <button
-                        type="button"
-                        onClick={
-                            importReportEntries
-                        }
-                        disabled={
-                            isImporting ||
-                            !projectId ||
-                            !referenceMonth
-                        }
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        {isImporting ? (
-                            <LoaderCircle
-                                size={17}
-                                className="animate-spin"
-                            />
-                        ) : (
-                            <Download
-                                size={17}
-                            />
-                        )}
-
-                        {isImporting
-                            ? 'Importando...'
-                            : 'Importar horas do mês'}
-                    </button>
                 </div>
             </section>
 
