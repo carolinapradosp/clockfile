@@ -137,6 +137,22 @@ export type InvoiceProjectOption = {
 
   defaultHourlyRate: number | null;
   currency: string;
+
+  billing: {
+    name: string | null;
+    company: string | null;
+    email: string | null;
+    phone: string | null;
+
+    addressLine1: string | null;
+    addressLine2: string | null;
+
+    city: string | null;
+    state: string | null;
+
+    postalCode: string | null;
+    countryCode: string | null;
+  };
 };
 
 export type InvoiceReportEntryOption = {
