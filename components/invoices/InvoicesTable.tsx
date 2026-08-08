@@ -15,32 +15,11 @@ import type {
     InvoiceSummary,
 } from '@/interfaces/Invoice';
 import DeleteInvoiceButton from './DeleteInvoiceButton';
+import formatCurrency from '@/lib/utils';
 
 type InvoicesTableProps = {
     invoices: InvoiceSummary[];
 };
-
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(
-            2
-        )}`;
-    }
-}
 
 function formatDate(
     value: string | null

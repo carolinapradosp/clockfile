@@ -26,6 +26,7 @@ import type {
     ReportEntryActionState,
     ReportProjectOption,
 } from '@/interfaces/ReportEntry';
+import formatCurrency from '@/lib/utils';
 
 type ReportEntryFormProps = {
     projects: ReportProjectOption[];
@@ -87,23 +88,6 @@ function FieldError({
             {message}
         </p>
     );
-}
-
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency,
-        }).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(2)}`;
-    }
 }
 
 export default function ReportEntryForm({

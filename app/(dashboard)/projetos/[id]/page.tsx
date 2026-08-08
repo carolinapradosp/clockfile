@@ -28,6 +28,7 @@ import {
 } from '@/app/actions/report';
 
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
+import formatCurrency from '@/lib/utils';
 
 type ProjectDetailsPageProps = {
     params: Promise<{
@@ -84,27 +85,6 @@ function formatDate(
     );
 }
 
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(
-            2
-        )}`;
-    }
-}
 
 function formatDuration(
     totalMinutes: number

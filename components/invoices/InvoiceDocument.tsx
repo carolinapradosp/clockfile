@@ -11,6 +11,7 @@ import type {
 import type {
     Invoice,
 } from '@/interfaces/Invoice';
+import formatCurrency from '@/lib/utils';
 
 type InvoiceDocumentProps = {
     invoice: Invoice;
@@ -26,25 +27,6 @@ const invoiceStatusLabels = {
     cancelled: 'Cancelada',
 } as const;
 
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(2)}`;
-    }
-}
 
 function formatDate(
     value: string | null

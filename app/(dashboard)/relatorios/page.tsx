@@ -15,6 +15,7 @@ import {
 
 import ReportEntriesTable from '@/components/reports/ReportEntriesTable';
 import ReportFilters from '@/components/reports/ReportFilters';
+import formatCurrency from '@/lib/utils';
 
 type ReportsPageProps = {
     searchParams: Promise<{
@@ -49,22 +50,7 @@ function formatDuration(totalMinutes: number) {
     )}`;
 }
 
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency,
-        }).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(2)}`;
-    }
-}
+
 
 export default async function ReportsPage({
     searchParams,

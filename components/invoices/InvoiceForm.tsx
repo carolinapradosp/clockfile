@@ -35,6 +35,7 @@ import type {
     InvoiceStatus,
     SaveInvoiceInput,
 } from '@/interfaces/Invoice';
+import formatCurrency from '@/lib/utils';
 
 type EditableInvoiceItemField =
     | 'description'
@@ -261,28 +262,6 @@ function roundCurrency(
         Math.round(value * 100) /
         100
     );
-}
-
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(
-            2
-        )}`;
-    }
 }
 
 function getDefaultInvoiceDate() {

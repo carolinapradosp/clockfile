@@ -21,6 +21,7 @@ import InvoicesTable from '@/components/invoices/InvoicesTable';
 import type {
     InvoiceStatus,
 } from '@/interfaces/Invoice';
+import formatCurrency from '@/lib/utils';
 
 type InvoicesPageProps = {
     searchParams: Promise<{
@@ -58,28 +59,6 @@ function normalizeStatus(
     )
         ? (value as InvoiceStatus)
         : undefined;
-}
-
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(
-            2
-        )}`;
-    }
 }
 
 function groupTotalsByCurrency(

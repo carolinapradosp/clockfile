@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { getProjects } from '@/app/actions/projects';
+import formatCurrency from '@/lib/utils';
 
 const STATUS_CONFIG = {
     draft: {
@@ -42,27 +43,6 @@ const STATUS_CONFIG = {
     },
 } as const;
 
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}) {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(
-            2
-        )}`;
-    }
-}
 
 function formatDate(
     value: string | null

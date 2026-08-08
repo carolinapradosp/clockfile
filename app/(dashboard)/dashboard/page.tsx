@@ -24,6 +24,7 @@ import type {
     DashboardCurrencyTotal,
     DashboardRecentActivity,
 } from '@/interfaces/Dashboard';
+import formatCurrency from '@/lib/utils';
 
 const quickActions = [
     {
@@ -111,28 +112,6 @@ function formatDuration(
         2,
         '0'
     )}`;
-}
-
-function formatCurrency({
-    value,
-    currency,
-}: {
-    value: number;
-    currency: string;
-}): string {
-    try {
-        return new Intl.NumberFormat(
-            'en-US',
-            {
-                style: 'currency',
-                currency,
-            }
-        ).format(value);
-    } catch {
-        return `${currency} ${value.toFixed(
-            2
-        )}`;
-    }
 }
 
 function formatDate(
