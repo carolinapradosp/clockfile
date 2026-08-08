@@ -5,13 +5,18 @@ import { notFound } from 'next/navigation';
 
 import {
     ArrowLeft,
+    Building2,
     CalendarDays,
     CircleDollarSign,
     Clock3,
     Edit3,
     FileClock,
     FileText,
+    Mail,
+    MapPin,
+    Phone,
     Plus,
+    UserRound,
 } from 'lucide-react';
 
 import {
@@ -376,6 +381,173 @@ export default async function ProjectDetailsPage({
                             {project.description ||
                                 'Nenhuma descrição cadastrada.'}
                         </p>
+                    </div>
+
+
+                    {/* DADOS DE FATURAMENTO */}
+
+                    <div className="mt-7 border-t border-slate-100 pt-6">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900">
+                                Dados de faturamento
+                            </h3>
+
+                            <p className="mt-1 text-sm text-slate-500">
+                                Informações utilizadas automaticamente ao criar faturas deste projeto.
+                            </p>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            {/* NOME */}
+
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Destinatário
+                                </p>
+
+                                <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
+                                    <UserRound
+                                        size={16}
+                                        className="shrink-0 text-slate-400"
+                                    />
+
+                                    {project.billing.name ||
+                                        'Não informado'}
+                                </p>
+                            </div>
+
+                            {/* EMPRESA */}
+
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Empresa
+                                </p>
+
+                                <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
+                                    <Building2
+                                        size={16}
+                                        className="shrink-0 text-slate-400"
+                                    />
+
+                                    {project.billing.company ||
+                                        'Não informado'}
+                                </p>
+                            </div>
+
+                            {/* E-MAIL */}
+
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    E-mail
+                                </p>
+
+                                <p className="mt-2 flex items-center gap-2 break-all text-sm font-medium text-slate-700">
+                                    <Mail
+                                        size={16}
+                                        className="shrink-0 text-slate-400"
+                                    />
+
+                                    {project.billing.email ||
+                                        'Não informado'}
+                                </p>
+                            </div>
+
+                            {/* TELEFONE */}
+
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Telefone
+                                </p>
+
+                                <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
+                                    <Phone
+                                        size={16}
+                                        className="shrink-0 text-slate-400"
+                                    />
+
+                                    {project.billing.phone ||
+                                        'Não informado'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* ENDEREÇO */}
+                        <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                            <div className="flex items-start gap-3">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
+                                    <MapPin size={17} />
+                                </div>
+
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                        Endereço de faturamento
+                                    </p>
+
+                                    {project.billing.addressLine1 ||
+                                        project.billing.addressLine2 ||
+                                        project.billing.city ||
+                                        project.billing.state ||
+                                        project.billing.postalCode ||
+                                        project.billing.countryCode ? (
+                                        <div className="mt-2 space-y-1 text-sm leading-relaxed text-slate-700">
+                                            {project.billing
+                                                .addressLine1 && (
+                                                    <p>
+                                                        {
+                                                            project.billing
+                                                                .addressLine1
+                                                        }
+                                                    </p>
+                                                )}
+
+                                            {project.billing
+                                                .addressLine2 && (
+                                                    <p>
+                                                        {
+                                                            project.billing
+                                                                .addressLine2
+                                                        }
+                                                    </p>
+                                                )}
+
+                                            {(project.billing.city ||
+                                                project.billing.state) && (
+                                                    <p>
+                                                        {[
+                                                            project.billing
+                                                                .city,
+                                                            project.billing
+                                                                .state,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(' — ')}
+                                                    </p>
+                                                )}
+
+                                            {(project.billing
+                                                .postalCode ||
+                                                project.billing
+                                                    .countryCode) && (
+                                                    <p>
+                                                        {[
+                                                            project.billing
+                                                                .postalCode,
+                                                            project.billing
+                                                                .countryCode,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(' · ')}
+                                                    </p>
+                                                )}
+                                        </div>
+                                    ) : (
+                                        <p className="mt-2 text-sm text-slate-500">
+                                            Nenhum endereço de faturamento cadastrado.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
