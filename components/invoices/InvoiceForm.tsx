@@ -12,6 +12,7 @@ import {
 
 import {
     useMemo,
+    useRef,
     useState,
 } from 'react';
 
@@ -439,7 +440,10 @@ export default function InvoiceForm({
                 initialProjectId
         );
     const router = useRouter();
-
+    const errorRef =
+        useRef<HTMLDivElement>(
+            null
+        );
     const [
         billTo,
         setBillTo,
@@ -754,7 +758,7 @@ export default function InvoiceForm({
 
     async function importReportEntries() {
         if (!projectId) {
-            setError(
+            showError(
                 'Selecione um projeto antes de importar as horas.'
             );
 
@@ -762,7 +766,7 @@ export default function InvoiceForm({
         }
 
         if (!referenceMonth) {
-            setError(
+            showError(
                 'Selecione o mês de referência.'
             );
 
@@ -777,7 +781,7 @@ export default function InvoiceForm({
             );
 
         if (!project) {
-            setError(
+            showError(
                 'O projeto selecionado não foi encontrado.'
             );
 
@@ -805,7 +809,7 @@ export default function InvoiceForm({
             if (
                 entries.length === 0
             ) {
-                setError(
+                showError(
                     'Nenhum lançamento disponível para faturamento nesse projeto e mês.'
                 );
 
@@ -859,7 +863,7 @@ export default function InvoiceForm({
                 importError
             );
 
-            setError(
+            showError(
                 'Não foi possível carregar os lançamentos.'
             );
         } finally {
@@ -868,6 +872,30 @@ export default function InvoiceForm({
             );
         }
     }
+    function showError(
+        message: string
+    ) {
+        setError(message);
+        setSuccessMessage('');
+
+        /*
+         * Espera o React concluir a renderização
+         * do alerta antes de fazer o scroll.
+         */
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                errorRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+
+                errorRef.current?.focus({
+                    preventScroll: true,
+                });
+            });
+        });
+    }
+
 
     function buildPayload(
         status: InvoiceStatus
@@ -875,7 +903,7 @@ export default function InvoiceForm({
         if (
             !billTo.name.trim()
         ) {
-            setError(
+            showError(
                 'Informe o nome do destinatário.'
             );
 
@@ -883,7 +911,7 @@ export default function InvoiceForm({
         }
 
         if (!referenceMonth) {
-            setError(
+            showError(
                 'Informe o mês de referência.'
             );
 
@@ -891,7 +919,7 @@ export default function InvoiceForm({
         }
 
         if (!invoiceDate) {
-            setError(
+            showError(
                 'Informe a data da fatura.'
             );
 
@@ -1044,6 +1072,7 @@ export default function InvoiceForm({
 
         try {
             setIsSaving(true);
+
             setError('');
             setSuccessMessage('');
 
@@ -1053,7 +1082,7 @@ export default function InvoiceForm({
                 );
 
             if (!result.success) {
-                setError(
+                showError(
                     result.message
                 );
 
@@ -1065,15 +1094,13 @@ export default function InvoiceForm({
             );
 
             router.refresh();
-        } catch (
-        saveError
-        ) {
+        } catch (saveError) {
             console.error(
                 'Erro ao salvar fatura:',
                 saveError
             );
 
-            setError(
+            showError(
                 'Não foi possível salvar a fatura.'
             );
         } finally {
@@ -1085,13 +1112,14 @@ export default function InvoiceForm({
         <div className="space-y-8">
             {error && (
                 <div
+                    ref={errorRef}
                     role="alert"
-                    className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
+                    tabIndex={-1}
+                    className="scroll-mt-24 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 outline-none"
                 >
                     {error}
                 </div>
             )}
-
             {successMessage && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-700">
                     {successMessage}
