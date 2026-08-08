@@ -43,6 +43,7 @@ export default function LogoutButton({
         rounded-xl
         px-3
         text-sm
+        cursor-pointer
         font-semibold
         text-slate-500
         transition-colors

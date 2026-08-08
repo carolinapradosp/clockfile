@@ -21,6 +21,7 @@ import { useState } from 'react';
 
 import Logo from '@/components/layout/Logo';
 import LogoutButton from '@/components/auth/LogoutButton';
+import ReportBugButton from '../support/ReportBugButton';
 
 type NavigationItem = {
     label: string;
@@ -313,6 +314,12 @@ export default function Sidebar({
                             );
                         })}
                     </ul>
+
+                    <div className="border-t border-slate-200 pt-3">
+                        <ReportBugButton
+                            collapsed={collapsed}
+                        />
+                    </div>
                 </nav>
 
                 {/* Usuário e logout */}
