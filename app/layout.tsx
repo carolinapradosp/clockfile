@@ -3,12 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 
-import {
-  InstallButton,
-  OfflineIndicator,
-  PWAProvider,
-} from "@/components/pwa";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,7 +18,7 @@ export const metadata: Metadata = {
     default: "Clockfile",
     template: "%s | Clockfile",
   },
-  icons: '/icons/icon-72.png',
+  // icons: '/icons/icon-72.png',
 
   description: "Controle de horas trabalhadas",
   applicationName: "Clockfile",
@@ -51,12 +45,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-slate-50">
-        <PWAProvider>
-          <OfflineIndicator />
-          <InstallButton />
-
-          {children}
-        </PWAProvider>
+        {children}
       </body>
     </html>
   );

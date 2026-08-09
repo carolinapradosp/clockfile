@@ -10,7 +10,7 @@ import {
 
 import AccountProfileForm from '@/components/account/AccountProfileForm';
 import ChangePasswordForm from '@/components/account/ChangePasswordForm';
-import DeleteAccountForm from '@/components/account/DeleteAccountForm';
+// import DeleteAccountForm from '@/components/account/DeleteAccountForm';
 import SessionSecurityCard from '@/components/account/SessionSecurityCard';
 
 import {
@@ -58,9 +58,9 @@ export default async function SettingsPage() {
 
                 <SessionSecurityCard />
 
-                <div className="lg:col-span-2">
+                {/* <div className="lg:col-span-2">
                     <DeleteAccountForm />
-                </div>
+                </div> */}
             </div>
         </div>
     );

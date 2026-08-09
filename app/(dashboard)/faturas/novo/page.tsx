@@ -9,6 +9,7 @@ import {
 } from '@/app/actions/invoice';
 
 import InvoiceForm from '@/components/invoices/InvoiceForm';
+import { isValidMonth } from '@/lib/utils';
 
 type NewInvoicePageProps = {
     searchParams: Promise<{
@@ -17,16 +18,7 @@ type NewInvoicePageProps = {
     }>;
 };
 
-function isValidMonth(
-    value?: string
-): value is string {
-    return Boolean(
-        value &&
-        /^\d{4}-(0[1-9]|1[0-2])$/.test(
-            value
-        )
-    );
-}
+
 
 export default async function NewInvoicePage({
     searchParams,

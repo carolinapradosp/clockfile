@@ -11,7 +11,7 @@ import type {
 import type {
     Invoice,
 } from '@/interfaces/Invoice';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate, formatReferenceMonth } from '@/lib/utils';
 
 type InvoiceDocumentProps = {
     invoice: Invoice;
@@ -27,48 +27,6 @@ const invoiceStatusLabels = {
     cancelled: 'Cancelada',
 } as const;
 
-
-function formatDate(
-    value: string | null
-) {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'en-US',
-        {
-            month: 'long',
-            day: '2-digit',
-            year: 'numeric',
-            timeZone: 'UTC',
-        }
-    );
-}
-
-function formatReferenceMonth(
-    value: string
-) {
-    const [year, month] =
-        value.split('-').map(Number);
-
-    return new Date(
-        Date.UTC(
-            year,
-            month - 1,
-            1
-        )
-    ).toLocaleDateString(
-        'en-US',
-        {
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'UTC',
-        }
-    );
-}
 
 function normalizeExternalLink(
     value: string

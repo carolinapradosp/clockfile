@@ -90,6 +90,7 @@ function FieldError({
     );
 }
 
+
 export default function ReportEntryForm({
     projects,
     entry,
@@ -382,20 +383,20 @@ export default function ReportEntryForm({
                         <input
                             id="duration"
                             name="duration"
-                            type="text"
+                            type="time"
                             required
-                            inputMode="numeric"
                             value={duration}
                             onChange={(event) => {
-                                setDuration(event.target.value);
+                                setDuration(
+                                    event.target.value
+                                );
                             }}
-                            placeholder="01:30"
-                            pattern="^[0-9]+:[0-5][0-9]$"
+                            step={60}
                             className={inputClassName}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">
-                            Use o formato HH:MM. Exemplo: 01:30.
+                            Selecione as horas e os minutos trabalhados.
                         </p>
 
                         <FieldError

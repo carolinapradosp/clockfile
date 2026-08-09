@@ -24,7 +24,7 @@ import type {
     DashboardCurrencyTotal,
     DashboardRecentActivity,
 } from '@/interfaces/Dashboard';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
 
 const quickActions = [
     {
@@ -80,52 +80,8 @@ function getFirstName(
     );
 }
 
-function formatDuration(
-    totalMinutes: number
-): string {
-    const safeMinutes =
-        Number.isFinite(
-            totalMinutes
-        ) &&
-            totalMinutes >= 0
-            ? Math.floor(
-                totalMinutes
-            )
-            : 0;
 
-    const hours =
-        Math.floor(
-            safeMinutes / 60
-        );
 
-    const minutes =
-        safeMinutes % 60;
-
-    return `${String(
-        hours
-    ).padStart(
-        2,
-        '0'
-    )}:${String(
-        minutes
-    ).padStart(
-        2,
-        '0'
-    )}`;
-}
-
-function formatDate(
-    value: string
-): string {
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            timeZone: 'UTC',
-        }
-    );
-}
 
 function formatCurrencyTotals(
     totals:

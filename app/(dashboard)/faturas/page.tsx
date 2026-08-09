@@ -21,7 +21,7 @@ import InvoicesTable from '@/components/invoices/InvoicesTable';
 import type {
     InvoiceStatus,
 } from '@/interfaces/Invoice';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { isValidMonth } from '@/lib/utils';
 
 type InvoicesPageProps = {
     searchParams: Promise<{
@@ -40,16 +40,7 @@ const VALID_STATUSES: InvoiceStatus[] = [
     'cancelled',
 ];
 
-function isValidMonth(
-    value?: string
-): value is string {
-    return Boolean(
-        value &&
-        /^\d{4}-(0[1-9]|1[0-2])$/.test(
-            value
-        )
-    );
-}
+
 
 function normalizeStatus(
     value?: string

@@ -1191,19 +1191,28 @@ export default function InvoiceForm({
                             Moeda *
                         </label>
 
-                        <input
+                        <select
                             id="currency"
-                            type="text"
-                            maxLength={3}
                             value={currency}
                             onChange={(event) =>
                                 setCurrency(
                                     event.target.value
-                                        .toUpperCase()
                                 )
                             }
-                            className={`${inputClassName} uppercase`}
-                        />
+                            className={inputClassName}
+                        >
+                            <option value="BRL">
+                                Real brasileiro (BRL)
+                            </option>
+
+                            <option value="USD">
+                                Dólar americano (USD)
+                            </option>
+
+                            <option value="EUR">
+                                Euro (EUR)
+                            </option>
+                        </select>
                     </div>
 
                     <div>

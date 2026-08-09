@@ -15,7 +15,7 @@ import {
 
 import ReportEntriesTable from '@/components/reports/ReportEntriesTable';
 import ReportFilters from '@/components/reports/ReportFilters';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDuration, isValidMonth } from '@/lib/utils';
 
 type ReportsPageProps = {
     searchParams: Promise<{
@@ -23,33 +23,6 @@ type ReportsPageProps = {
         projectId?: string;
     }>;
 };
-
-function isValidMonth(value?: string) {
-    return Boolean(
-        value &&
-        /^\d{4}-(0[1-9]|1[0-2])$/.test(
-            value
-        )
-    );
-}
-
-function formatDuration(totalMinutes: number) {
-    const hours = Math.floor(
-        totalMinutes / 60
-    );
-
-    const minutes =
-        totalMinutes % 60;
-
-    return `${String(hours).padStart(
-        2,
-        '0'
-    )}:${String(minutes).padStart(
-        2,
-        '0'
-    )}`;
-}
-
 
 
 export default async function ReportsPage({

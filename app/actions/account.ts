@@ -34,6 +34,7 @@ import type {
   ChangePasswordFormData,
   DeleteAccountActionState,
 } from '@/interfaces/Account';
+import { isValidEmail, isValidPhone } from '@/lib/utils';
 
 type UserPasswordRow = {
   id: string;
@@ -60,25 +61,6 @@ function normalizeEmail(
     .toLowerCase();
 }
 
-function isValidEmail(
-  value: string
-): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-    value
-  );
-}
-
-function isValidPhone(
-  value: string
-): boolean {
-  const digits =
-    value.replace(/\D/g, '');
-
-  return (
-    digits.length >= 8 &&
-    digits.length <= 15
-  );
-}
 
 async function getCurrentPasswordHash(
   userId: string

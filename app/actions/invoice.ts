@@ -22,6 +22,7 @@ import type {
   SaveInvoiceResult,
   SavedInvoiceItem,
 } from '@/interfaces/Invoice';
+import { isValidCurrency, isValidDate, isValidMonth, isValidUuid } from '@/lib/utils';
 
 type InvoiceRow = {
   id: string;
@@ -235,59 +236,6 @@ const VALID_ITEM_SOURCES: InvoiceItemSource[] = [
   'adjustment',
 ];
 
-function isValidUuid(
-  value: string
-): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value
-  );
-}
-
-function isValidMonth(
-  value: string
-): boolean {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(
-    value
-  );
-}
-
-function isValidDate(
-  value: string
-): boolean {
-  if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(
-      value
-    )
-  ) {
-    return false;
-  }
-
-  const date = new Date(
-    `${value}T00:00:00Z`
-  );
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return false;
-  }
-
-  return (
-    date
-      .toISOString()
-      .slice(0, 10) === value
-  );
-}
-
-function isValidCurrency(
-  value: string
-): boolean {
-  return /^[A-Z]{3}$/.test(
-    value
-  );
-}
 
 function normalizeDate(
   value:

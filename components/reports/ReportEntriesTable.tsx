@@ -12,21 +12,12 @@ import DeleteReportEntryButton from '@/components/reports/DeleteReportEntryButto
 import type {
     ReportEntry,
 } from '@/interfaces/ReportEntry';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate } from '@/lib/utils';
 
 type ReportEntriesTableProps = {
     entries: ReportEntry[];
 };
 
-function formatDate(
-    value: string
-) {
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString('pt-BR', {
-        timeZone: 'UTC',
-    });
-}
 
 
 

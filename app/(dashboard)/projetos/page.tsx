@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 import { getProjects } from '@/app/actions/projects';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate } from '@/lib/utils';
 
 const STATUS_CONFIG = {
     draft: {
@@ -44,22 +44,7 @@ const STATUS_CONFIG = {
 } as const;
 
 
-function formatDate(
-    value: string | null
-) {
-    if (!value) {
-        return null;
-    }
 
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            timeZone: 'UTC',
-        }
-    );
-}
 
 export default async function ProjectsPage() {
     const projects =
@@ -126,10 +111,18 @@ export default async function ProjectsPage() {
                                 project.startDate
                             );
 
-                        const endDate =
+                        let endDate =
                             formatDate(
                                 project.endDate
                             );
+
+                        if (endDate === 'Não informado' && project.status === 'active') {
+                            endDate = 'Em andamento';
+                        }
+
+                        if (project.status === 'completed') {
+                            endDate = 'Concluído';
+                        }
 
                         return (
                             <Link

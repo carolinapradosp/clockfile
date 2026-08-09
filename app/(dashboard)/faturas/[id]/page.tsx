@@ -25,7 +25,7 @@ import {
 import InvoiceStatusActions from '@/components/invoices/InvoiceStatusActions';
 import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge';
 import DeleteInvoiceButton from '@/components/invoices/DeleteInvoiceButton';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate, formatDateTime, formatReferenceMonth } from '@/lib/utils';
 
 type InvoiceDetailsPageProps = {
     params: Promise<{
@@ -33,54 +33,6 @@ type InvoiceDetailsPageProps = {
     }>;
 };
 
-
-function formatDate(
-    value: string | null
-) {
-    if (!value) {
-        return 'Não informado';
-    }
-
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC',
-    });
-}
-
-function formatDateTime(
-    value: string | null
-) {
-    if (!value) {
-        return null;
-    }
-
-    return new Date(value).toLocaleString(
-        'pt-BR',
-        {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-        }
-    );
-}
-
-function formatReferenceMonth(
-    value: string
-) {
-    const [year, month] =
-        value.split('-').map(Number);
-
-    return new Date(
-        Date.UTC(year, month - 1, 1)
-    ).toLocaleDateString('pt-BR', {
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC',
-    });
-}
 
 function normalizeExternalLink(
     value: string
