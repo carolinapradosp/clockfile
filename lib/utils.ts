@@ -17,3 +17,21 @@ export default function formatCurrency({
         })}`;
     }
 }
+
+export const VALID_CURRENCIES = [
+  'BRL',
+  'USD',
+  'EUR',
+] as const;
+
+type ValidCurrency =
+  typeof VALID_CURRENCIES[number];
+
+export function isValidCurrency(
+  value: string
+): value is ValidCurrency {
+  return VALID_CURRENCIES.includes(
+    value as ValidCurrency
+  );
+}
+

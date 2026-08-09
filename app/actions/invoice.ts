@@ -22,6 +22,7 @@ import type {
   SaveInvoiceResult,
   SavedInvoiceItem,
 } from '@/interfaces/Invoice';
+import { isValidCurrency } from '@/lib/utils';
 
 type InvoiceRow = {
   id: string;
@@ -281,13 +282,6 @@ function isValidDate(
   );
 }
 
-function isValidCurrency(
-  value: string
-): boolean {
-  return /^[A-Z]{3}$/.test(
-    value
-  );
-}
 
 function normalizeDate(
   value:

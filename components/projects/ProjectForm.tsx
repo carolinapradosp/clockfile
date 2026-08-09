@@ -241,7 +241,6 @@ export default function ProjectForm({
 
                         </select>
                     </div>
-
                     <div>
                         <label
                             htmlFor="currency"
@@ -250,25 +249,32 @@ export default function ProjectForm({
                             Moeda *
                         </label>
 
-                        <input
+                        <select
                             id="currency"
                             name="currency"
-                            type="text"
                             required
-                            maxLength={3}
                             defaultValue={
-                                project?.currency ??
-                                'USD'
+                                project?.currency ?? 'BRL'
                             }
-                            placeholder="USD"
-                            className={`${inputClassName} uppercase`}
-                        />
+                            className={inputClassName}
+                        >
+                            <option value="BRL">
+                                Real brasileiro (BRL)
+                            </option>
+
+                            <option value="USD">
+                                Dólar americano (USD)
+                            </option>
+
+                            <option value="EUR">
+                                Euro (EUR)
+                            </option>
+                        </select>
 
                         <FieldError
                             message={
                                 !state?.success
-                                    ? state
-                                        ?.fieldErrors
+                                    ? state?.fieldErrors
                                         ?.currency
                                     : undefined
                             }

@@ -16,6 +16,7 @@ import type {
   ProjectFormData,
   ProjectStatus,
 } from '@/interfaces/Project';
+import { isValidCurrency } from '@/lib/utils';
 
 type ProjectRow = {
   id: string;
@@ -77,6 +78,8 @@ const VALID_STATUSES: ProjectStatus[] = [
   'completed',
   'archived',
 ];
+
+
 
 function isValidUuid(
   value: string
@@ -333,12 +336,12 @@ const billingCountryCode =
       'Informe o nome do projeto.';
   }
 
-  if (
-    !/^[A-Z]{3}$/.test(currency)
-  ) {
-    fieldErrors.currency =
-      'Informe uma moeda válida com 3 letras.';
-  }
+if (
+  !isValidCurrency(currency)
+) {
+  fieldErrors.currency =
+    'Selecione uma moeda válida: BRL, USD ou EUR.';
+}
 
   if (defaultHourlyRate) {
     const hourlyRate =
