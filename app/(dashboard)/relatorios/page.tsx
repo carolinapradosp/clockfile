@@ -15,7 +15,7 @@ import {
 
 import ReportEntriesTable from '@/components/reports/ReportEntriesTable';
 import ReportFilters from '@/components/reports/ReportFilters';
-import formatCurrency, { formatDuration } from '@/lib/utils';
+import formatCurrency, { formatDuration, isValidMonth } from '@/lib/utils';
 
 type ReportsPageProps = {
     searchParams: Promise<{
@@ -23,15 +23,6 @@ type ReportsPageProps = {
         projectId?: string;
     }>;
 };
-
-function isValidMonth(value?: string) {
-    return Boolean(
-        value &&
-        /^\d{4}-(0[1-9]|1[0-2])$/.test(
-            value
-        )
-    );
-}
 
 
 export default async function ReportsPage({

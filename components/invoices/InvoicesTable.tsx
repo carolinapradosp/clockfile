@@ -15,30 +15,12 @@ import type {
     InvoiceSummary,
 } from '@/interfaces/Invoice';
 import DeleteInvoiceButton from './DeleteInvoiceButton';
-import formatCurrency, { formatDate } from '@/lib/utils';
+import formatCurrency, { formatDate, formatReferenceMonth } from '@/lib/utils';
 
 type InvoicesTableProps = {
     invoices: InvoiceSummary[];
 };
 
-
-function formatMonth(
-    value: string
-) {
-    const [year, month] =
-        value.split('-').map(Number);
-
-    return new Date(
-        Date.UTC(year, month - 1, 1)
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'UTC',
-        }
-    );
-}
 
 export default function InvoicesTable({
     invoices,
@@ -146,7 +128,7 @@ export default function InvoicesTable({
                                         </td>
 
                                         <td className="px-5 py-4 align-top text-sm capitalize text-slate-600">
-                                            {formatMonth(
+                                            {formatReferenceMonth(
                                                 invoice.referenceMonth
                                             )}
                                         </td>
@@ -236,7 +218,7 @@ export default function InvoicesTable({
                                 </Link>
 
                                 <p className="mt-1 text-xs capitalize text-slate-400">
-                                    {formatMonth(
+                                    {formatReferenceMonth(
                                         invoice.referenceMonth
                                     )}
                                 </p>

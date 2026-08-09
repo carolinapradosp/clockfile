@@ -18,6 +18,7 @@ import type {
   ReportEntryFormData,
   ReportProjectOption,
 } from '@/interfaces/ReportEntry';
+import { isValidMonth } from '@/lib/utils';
 
 type ProjectReportSummaryRow = {
   entries_count: number | string;
@@ -101,13 +102,7 @@ function isValidUuid(
   );
 }
 
-function isValidMonth(
-  value: string
-): boolean {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(
-    value
-  );
-}
+
 
 function isValidDate(
   value: string

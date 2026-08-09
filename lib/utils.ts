@@ -121,3 +121,15 @@ export function formatDuration(
         '0'
     )}`;
 }
+
+
+export function isValidMonth(
+    value?: string
+): value is string {
+    return Boolean(
+        value &&
+        /^\d{4}-(0[1-9]|1[0-2])$/.test(
+            value
+        )
+    );
+}

@@ -22,7 +22,7 @@ import type {
   SaveInvoiceResult,
   SavedInvoiceItem,
 } from '@/interfaces/Invoice';
-import { isValidCurrency } from '@/lib/utils';
+import { isValidCurrency, isValidMonth } from '@/lib/utils';
 
 type InvoiceRow = {
   id: string;
@@ -240,14 +240,6 @@ function isValidUuid(
   value: string
 ): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value
-  );
-}
-
-function isValidMonth(
-  value: string
-): boolean {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(
     value
   );
 }
