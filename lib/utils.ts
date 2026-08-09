@@ -86,3 +86,38 @@ export function formatReferenceMonth(
         timeZone: 'UTC',
     });
 }
+
+
+export function formatDuration(
+    totalMinutes: number
+): string {
+    const safeMinutes =
+        Number.isFinite(
+            totalMinutes
+        ) &&
+            totalMinutes >= 0
+            ? Math.floor(
+                totalMinutes
+            )
+            : 0;
+
+    const hours =
+        Math.floor(
+            safeMinutes / 60
+        );
+
+    const minutes =
+        safeMinutes % 60;
+
+    return `${String(
+        hours
+    ).padStart(
+        2,
+        '0'
+    )}:${String(
+        minutes
+    ).padStart(
+        2,
+        '0'
+    )}`;
+}

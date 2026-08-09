@@ -28,7 +28,7 @@ import {
 } from '@/app/actions/report';
 
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
-import formatCurrency, { formatDate } from '@/lib/utils';
+import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
 
 type ProjectDetailsPageProps = {
     params: Promise<{
@@ -67,27 +67,6 @@ const STATUS_CONFIG = {
             'bg-slate-100 text-slate-500',
     },
 } as const;
-
-
-
-function formatDuration(
-    totalMinutes: number
-) {
-    const hours = Math.floor(
-        totalMinutes / 60
-    );
-
-    const minutes =
-        totalMinutes % 60;
-
-    return `${String(hours).padStart(
-        2,
-        '0'
-    )}:${String(minutes).padStart(
-        2,
-        '0'
-    )}`;
-}
 
 export default async function ProjectDetailsPage({
     params,
