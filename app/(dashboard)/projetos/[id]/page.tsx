@@ -28,7 +28,7 @@ import {
 } from '@/app/actions/report';
 
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate } from '@/lib/utils';
 
 type ProjectDetailsPageProps = {
     params: Promise<{
@@ -68,22 +68,6 @@ const STATUS_CONFIG = {
     },
 } as const;
 
-function formatDate(
-    value: string | null
-) {
-    if (!value) {
-        return 'Não informado';
-    }
-
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            timeZone: 'UTC',
-        }
-    );
-}
 
 
 function formatDuration(
@@ -103,22 +87,6 @@ function formatDuration(
         2,
         '0'
     )}`;
-}
-
-function formatEntryDate(
-    value: string
-) {
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            timeZone: 'UTC',
-        }
-    );
 }
 
 export default async function ProjectDetailsPage({
@@ -642,7 +610,7 @@ export default async function ProjectDetailsPage({
                                                 </p>
 
                                                 <p className="mt-1 font-medium text-slate-700">
-                                                    {formatEntryDate(
+                                                    {formatDate(
                                                         entry.date
                                                     )}
                                                 </p>

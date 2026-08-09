@@ -15,28 +15,12 @@ import type {
     InvoiceSummary,
 } from '@/interfaces/Invoice';
 import DeleteInvoiceButton from './DeleteInvoiceButton';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate } from '@/lib/utils';
 
 type InvoicesTableProps = {
     invoices: InvoiceSummary[];
 };
 
-function formatDate(
-    value: string | null
-) {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            timeZone: 'UTC',
-        }
-    );
-}
 
 function formatMonth(
     value: string

@@ -19,26 +19,13 @@ import {
 } from '@/app/actions/report';
 
 import DeleteReportEntryButton from '@/components/reports/DeleteReportEntryButton';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate } from '@/lib/utils';
 
 type ReportEntryDetailsPageProps = {
     params: Promise<{
         id: string;
     }>;
 };
-
-function formatDate(
-    value: string
-): string {
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC',
-    });
-}
 
 
 function formatDecimalHours(

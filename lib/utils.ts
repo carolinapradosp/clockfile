@@ -18,6 +18,8 @@ export default function formatCurrency({
     }
 }
 
+
+
 export const VALID_CURRENCIES = [
   'BRL',
   'USD',
@@ -35,3 +37,52 @@ export function isValidCurrency(
   );
 }
 
+
+export function formatDateTime(
+    value: string | null
+) {
+    if (!value) {
+        return null;
+    }
+
+    return new Date(value).toLocaleString(
+        'pt-BR',
+        {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+        }
+    );
+}
+
+
+export function formatDate(
+    value: string | null
+) {
+    if (!value) {
+        return 'Não informado';
+    }
+
+    return new Date(
+        `${value}T00:00:00Z`
+    ).toLocaleDateString(
+        'pt-BR',
+        {
+            timeZone: 'UTC',
+        }
+    );
+}
+
+export function formatReferenceMonth(
+    value: string
+) {
+    const [year, month] =
+        value.split('-').map(Number);
+
+    return new Date(
+        Date.UTC(year, month - 1, 1)
+    ).toLocaleDateString('pt-BR', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    });
+}

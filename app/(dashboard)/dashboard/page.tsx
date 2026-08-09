@@ -24,7 +24,7 @@ import type {
     DashboardCurrencyTotal,
     DashboardRecentActivity,
 } from '@/interfaces/Dashboard';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { formatDate } from '@/lib/utils';
 
 const quickActions = [
     {
@@ -114,18 +114,7 @@ function formatDuration(
     )}`;
 }
 
-function formatDate(
-    value: string
-): string {
-    return new Date(
-        `${value}T00:00:00Z`
-    ).toLocaleDateString(
-        'pt-BR',
-        {
-            timeZone: 'UTC',
-        }
-    );
-}
+
 
 function formatCurrencyTotals(
     totals:
