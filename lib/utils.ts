@@ -133,3 +133,62 @@ export function isValidMonth(
         )
     );
 }
+
+export function isValidEmail(
+  value: string
+): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    value
+  );
+}
+
+export function isValidPhone(
+  value: string
+): boolean {
+  const digits = value.replace(/\D/g, '');
+
+  return (
+    digits.length >= 8 &&
+    digits.length <= 15
+  );
+}
+
+
+export function isValidUuid(
+  value: string
+): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+
+export function isValidDate(
+  value: string
+): boolean {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(
+      value
+    )
+  ) {
+    return false;
+  }
+
+  const date = new Date(
+    `${value}T00:00:00Z`
+  );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    date
+      .toISOString()
+      .slice(0, 10) === value
+  );
+}

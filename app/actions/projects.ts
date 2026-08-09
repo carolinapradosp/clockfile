@@ -16,7 +16,7 @@ import type {
   ProjectFormData,
   ProjectStatus,
 } from '@/interfaces/Project';
-import { isValidCurrency } from '@/lib/utils';
+import { isValidCurrency, isValidUuid } from '@/lib/utils';
 
 type ProjectRow = {
   id: string;
@@ -79,15 +79,6 @@ const VALID_STATUSES: ProjectStatus[] = [
   'archived',
 ];
 
-
-
-function isValidUuid(
-  value: string
-): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value
-  );
-}
 
 function normalizeDate(
   value:

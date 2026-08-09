@@ -17,6 +17,7 @@ import {
   deleteCurrentSession,
   getRequestSessionMetadata,
 } from '@/lib/auth/session';
+import { isValidEmail, isValidPhone } from '@/lib/utils';
 
 export type LoginActionState =
   | {
@@ -71,24 +72,7 @@ function normalizeEmail(
   return value.trim().toLowerCase();
 }
 
-function isValidEmail(
-  value: string
-): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-    value
-  );
-}
 
-function isValidPhone(
-  value: string
-): boolean {
-  const digits = value.replace(/\D/g, '');
-
-  return (
-    digits.length >= 8 &&
-    digits.length <= 15
-  );
-}
 
 export async function loginUser(
   _previousState: LoginActionState,

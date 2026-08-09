@@ -116,8 +116,12 @@ export default async function ProjectsPage() {
                                 project.endDate
                             );
 
-                        if (endDate === 'Não informado') {
+                        if (endDate === 'Não informado' && project.status === 'active') {
                             endDate = 'Em andamento';
+                        }
+
+                        if (project.status === 'completed') {
+                            endDate = 'Concluído';
                         }
 
                         return (
