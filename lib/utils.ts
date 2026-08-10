@@ -241,3 +241,32 @@ export function isValidDate(
       .slice(0, 10) === value
   );
 }
+
+export const invoiceStatusLabels = {
+    draft: 'Rascunho',
+    issued: 'Emitida',
+    sent: 'Enviada',
+    paid: 'Paga',
+    overdue: 'Vencida',
+    cancelled: 'Cancelada',
+} as const;
+
+export const inputClassName = `
+  h-12
+  w-full
+  rounded-xl
+  border
+  border-slate-200
+  bg-slate-50
+  pl-11
+  pr-4
+  text-sm
+  text-slate-900
+  outline-none
+  transition-all
+  placeholder:text-slate-400
+  focus:border-blue-500
+  focus:bg-white
+  focus:ring-4
+  focus:ring-blue-500/10
+`;

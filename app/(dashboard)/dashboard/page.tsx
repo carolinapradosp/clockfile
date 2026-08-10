@@ -24,7 +24,7 @@ import type {
     DashboardCurrencyTotal,
     DashboardRecentActivity,
 } from '@/interfaces/Dashboard';
-import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
+import formatCurrency, { formatDate, formatDuration, invoiceStatusLabels } from '@/lib/utils';
 
 const quickActions = [
     {
@@ -60,14 +60,6 @@ const quickActions = [
     },
 ];
 
-const invoiceStatusLabels = {
-    draft: 'Rascunho',
-    issued: 'Emitida',
-    sent: 'Enviada',
-    paid: 'Paga',
-    overdue: 'Vencida',
-    cancelled: 'Cancelada',
-};
 
 function getFirstName(
     fullName: string
@@ -79,8 +71,6 @@ function getFirstName(
         fullName
     );
 }
-
-
 
 
 function formatCurrencyTotals(
