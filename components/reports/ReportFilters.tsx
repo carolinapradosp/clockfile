@@ -12,6 +12,7 @@ import {
 import type {
     ReportProjectOption,
 } from '@/interfaces/ReportEntry';
+import { inputClassNameNoIcon } from '@/lib/utils';
 
 type ReportFiltersProps = {
     projects: ReportProjectOption[];
@@ -19,21 +20,6 @@ type ReportFiltersProps = {
     selectedProjectId?: string;
 };
 
-const inputClassName = `
-  h-11
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-3
-  text-sm
-  text-slate-700
-  outline-none
-  transition-all
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
 
 export default function ReportFilters({
     projects,
@@ -100,7 +86,7 @@ export default function ReportFilters({
                                 value: event.target.value,
                             });
                         }}
-                        className={`${inputClassName} w-full`}
+                        className={`${inputClassNameNoIcon} w-full`}
                     />
                 </div>
 
@@ -121,7 +107,7 @@ export default function ReportFilters({
                                 value: event.target.value,
                             });
                         }}
-                        className={`${inputClassName} w-full`}
+                        className={`${inputClassNameNoIcon} w-full`}
                     >
                         <option value="">
                             Todos os projetos

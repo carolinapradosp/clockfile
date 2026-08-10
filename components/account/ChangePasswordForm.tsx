@@ -22,25 +22,9 @@ import type {
     ChangePasswordActionState,
 } from '@/interfaces/Account';
 import PasswordRequirement from '../auth/PasswordRequirement';
+import { inputClassNameNoIcon } from '@/lib/utils';
 
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-4
-  pr-12
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
+
 
 const initialState: ChangePasswordActionState =
     null;
@@ -183,7 +167,7 @@ export default function ChangePasswordForm() {
                             required
                             autoComplete="current-password"
                             className={
-                                inputClassName
+                                inputClassNameNoIcon
                             }
                         />
 
@@ -265,7 +249,7 @@ export default function ChangePasswordForm() {
                             autoComplete="new-password"
                             placeholder="Crie uma senha forte"
                             className={
-                                inputClassName
+                                inputClassNameNoIcon
                             }
                         />
 
@@ -386,7 +370,7 @@ export default function ChangePasswordForm() {
                             autoComplete="new-password"
                             placeholder="Digite a nova senha novamente"
                             className={
-                                inputClassName
+                                inputClassNameNoIcon
                             }
                         />
 

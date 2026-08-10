@@ -17,6 +17,7 @@ import type {
     InvoiceProjectOption,
     InvoiceStatus,
 } from '@/interfaces/Invoice';
+import { inputClassNameNoIcon } from '@/lib/utils';
 
 type InvoiceFiltersProps = {
     projects: InvoiceProjectOption[];
@@ -26,22 +27,7 @@ type InvoiceFiltersProps = {
     selectedStatus?: InvoiceStatus;
 };
 
-const inputClassName = `
-  h-11
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-3
-  text-sm
-  text-slate-700
-  outline-none
-  transition-all
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
+
 
 export default function InvoiceFilters({
     projects,
@@ -117,7 +103,7 @@ export default function InvoiceFilters({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -140,7 +126,7 @@ export default function InvoiceFilters({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="">
                                 Todos os projetos
@@ -178,7 +164,7 @@ export default function InvoiceFilters({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="">
                                 Todos os status

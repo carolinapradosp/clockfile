@@ -35,7 +35,7 @@ import type {
     InvoiceStatus,
     SaveInvoiceInput,
 } from '@/interfaces/Invoice';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { inputClassNameNoIcon } from '@/lib/utils';
 
 type EditableInvoiceItemField =
     | 'description'
@@ -54,23 +54,7 @@ type InvoiceFormProps = {
     initialMonth?: string;
 };
 
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
+
 
 const textareaClassName = `
   min-h-28
@@ -1137,7 +1121,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="">
                                 Sem projeto específico
@@ -1179,7 +1163,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1199,7 +1183,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="BRL">
                                 Real brasileiro (BRL)
@@ -1232,7 +1216,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1253,7 +1237,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
                 </div>
@@ -1323,7 +1307,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="Nome do destinatário"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1349,7 +1333,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="Nome da empresa"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1374,7 +1358,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="cliente@empresa.com"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1399,7 +1383,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="+55 11 99999-9999"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1426,7 +1410,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="Rua, número e complemento principal"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1453,7 +1437,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="Sala, apartamento ou complemento"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1477,7 +1461,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1501,7 +1485,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1527,7 +1511,7 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -1555,7 +1539,7 @@ export default function InvoiceForm({
                                 )
                             }
                             placeholder="BR"
-                            className={`${inputClassName} uppercase`}
+                            className={`${inputClassNameNoIcon} uppercase`}
                         />
                     </div>
                 </div>

@@ -26,7 +26,7 @@ import type {
     ReportEntryActionState,
     ReportProjectOption,
 } from '@/interfaces/ReportEntry';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { inputClassNameNoIcon } from '@/lib/utils';
 import FieldError from '../auth/FieldError';
 
 type ReportEntryFormProps = {
@@ -37,23 +37,7 @@ type ReportEntryFormProps = {
 
 const initialState: ReportEntryActionState = null;
 
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
+
 
 const textareaClassName = `
   min-h-36
@@ -226,7 +210,7 @@ export default function ReportEntryForm({
                             required
                             value={selectedProjectId}
                             onChange={handleProjectChange}
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="">
                                 Selecione um projeto
@@ -272,7 +256,7 @@ export default function ReportEntryForm({
                             required
                             defaultValue={entry?.task ?? ''}
                             placeholder="Ex.: WP-0075"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -303,7 +287,7 @@ export default function ReportEntryForm({
                                     .toISOString()
                                     .slice(0, 10)
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -377,7 +361,7 @@ export default function ReportEntryForm({
                                 );
                             }}
                             step={60}
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">
@@ -413,7 +397,7 @@ export default function ReportEntryForm({
                                 setRate(event.target.value);
                             }}
                             placeholder="0.00"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">
