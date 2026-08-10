@@ -27,6 +27,7 @@ import type {
     ReportProjectOption,
 } from '@/interfaces/ReportEntry';
 import formatCurrency from '@/lib/utils';
+import FieldError from '../auth/FieldError';
 
 type ReportEntryFormProps = {
     projects: ReportProjectOption[];
@@ -73,22 +74,6 @@ const textareaClassName = `
   focus:ring-4
   focus:ring-blue-500/10
 `;
-
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
-
-    return (
-        <p className="mt-1 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
 
 
 export default function ReportEntryForm({

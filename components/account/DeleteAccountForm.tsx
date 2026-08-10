@@ -129,6 +129,7 @@ export default function DeleteAccountForm() {
                             id="delete-account-password"
                             name="password"
                             type="password"
+                            maxLength={12}
                             required
                             autoComplete="current-password"
                             className={inputClassName}

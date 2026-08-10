@@ -10,9 +10,12 @@ import {
 import {
     useActionState,
     useEffect,
+    useState,
 } from 'react';
 
-import { useRouter } from 'next/navigation';
+import {
+    useRouter,
+} from 'next/navigation';
 
 import {
     updateAccountProfile,
@@ -21,6 +24,7 @@ import {
 import type {
     AccountProfileActionState,
 } from '@/interfaces/Account';
+import { formatPhone, sanitizeName } from '@/lib/utils';
 
 type AccountProfileFormProps = {
     user: {
@@ -31,30 +35,49 @@ type AccountProfileFormProps = {
 };
 
 const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
+    h-12
+    w-full
+    rounded-xl
+    border
+    border-slate-200
+    bg-white
+    px-4
+    text-sm
+    text-slate-900
+    outline-none
+    transition-all
+    placeholder:text-slate-400
+    focus:border-blue-500
+    focus:ring-4
+    focus:ring-blue-500/10
 `;
 
-const initialState: AccountProfileActionState =
-    null;
+const initialState:
+    AccountProfileActionState = null;
 
 export default function AccountProfileForm({
     user,
 }: AccountProfileFormProps) {
-    const router = useRouter();
+    const router =
+        useRouter();
+
+    const [
+        name,
+        setName,
+    ] = useState(
+        sanitizeName(
+            user.name
+        )
+    );
+
+    const [
+        phone,
+        setPhone,
+    ] = useState(
+        formatPhone(
+            user.phone ?? ''
+        )
+    );
 
     const [
         state,
@@ -66,20 +89,51 @@ export default function AccountProfileForm({
     );
 
     useEffect(() => {
-        if (state?.success) {
+        if (
+            state?.success
+        ) {
             /*
-             * Atualiza os dados carregados pelo
-             * layout e, consequentemente, a Sidebar.
+             * Atualiza os dados
+             * utilizados também
+             * pela Sidebar.
              */
             router.refresh();
         }
-    }, [state, router]);
+    }, [
+        state,
+        router,
+    ]);
+
+    function handleNameChange(
+        event:
+            React.ChangeEvent<HTMLInputElement>
+    ) {
+        const value =
+            sanitizeName(
+                event.target.value
+            );
+
+        setName(value);
+    }
+
+    function handlePhoneChange(
+        event:
+            React.ChangeEvent<HTMLInputElement>
+    ) {
+        setPhone(
+            formatPhone(
+                event.target.value
+            )
+        );
+    }
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
             <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <UserRound size={21} />
+                    <UserRound
+                        size={21}
+                    />
                 </div>
 
                 <div>
@@ -94,9 +148,13 @@ export default function AccountProfileForm({
             </div>
 
             <form
-                action={formAction}
+                action={
+                    formAction
+                }
                 className="mt-7 space-y-5"
             >
+                {/* NOME */}
+
                 <div>
                     <label
                         htmlFor="account-name"
@@ -109,20 +167,34 @@ export default function AccountProfileForm({
                         id="account-name"
                         name="name"
                         type="text"
-                        defaultValue={user.name}
+                        value={name}
+                        onChange={
+                            handleNameChange
+                        }
                         required
                         autoComplete="name"
-                        className={inputClassName}
+                        placeholder="Seu nome"
+                        className={
+                            inputClassName
+                        }
                     />
 
                     {state &&
                         !state.success &&
-                        state.fieldErrors?.name && (
+                        state
+                            .fieldErrors
+                            ?.name && (
                             <p className="mt-2 text-sm font-medium text-red-600">
-                                {state.fieldErrors.name}
+                                {
+                                    state
+                                        .fieldErrors
+                                        .name
+                                }
                             </p>
                         )}
                 </div>
+
+                {/* E-MAIL */}
 
                 <div>
                     <label
@@ -136,20 +208,32 @@ export default function AccountProfileForm({
                         id="account-email"
                         name="email"
                         type="email"
-                        defaultValue={user.email}
+                        defaultValue={
+                            user.email
+                        }
                         required
                         autoComplete="email"
-                        className={inputClassName}
+                        className={
+                            inputClassName
+                        }
                     />
 
                     {state &&
                         !state.success &&
-                        state.fieldErrors?.email && (
+                        state
+                            .fieldErrors
+                            ?.email && (
                             <p className="mt-2 text-sm font-medium text-red-600">
-                                {state.fieldErrors.email}
+                                {
+                                    state
+                                        .fieldErrors
+                                        .email
+                                }
                             </p>
                         )}
                 </div>
+
+                {/* TELEFONE */}
 
                 <div>
                     <label
@@ -163,23 +247,39 @@ export default function AccountProfileForm({
                         id="account-phone"
                         name="phone"
                         type="tel"
-                        defaultValue={
-                            user.phone ?? ''
+                        value={phone}
+                        onChange={
+                            handlePhoneChange
                         }
                         required
+                        inputMode="tel"
                         autoComplete="tel"
-                        placeholder="+55 11 99999-9999"
-                        className={inputClassName}
+                        placeholder="(11) 99999-9999"
+                        className={
+                            inputClassName
+                        }
                     />
+
+                    <p className="mt-2 text-xs text-slate-400">
+                        Formato: (11) 99999-9999
+                    </p>
 
                     {state &&
                         !state.success &&
-                        state.fieldErrors?.phone && (
+                        state
+                            .fieldErrors
+                            ?.phone && (
                             <p className="mt-2 text-sm font-medium text-red-600">
-                                {state.fieldErrors.phone}
+                                {
+                                    state
+                                        .fieldErrors
+                                        .phone
+                                }
                             </p>
                         )}
                 </div>
+
+                {/* FEEDBACK */}
 
                 {state && (
                     <div
@@ -190,17 +290,25 @@ export default function AccountProfileForm({
                                 : 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700'
                         }
                     >
-                        {state.message}
+                        {
+                            state.message
+                        }
                     </div>
                 )}
+
+                {/* AÇÃO */}
 
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={isPending}
+                        disabled={
+                            isPending
+                        }
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
                     >
-                        <Save size={17} />
+                        <Save
+                            size={17}
+                        />
 
                         {isPending
                             ? 'Salvando...'

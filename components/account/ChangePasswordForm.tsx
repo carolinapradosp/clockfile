@@ -23,6 +23,7 @@ import {
 import type {
     ChangePasswordActionState,
 } from '@/interfaces/Account';
+import PasswordRequirement from '../auth/PasswordRequirement';
 
 const inputClassName = `
   h-12
@@ -45,46 +46,6 @@ const inputClassName = `
 
 const initialState: ChangePasswordActionState =
     null;
-
-function PasswordRequirement({
-    valid,
-    children,
-}: {
-    valid: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <div
-            className={`
-                flex
-                items-center
-                gap-2
-                text-xs
-                transition-colors
-                ${valid
-                    ? 'text-emerald-600'
-                    : 'text-slate-400'
-                }
-            `}
-        >
-            {valid ? (
-                <Check
-                    size={14}
-                    className="shrink-0"
-                />
-            ) : (
-                <X
-                    size={14}
-                    className="shrink-0"
-                />
-            )}
-
-            <span>
-                {children}
-            </span>
-        </div>
-    );
-}
 
 export default function ChangePasswordForm() {
     const [
@@ -129,6 +90,9 @@ export default function ChangePasswordForm() {
     const hasMinimumLength =
         newPassword.length >= 8;
 
+    const hasMaximumLength =
+        newPassword.length <= 12;
+
     const hasUppercase =
         /[A-Z]/.test(
             newPassword
@@ -141,6 +105,7 @@ export default function ChangePasswordForm() {
 
     const passwordIsStrong =
         hasMinimumLength &&
+        hasMaximumLength &&
         hasUppercase &&
         hasNumber;
 
@@ -201,6 +166,7 @@ export default function ChangePasswordForm() {
                         <input
                             id="current-password"
                             name="currentPassword"
+                            maxLength={12}
                             type={
                                 showCurrentPassword
                                     ? 'text'
@@ -297,7 +263,7 @@ export default function ChangePasswordForm() {
                             }
                             required
                             minLength={8}
-                            maxLength={128}
+                            maxLength={12}
                             autoComplete="new-password"
                             placeholder="Crie uma senha forte"
                             className={
@@ -341,10 +307,11 @@ export default function ChangePasswordForm() {
 
                         <PasswordRequirement
                             valid={
-                                hasMinimumLength
+                                hasMinimumLength &&
+                                hasMaximumLength
                             }
                         >
-                            Pelo menos 8 caracteres
+                            Entre 8 e 12 caracteres
                         </PasswordRequirement>
 
                         <PasswordRequirement
@@ -417,7 +384,7 @@ export default function ChangePasswordForm() {
                             }
                             required
                             minLength={8}
-                            maxLength={128}
+                            maxLength={12}
                             autoComplete="new-password"
                             placeholder="Digite a nova senha novamente"
                             className={

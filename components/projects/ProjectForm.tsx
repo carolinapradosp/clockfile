@@ -25,6 +25,7 @@ import type {
     ProjectActionState,
     ProjectStatus,
 } from '@/interfaces/Project';
+import FieldError from '../auth/FieldError';
 
 type ProjectFormProps = {
     project?: Project;
@@ -71,21 +72,7 @@ const textareaClassName = `
   focus:ring-blue-500/10
 `;
 
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
 
-    return (
-        <p className="mt-2 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
 
 export default function ProjectForm({
     project,

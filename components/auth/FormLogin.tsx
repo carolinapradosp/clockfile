@@ -20,6 +20,7 @@ import {
     loginUser,
     type LoginActionState,
 } from '@/app/actions/auth';
+import FieldError from './FieldError';
 
 const initialState: LoginActionState =
     null;
@@ -44,21 +45,7 @@ const inputClassName = `
   focus:ring-blue-500/10
 `;
 
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
 
-    return (
-        <p className="mt-2 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
 
 export default function FormLogin() {
     const [

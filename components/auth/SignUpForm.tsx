@@ -5,14 +5,12 @@
 import Link from 'next/link';
 
 import {
-    Check,
     Eye,
     EyeOff,
     Lock,
     Mail,
     Phone,
     User,
-    X,
 } from 'lucide-react';
 
 import {
@@ -24,6 +22,9 @@ import {
     registerUser,
     type RegisterActionState,
 } from '@/app/actions/auth';
+import { formatPhone, sanitizeName } from '@/lib/utils';
+import PasswordRequirement from './PasswordRequirement';
+import FieldError from './FieldError';
 
 const initialState: RegisterActionState =
     null;
@@ -48,54 +49,6 @@ const inputClassName = `
   focus:ring-blue-500/10
 `;
 
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
-
-    return (
-        <p className="mt-2 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
-
-function PasswordRequirement({
-    valid,
-    children,
-}: {
-    valid: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <div
-            className={`flex items-center gap-2 text-xs transition-colors ${valid
-                ? 'text-emerald-600'
-                : 'text-slate-400'
-                }`}
-        >
-            {valid ? (
-                <Check
-                    size={14}
-                    className="shrink-0"
-                />
-            ) : (
-                <X
-                    size={14}
-                    className="shrink-0"
-                />
-            )}
-
-            <span>
-                {children}
-            </span>
-        </div>
-    );
-}
 
 export default function SignUpForm() {
     const [
@@ -127,8 +80,22 @@ export default function SignUpForm() {
         setPasswordConfirmation,
     ] = useState('');
 
+    const [
+        name,
+        setName,
+    ] = useState('');
+
+    const [
+        phone,
+        setPhone,
+    ] = useState('');
+
     const hasMinimumLength =
         password.length >= 8;
+
+    const hasMaximumLength =
+        password.length <= 12;
+
 
     const hasUppercase =
         /[A-Z]/.test(password);
@@ -138,6 +105,7 @@ export default function SignUpForm() {
 
     const passwordIsStrong =
         hasMinimumLength &&
+        hasMaximumLength &&
         hasUppercase &&
         hasNumber;
 
@@ -189,10 +157,16 @@ export default function SignUpForm() {
                         type="text"
                         autoComplete="name"
                         required
-                        placeholder="Seu nome completo"
-                        className={
-                            inputClassName
+                        value={name}
+                        onChange={(event) =>
+                            setName(
+                                sanitizeName(
+                                    event.target.value
+                                )
+                            )
                         }
+                        placeholder="Seu nome completo"
+                        className={inputClassName}
                     />
                 </div>
 
@@ -264,12 +238,21 @@ export default function SignUpForm() {
                         name="phone"
                         type="tel"
                         autoComplete="tel"
+                        inputMode="tel"
                         required
-                        placeholder="+55 11 99999-9999"
-                        className={
-                            inputClassName
+                        value={phone}
+                        onChange={(event) =>
+                            setPhone(
+                                formatPhone(
+                                    event.target.value
+                                )
+                            )
                         }
+                        maxLength={15}
+                        placeholder="(11) 99999-9999"
+                        className={inputClassName}
                     />
+
                 </div>
 
                 <FieldError
@@ -308,7 +291,7 @@ export default function SignUpForm() {
                         autoComplete="new-password"
                         required
                         minLength={8}
-                        maxLength={128}
+                        maxLength={12}
                         value={password}
                         onChange={(
                             event
@@ -361,10 +344,11 @@ export default function SignUpForm() {
 
                     <PasswordRequirement
                         valid={
-                            hasMinimumLength
+                            hasMinimumLength &&
+                            hasMaximumLength
                         }
                     >
-                        Pelo menos 8 caracteres
+                        Entre 8 e 12 caracteres
                     </PasswordRequirement>
 
                     <PasswordRequirement
@@ -420,7 +404,7 @@ export default function SignUpForm() {
                         autoComplete="new-password"
                         required
                         minLength={8}
-                        maxLength={128}
+                        maxLength={12}
                         value={
                             passwordConfirmation
                         }
