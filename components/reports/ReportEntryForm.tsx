@@ -255,7 +255,7 @@ export default function ReportEntryForm({
                             type="text"
                             required
                             defaultValue={entry?.task ?? ''}
-                            placeholder="Ex.: WP-0075"
+                            placeholder="Insira um identificador ou nome da tarefa..."
                             className={inputClassNameNoIcon}
                         />
 
@@ -389,14 +389,15 @@ export default function ReportEntryForm({
                             id="rate"
                             name="rate"
                             type="number"
-                            required
                             min="0"
                             step="0.01"
                             value={rate}
                             onChange={(event) => {
                                 setRate(event.target.value);
                             }}
+                            disabled
                             placeholder="0.00"
+                            style={{ backgroundColor: '#f4f4f4', color: '#727272' }}
                             className={inputClassNameNoIcon}
                         />
 

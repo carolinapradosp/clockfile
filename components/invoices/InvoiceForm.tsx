@@ -35,7 +35,7 @@ import type {
     InvoiceStatus,
     SaveInvoiceInput,
 } from '@/interfaces/Invoice';
-import formatCurrency, { inputClassNameNoIcon } from '@/lib/utils';
+import formatCurrency, { formatPhone, inputClassNameNoIcon } from '@/lib/utils';
 
 type EditableInvoiceItemField =
     | 'description'
@@ -75,6 +75,75 @@ const textareaClassName = `
   focus:ring-4
   focus:ring-blue-500/10
 `;
+
+const COUNTRIES = [
+    {
+        value: 'BR',
+        label: 'Brasil',
+    },
+    {
+        value: 'US',
+        label: 'Estados Unidos',
+    },
+    {
+        value: 'EUR',
+        label: 'Europa',
+    }
+] as const;
+
+function isValidPersonName(
+    value: string
+): boolean {
+    const normalized =
+        value.trim();
+
+    return (
+        normalized.length >= 2 &&
+        !/\d/.test(normalized)
+    );
+}
+
+function isValidEmail(
+    value: string
+): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        value
+    );
+}
+
+function getPhoneDigits(
+    value: string
+): string {
+    return value.replace(
+        /\D/g,
+        ''
+    );
+}
+
+function isValidPhone(
+    value: string
+): boolean {
+    const digits =
+        getPhoneDigits(value);
+
+    /*
+     * DDD + telefone:
+     * 10 dígitos para fixo
+     * 11 dígitos para celular.
+     */
+    return (
+        digits.length === 10 ||
+        digits.length === 11
+    );
+}
+
+const VALID_COUNTRY_CODES =
+    new Set(
+        COUNTRIES.map(
+            (country) =>
+                country.value
+        )
+    );
 
 function createLocalId() {
     return crypto.randomUUID();
@@ -576,15 +645,34 @@ export default function InvoiceForm({
 
         value: string
     ) {
+        let normalizedValue =
+            value;
+
+        if (field === 'name') {
+            /*
+             * Remove números do nome
+             * durante a digitação.
+             */
+            normalizedValue =
+                value.replace(
+                    /\d/g,
+                    ''
+                );
+        }
+
+        if (
+            field === 'countryCode'
+        ) {
+            normalizedValue =
+                value.toUpperCase();
+        }
+
         setBillTo(
             (current) => ({
                 ...current,
 
                 [field]:
-                    field ===
-                        'countryCode'
-                        ? value.toUpperCase()
-                        : value,
+                    normalizedValue,
             })
         );
     }
@@ -863,11 +951,84 @@ export default function InvoiceForm({
     function buildPayload(
         status: InvoiceStatus
     ): SaveInvoiceInput | null {
-        if (
-            !billTo.name.trim()
-        ) {
+        const recipientName =
+            billTo.name.trim();
+
+        const recipientEmail =
+            billTo.email?.trim() ??
+            '';
+
+        const recipientPhone =
+            billTo.phone?.trim() ??
+            '';
+
+        const countryCode =
+            billTo.countryCode
+                ?.trim()
+                .toUpperCase() ??
+            '';
+
+        if (!recipientName) {
             showError(
                 'Informe o nome do destinatário.'
+            );
+
+            return null;
+        }
+
+        if (
+            !isValidPersonName(
+                recipientName
+            )
+        ) {
+            showError(
+                'Informe um nome válido, sem números.'
+            );
+
+            return null;
+        }
+
+        if (
+            recipientEmail &&
+            !isValidEmail(
+                recipientEmail
+            )
+        ) {
+            showError(
+                'Informe um e-mail válido para o destinatário.'
+            );
+
+            return null;
+        }
+
+        if (
+            recipientPhone &&
+            !isValidPhone(
+                recipientPhone
+            )
+        ) {
+            showError(
+                'Informe um telefone válido com DDD.'
+            );
+
+            return null;
+        }
+
+        if (!countryCode) {
+            showError(
+                'Selecione o país do destinatário.'
+            );
+
+            return null;
+        }
+
+        if (
+            !VALID_COUNTRY_CODES.has(
+                countryCode as typeof COUNTRIES[number]['value']
+            )
+        ) {
+            showError(
+                'Selecione um país válido.'
             );
 
             return null;
@@ -888,6 +1049,8 @@ export default function InvoiceForm({
 
             return null;
         }
+
+        // restante do buildPayload continua igual
 
         const normalizedItems =
             items.map(
@@ -1298,6 +1461,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-name"
+                            maxLength={150}
                             type="text"
                             value={billTo.name}
                             onChange={(event) =>
@@ -1321,6 +1485,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-company"
+                            maxLength={150}
                             type="text"
                             value={
                                 billTo.company ??
@@ -1348,6 +1513,7 @@ export default function InvoiceForm({
                         <input
                             id="bill-to-email"
                             type="email"
+                            maxLength={255}
                             value={
                                 billTo.email ?? ''
                             }
@@ -1373,18 +1539,30 @@ export default function InvoiceForm({
                         <input
                             id="bill-to-phone"
                             type="tel"
+                            inputMode="tel"
                             value={
-                                billTo.phone ?? ''
+                                formatPhone(
+                                    billTo.phone ?? ''
+                                )
                             }
                             onChange={(event) =>
                                 handleBillToChange(
                                     'phone',
-                                    event.target.value
+                                    formatPhone(
+                                        event.target.value
+                                    )
                                 )
                             }
-                            placeholder="+55 11 99999-9999"
-                            className={inputClassNameNoIcon}
+                            maxLength={15}
+                            placeholder="(11) 99999-9999"
+                            className={
+                                inputClassNameNoIcon
+                            }
                         />
+
+                        <p className="mt-2 text-xs text-slate-400">
+                            Informe o DDD e o número do telefone.
+                        </p>
                     </div>
 
                     <div className="md:col-span-2">
@@ -1397,6 +1575,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-address-line-1"
+                            maxLength={255}
                             type="text"
                             value={
                                 billTo
@@ -1424,6 +1603,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-address-line-2"
+                            maxLength={255}
                             type="text"
                             value={
                                 billTo
@@ -1451,6 +1631,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-city"
+                            maxLength={150}
                             type="text"
                             value={
                                 billTo.city ?? ''
@@ -1475,6 +1656,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-state"
+                            maxLength={100}
                             type="text"
                             value={
                                 billTo.state ?? ''
@@ -1499,6 +1681,7 @@ export default function InvoiceForm({
 
                         <input
                             id="bill-to-postal-code"
+                            maxLength={30}
                             type="text"
                             value={
                                 billTo
@@ -1523,13 +1706,10 @@ export default function InvoiceForm({
                             País
                         </label>
 
-                        <input
+                        <select
                             id="bill-to-country"
-                            type="text"
-                            maxLength={2}
                             value={
-                                billTo
-                                    .countryCode ??
+                                billTo.countryCode ??
                                 ''
                             }
                             onChange={(event) =>
@@ -1538,9 +1718,29 @@ export default function InvoiceForm({
                                     event.target.value
                                 )
                             }
-                            placeholder="BR"
-                            className={`${inputClassNameNoIcon} uppercase`}
-                        />
+                            className={
+                                inputClassNameNoIcon
+                            }
+                        >
+                            <option value="">
+                                Selecione o país
+                            </option>
+
+                            {COUNTRIES.map(
+                                (country) => (
+                                    <option
+                                        key={
+                                            country.value
+                                        }
+                                        value={
+                                            country.value
+                                        }
+                                    >
+                                        {country.label}
+                                    </option>
+                                )
+                            )}
+                        </select>
                     </div>
                 </div>
             </section>

@@ -94,7 +94,7 @@ export default function InvoicesTable({
                                         key={invoice.id}
                                         className="border-b border-slate-100 last:border-b-0"
                                     >
-                                        <td className="px-5 py-4 align-top">
+                                        <td className="px-5 py-4 align-middle">
                                             <Link
                                                 href={`/faturas/${invoice.id}`}
                                                 className="text-sm font-bold text-slate-900 transition-colors hover:text-blue-600"
@@ -110,7 +110,7 @@ export default function InvoicesTable({
                                             </p>
                                         </td>
 
-                                        <td className="px-5 py-4 align-top">
+                                        <td className="px-5 py-4 align-middle">
                                             <div className="flex items-start gap-2">
                                                 <Building2
                                                     size={15}
@@ -118,28 +118,30 @@ export default function InvoicesTable({
                                                 />
 
                                                 <div>
-                                                    {invoice.projectName && (
+                                                    {invoice.projectName ? (
                                                         <p className="mt-1 text-xs text-slate-400">
                                                             {invoice.projectName}
                                                         </p>
-                                                    )}
+                                                    ) : <p className="mt-1 text-xs text-slate-400">
+                                                        --
+                                                    </p>}
                                                 </div>
                                             </div>
                                         </td>
 
-                                        <td className="px-5 py-4 align-top text-sm capitalize text-slate-600">
+                                        <td className="px-5 py-4 align-middle text-sm text-slate-600">
                                             {formatReferenceMonth(
                                                 invoice.referenceMonth
                                             )}
                                         </td>
 
-                                        <td className="px-5 py-4 align-top text-sm text-slate-600">
+                                        <td className="px-5 py-4 align-middle text-sm text-slate-600">
                                             {formatDate(
                                                 invoice.dueDate
                                             )}
                                         </td>
 
-                                        <td className="px-5 py-4 align-top">
+                                        <td className="px-5 py-4 align-middle">
                                             <InvoiceStatusBadge
                                                 status={
                                                     invoice.status
@@ -147,7 +149,7 @@ export default function InvoicesTable({
                                             />
                                         </td>
 
-                                        <td className="px-5 py-4 text-right align-top text-sm font-bold text-slate-900">
+                                        <td className="px-5 py-4 text-right align-middle text-sm font-bold text-slate-900">
                                             {formatCurrency({
                                                 value:
                                                     invoice.totalAmount,
@@ -157,7 +159,7 @@ export default function InvoicesTable({
                                             })}
                                         </td>
 
-                                        <td className="px-5 py-4 align-top">
+                                        <td className="px-5 py-4 align-middle">
                                             <div className="flex justify-end gap-1">
                                                 <Link
                                                     href={`/faturas/${invoice.id}`}
