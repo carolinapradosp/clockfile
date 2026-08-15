@@ -2630,23 +2630,23 @@ export async function saveInvoice(
       };
     }
 
-    if (
-      databaseError.code ===
-        '23505' &&
-      databaseError.constraint ===
-        'invoices_owner_reference_month_unique'
-    ) {
-      return {
-        success: false,
 
-        code:
-          'INVOICE_MONTH_ALREADY_EXISTS',
+if (
+  databaseError.code ===
+    '23505' &&
+  databaseError.constraint ===
+    'invoices_owner_project_reference_month_unique'
+) {
+  return {
+    success: false,
 
-        message:
-          'Já existe uma fatura cadastrada para esse mês.',
-      };
-    }
+    code:
+      'PROJECT_INVOICE_MONTH_ALREADY_EXISTS',
 
+    message:
+      'Já existe uma fatura cadastrada para este projeto nesse mês.',
+  };
+}
     return {
       success: false,
 
