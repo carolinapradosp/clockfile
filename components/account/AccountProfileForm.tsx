@@ -24,7 +24,10 @@ import {
 import type {
     AccountProfileActionState,
 } from '@/interfaces/Account';
-import { formatPhone, inputClassNameNoIcon, sanitizeName } from '@/lib/utils';
+import { formatPhone, sanitizeName } from '@/lib/utils';
+import NameField from '../forms/NameField';
+import EmailField from '../forms/EmailField';
+import PhoneField from '../forms/PhoneField';
 
 type AccountProfileFormProps = {
     user: {
@@ -87,28 +90,9 @@ export default function AccountProfileForm({
         router,
     ]);
 
-    function handleNameChange(
-        event:
-            React.ChangeEvent<HTMLInputElement>
-    ) {
-        const value =
-            sanitizeName(
-                event.target.value
-            );
 
-        setName(value);
-    }
 
-    function handlePhoneChange(
-        event:
-            React.ChangeEvent<HTMLInputElement>
-    ) {
-        setPhone(
-            formatPhone(
-                event.target.value
-            )
-        );
-    }
+
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
@@ -136,131 +120,37 @@ export default function AccountProfileForm({
                 }
                 className="mt-7 space-y-5"
             >
-                {/* NOME */}
+                <NameField
+                    id="account-name"
+                    value={name}
+                    onChange={setName}
+                    error={
+                        !state?.success
+                            ? state?.fieldErrors?.name
+                            : undefined
+                    }
+                />
 
-                <div>
-                    <label
-                        htmlFor="account-name"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                        Nome
-                    </label>
+                <EmailField
+                    id="account-email"
+                    defaultValue={user.email}
+                    error={
+                        !state?.success
+                            ? state?.fieldErrors?.email
+                            : undefined
+                    }
+                />
 
-                    <input
-                        id="account-name"
-                        name="name"
-                        type="text"
-                        value={name}
-                        onChange={
-                            handleNameChange
-                        }
-                        required
-                        autoComplete="name"
-                        placeholder="Seu nome"
-                        className={
-                            inputClassNameNoIcon
-                        }
-                    />
-
-                    {state &&
-                        !state.success &&
-                        state
-                            .fieldErrors
-                            ?.name && (
-                            <p className="mt-2 text-sm font-medium text-red-600">
-                                {
-                                    state
-                                        .fieldErrors
-                                        .name
-                                }
-                            </p>
-                        )}
-                </div>
-
-                {/* E-MAIL */}
-
-                <div>
-                    <label
-                        htmlFor="account-email"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                        E-mail
-                    </label>
-
-                    <input
-                        id="account-email"
-                        name="email"
-                        type="email"
-                        defaultValue={
-                            user.email
-                        }
-                        required
-                        autoComplete="email"
-                        className={
-                            inputClassNameNoIcon
-                        }
-                    />
-
-                    {state &&
-                        !state.success &&
-                        state
-                            .fieldErrors
-                            ?.email && (
-                            <p className="mt-2 text-sm font-medium text-red-600">
-                                {
-                                    state
-                                        .fieldErrors
-                                        .email
-                                }
-                            </p>
-                        )}
-                </div>
-
-                {/* TELEFONE */}
-
-                <div>
-                    <label
-                        htmlFor="account-phone"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                        Telefone
-                    </label>
-
-                    <input
-                        id="account-phone"
-                        name="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={
-                            handlePhoneChange
-                        }
-                        required
-                        inputMode="tel"
-                        autoComplete="tel"
-                        placeholder="(11) 99999-9999"
-                        className={
-                            inputClassNameNoIcon
-                        }
-                    />
-
-                    <p className="mt-2 text-xs text-slate-400">
-                        Formato: (11) 99999-9999
-                    </p>
-
-                    {state &&
-                        !state.success &&
-                        state
-                            .fieldErrors
-                            ?.phone && (
-                            <p className="mt-2 text-sm font-medium text-red-600">
-                                {
-                                    state
-                                        .fieldErrors
-                                        .phone
-                                }
-                            </p>
-                        )}
-                </div>
+                <PhoneField
+                    id="account-phone"
+                    value={phone}
+                    onChange={setPhone}
+                    error={
+                        !state?.success
+                            ? state?.fieldErrors?.phone
+                            : undefined
+                    }
+                />
 
                 {/* FEEDBACK */}
 

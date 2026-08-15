@@ -35,7 +35,22 @@ import type {
     InvoiceStatus,
     SaveInvoiceInput,
 } from '@/interfaces/Invoice';
-import formatCurrency, { formatPhone, inputClassNameNoIcon } from '@/lib/utils';
+import formatCurrency, { inputClassNameNoIcon } from '@/lib/utils';
+
+
+import NameField, {
+    isValidName,
+} from '@/components/forms/NameField';
+
+import EmailField, {
+    isValidEmail,
+} from '@/components/forms/EmailField';
+
+import PhoneField, {
+    isValidPhone,
+} from '@/components/forms/PhoneField';
+import { isValidCountryCode } from '@/lib/countries';
+import AddressFields from '../forms/AddressFields';
 
 type EditableInvoiceItemField =
     | 'description'
@@ -76,74 +91,7 @@ const textareaClassName = `
   focus:ring-blue-500/10
 `;
 
-const COUNTRIES = [
-    {
-        value: 'BR',
-        label: 'Brasil',
-    },
-    {
-        value: 'US',
-        label: 'Estados Unidos',
-    },
-    {
-        value: 'EUR',
-        label: 'Europa',
-    }
-] as const;
 
-function isValidPersonName(
-    value: string
-): boolean {
-    const normalized =
-        value.trim();
-
-    return (
-        normalized.length >= 2 &&
-        !/\d/.test(normalized)
-    );
-}
-
-function isValidEmail(
-    value: string
-): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        value
-    );
-}
-
-function getPhoneDigits(
-    value: string
-): string {
-    return value.replace(
-        /\D/g,
-        ''
-    );
-}
-
-function isValidPhone(
-    value: string
-): boolean {
-    const digits =
-        getPhoneDigits(value);
-
-    /*
-     * DDD + telefone:
-     * 10 dígitos para fixo
-     * 11 dígitos para celular.
-     */
-    return (
-        digits.length === 10 ||
-        digits.length === 11
-    );
-}
-
-const VALID_COUNTRY_CODES =
-    new Set(
-        COUNTRIES.map(
-            (country) =>
-                country.value
-        )
-    );
 
 function createLocalId() {
     return crypto.randomUUID();
@@ -645,27 +593,10 @@ export default function InvoiceForm({
 
         value: string
     ) {
-        let normalizedValue =
-            value;
-
-        if (field === 'name') {
-            /*
-             * Remove números do nome
-             * durante a digitação.
-             */
-            normalizedValue =
-                value.replace(
-                    /\d/g,
-                    ''
-                );
-        }
-
-        if (
+        const normalizedValue =
             field === 'countryCode'
-        ) {
-            normalizedValue =
-                value.toUpperCase();
-        }
+                ? value.toUpperCase()
+                : value;
 
         setBillTo(
             (current) => ({
@@ -977,7 +908,7 @@ export default function InvoiceForm({
         }
 
         if (
-            !isValidPersonName(
+            !isValidName(
                 recipientName
             )
         ) {
@@ -1021,10 +952,9 @@ export default function InvoiceForm({
 
             return null;
         }
-
         if (
-            !VALID_COUNTRY_CODES.has(
-                countryCode as typeof COUNTRIES[number]['value']
+            !isValidCountryCode(
+                countryCode
             )
         ) {
             showError(
@@ -1451,29 +1381,20 @@ export default function InvoiceForm({
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div>
-                        <label
-                            htmlFor="bill-to-name"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Nome *
-                        </label>
-
-                        <input
-                            id="bill-to-name"
-                            maxLength={150}
-                            type="text"
-                            value={billTo.name}
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'name',
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Nome do destinatário"
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
+                    <NameField
+                        id="bill-to-name"
+                        name="billToName"
+                        label="Nome"
+                        value={billTo.name}
+                        onChange={(value) =>
+                            handleBillToChange(
+                                'name',
+                                value
+                            )
+                        }
+                        required
+                        placeholder="Nome do destinatário"
+                    />
 
                     <div>
                         <label
@@ -1502,246 +1423,114 @@ export default function InvoiceForm({
                         />
                     </div>
 
-                    <div>
-                        <label
-                            htmlFor="bill-to-email"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            E-mail
-                        </label>
+                    <EmailField
+                        id="bill-to-email"
+                        name="billToEmail"
+                        label="E-mail"
+                        value={
+                            billTo.email ?? ''
+                        }
+                        onChange={(value) =>
+                            handleBillToChange(
+                                'email',
+                                value
+                            )
+                        }
+                        required={false}
+                    />
 
-                        <input
-                            id="bill-to-email"
-                            type="email"
-                            maxLength={255}
-                            value={
-                                billTo.email ?? ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'email',
-                                    event.target.value
-                                )
-                            }
-                            placeholder="cliente@empresa.com"
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
+                    <PhoneField
+                        id="bill-to-phone"
+                        name="billToPhone"
+                        label="Telefone"
+                        value={
+                            billTo.phone ?? ''
+                        }
+                        onChange={(value) =>
+                            handleBillToChange(
+                                'phone',
+                                value
+                            )
+                        }
+                        required={false}
+                    />
 
-                    <div>
-                        <label
-                            htmlFor="bill-to-phone"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Telefone
-                        </label>
 
-                        <input
-                            id="bill-to-phone"
-                            type="tel"
-                            inputMode="tel"
-                            value={
-                                formatPhone(
-                                    billTo.phone ?? ''
-                                )
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'phone',
-                                    formatPhone(
-                                        event.target.value
-                                    )
-                                )
-                            }
-                            maxLength={15}
-                            placeholder="(11) 99999-9999"
-                            className={
-                                inputClassNameNoIcon
-                            }
-                        />
+                    <AddressFields
+                        values={{
+                            addressLine1:
+                                billTo.addressLine1 ??
+                                '',
 
-                        <p className="mt-2 text-xs text-slate-400">
-                            Informe o DDD e o número do telefone.
-                        </p>
-                    </div>
+                            addressLine2:
+                                billTo.addressLine2 ??
+                                '',
 
-                    <div className="md:col-span-2">
-                        <label
-                            htmlFor="bill-to-address-line-1"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Endereço
-                        </label>
+                            city:
+                                billTo.city ??
+                                '',
 
-                        <input
-                            id="bill-to-address-line-1"
-                            maxLength={255}
-                            type="text"
-                            value={
-                                billTo
-                                    .addressLine1 ??
-                                ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'addressLine1',
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Rua, número e complemento principal"
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
+                            state:
+                                billTo.state ??
+                                '',
 
-                    <div className="md:col-span-2">
-                        <label
-                            htmlFor="bill-to-address-line-2"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Complemento
-                        </label>
+                            postalCode:
+                                billTo.postalCode ??
+                                '',
 
-                        <input
-                            id="bill-to-address-line-2"
-                            maxLength={255}
-                            type="text"
-                            value={
-                                billTo
-                                    .addressLine2 ??
-                                ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'addressLine2',
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Sala, apartamento ou complemento"
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="bill-to-city"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Cidade
-                        </label>
-
-                        <input
-                            id="bill-to-city"
-                            maxLength={150}
-                            type="text"
-                            value={
-                                billTo.city ?? ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'city',
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="bill-to-state"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Estado
-                        </label>
-
-                        <input
-                            id="bill-to-state"
-                            maxLength={100}
-                            type="text"
-                            value={
-                                billTo.state ?? ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'state',
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="bill-to-postal-code"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            CEP / Código postal
-                        </label>
-
-                        <input
-                            id="bill-to-postal-code"
-                            maxLength={30}
-                            type="text"
-                            value={
-                                billTo
-                                    .postalCode ??
-                                ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'postalCode',
-                                    event.target.value
-                                )
-                            }
-                            className={inputClassNameNoIcon}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="bill-to-country"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            País
-                        </label>
-
-                        <select
-                            id="bill-to-country"
-                            value={
+                            countryCode:
                                 billTo.countryCode ??
-                                ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'countryCode',
-                                    event.target.value
-                                )
-                            }
-                            className={
-                                inputClassNameNoIcon
-                            }
-                        >
-                            <option value="">
-                                Selecione o país
-                            </option>
+                                '',
+                        }}
+                        onChange={(
+                            field,
+                            value
+                        ) =>
+                            handleBillToChange(
+                                field,
+                                value
+                            )
+                        }
+                        ids={{
+                            addressLine1:
+                                'bill-to-address-line-1',
 
-                            {COUNTRIES.map(
-                                (country) => (
-                                    <option
-                                        key={
-                                            country.value
-                                        }
-                                        value={
-                                            country.value
-                                        }
-                                    >
-                                        {country.label}
-                                    </option>
-                                )
-                            )}
-                        </select>
-                    </div>
+                            addressLine2:
+                                'bill-to-address-line-2',
+
+                            city:
+                                'bill-to-city',
+
+                            state:
+                                'bill-to-state',
+
+                            postalCode:
+                                'bill-to-postal-code',
+
+                            countryCode:
+                                'bill-to-country',
+                        }}
+                        names={{
+                            addressLine1:
+                                'billToAddressLine1',
+
+                            addressLine2:
+                                'billToAddressLine2',
+
+                            city:
+                                'billToCity',
+
+                            state:
+                                'billToState',
+
+                            postalCode:
+                                'billToPostalCode',
+
+                            countryCode:
+                                'billToCountryCode',
+                        }}
+                        countryRequired
+                    />
                 </div>
             </section>
 

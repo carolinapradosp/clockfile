@@ -8,9 +8,6 @@ import {
     Eye,
     EyeOff,
     Lock,
-    Mail,
-    Phone,
-    User,
 } from 'lucide-react';
 
 import {
@@ -22,9 +19,12 @@ import {
     registerUser,
     type RegisterActionState,
 } from '@/app/actions/auth';
-import { formatPhone, inputClassName, sanitizeName } from '@/lib/utils';
+import { inputClassName } from '@/lib/utils';
 import PasswordRequirement from './PasswordRequirement';
 import FieldError from './FieldError';
+import NameField from '../forms/NameField';
+import EmailField from '../forms/EmailField';
+import PhoneField from '../forms/PhoneField';
 
 const initialState: RegisterActionState =
     null;
@@ -115,134 +115,28 @@ export default function SignUpForm() {
                     </div>
                 )}
 
-            {/* NOME */}
+            <NameField
+                value={name}
+                onChange={setName}
+                error={
+                    state?.fieldErrors?.name
+                }
+            />
 
-            <div>
-                <label
-                    htmlFor="name"
-                    className="mb-2 block text-sm font-semibold text-slate-700"
-                >
-                    Nome
-                </label>
+            <EmailField
+                defaultValue=""
+                error={
+                    state?.fieldErrors?.email
+                }
+            />
 
-                <div className="relative">
-                    <User
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-
-                    <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        autoComplete="name"
-                        required
-                        value={name}
-                        onChange={(event) =>
-                            setName(
-                                sanitizeName(
-                                    event.target.value
-                                )
-                            )
-                        }
-                        placeholder="Seu nome completo"
-                        className={inputClassName}
-                    />
-                </div>
-
-                <FieldError
-                    message={
-                        state
-                            ?.fieldErrors
-                            ?.name
-                    }
-                />
-            </div>
-
-            {/* EMAIL */}
-
-            <div>
-                <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-semibold text-slate-700"
-                >
-                    E-mail
-                </label>
-
-                <div className="relative">
-                    <Mail
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        placeholder="voce@exemplo.com"
-                        className={
-                            inputClassName
-                        }
-                    />
-                </div>
-
-                <FieldError
-                    message={
-                        state
-                            ?.fieldErrors
-                            ?.email
-                    }
-                />
-            </div>
-
-            {/* TELEFONE */}
-
-            <div>
-                <label
-                    htmlFor="phone"
-                    className="mb-2 block text-sm font-semibold text-slate-700"
-                >
-                    Telefone
-                </label>
-
-                <div className="relative">
-                    <Phone
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-
-                    <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        autoComplete="tel"
-                        inputMode="tel"
-                        required
-                        value={phone}
-                        onChange={(event) =>
-                            setPhone(
-                                formatPhone(
-                                    event.target.value
-                                )
-                            )
-                        }
-                        maxLength={15}
-                        placeholder="(11) 99999-9999"
-                        className={inputClassName}
-                    />
-
-                </div>
-
-                <FieldError
-                    message={
-                        state
-                            ?.fieldErrors
-                            ?.phone
-                    }
-                />
-            </div>
+            <PhoneField
+                value={phone}
+                onChange={setPhone}
+                error={
+                    state?.fieldErrors?.phone
+                }
+            />
 
             {/* SENHA */}
 
