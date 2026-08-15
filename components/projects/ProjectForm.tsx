@@ -6,26 +6,14 @@ import Link from 'next/link';
 
 import { Save } from 'lucide-react';
 
-import {
-    useActionState,
-    useEffect,
-} from 'react';
+import { useActionState, useEffect } from 'react';
 import { inputClassNameNoIcon } from '@/lib/utils';
 
-import {
-    useRouter,
-} from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-import {
-    createProject,
-    updateProject,
-} from '@/app/actions/projects';
+import { createProject, updateProject } from '@/app/actions/projects';
 
-import type {
-    Project,
-    ProjectActionState,
-    ProjectStatus,
-} from '@/interfaces/Project';
+import type { Project, ProjectActionState, ProjectStatus } from '@/interfaces/Project';
 import FieldError from '../auth/FieldError';
 import AddressFields from '../forms/AddressFields';
 
@@ -33,8 +21,7 @@ type ProjectFormProps = {
     project?: Project;
 };
 
-const initialState:
-    ProjectActionState = null;
+const initialState: ProjectActionState = null;
 
 const textareaClassName = `
   min-h-36
@@ -56,66 +43,39 @@ const textareaClassName = `
   focus:ring-blue-500/10
 `;
 
-
-
-export default function ProjectForm({
-    project,
-}: ProjectFormProps) {
+export default function ProjectForm({ project }: ProjectFormProps) {
     const router = useRouter();
 
-    const action = project
-        ? updateProject.bind(
-            null,
-            project.id
-        )
-        : createProject;
+    const action = project ? updateProject.bind(null, project.id) : createProject;
 
-    const [
-        state,
-        formAction,
-        isPending,
-    ] = useActionState(
-        action,
-        initialState
-    );
+    const [state, formAction, isPending] = useActionState(action, initialState);
 
     useEffect(() => {
         if (!state?.success) {
             return;
         }
 
-        router.replace(
-            `/projetos/${state.projectId}`
-        );
+        router.replace(`/projetos/${state.projectId}`);
 
         router.refresh();
     }, [router, state]);
 
-    const selectedStatus:
-        ProjectStatus =
-        project?.status ??
-        'active';
+    const selectedStatus: ProjectStatus = project?.status ?? 'active';
 
     return (
-        <form
-            action={formAction}
-            className="space-y-8"
-        >
-            {state &&
-                !state.success && (
-                    <div
-                        role="alert"
-                        className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
-                    >
-                        {state.message}
-                    </div>
-                )}
+        <form action={formAction} className="space-y-8">
+            {state && !state.success && (
+                <div
+                    role="alert"
+                    className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
+                >
+                    {state.message}
+                </div>
+            )}
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Informações principais
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Informações principais</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Defina os dados básicos do projeto.
@@ -136,21 +96,13 @@ export default function ProjectForm({
                             name="name"
                             type="text"
                             required
-                            defaultValue={
-                                project?.name ?? ''
-                            }
+                            defaultValue={project?.name ?? ''}
                             placeholder="Ex.: Website institucional"
                             className={inputClassNameNoIcon}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state
-                                        ?.fieldErrors
-                                        ?.name
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.name : undefined}
                         />
                     </div>
 
@@ -165,15 +117,9 @@ export default function ProjectForm({
                         <textarea
                             id="description"
                             name="description"
-                            defaultValue={
-                                project
-                                    ?.description ??
-                                ''
-                            }
+                            defaultValue={project?.description ?? ''}
                             placeholder="Descreva o escopo e as informações importantes do projeto."
-                            className={
-                                textareaClassName
-                            }
+                            className={textareaClassName}
                         />
                     </div>
 
@@ -188,28 +134,16 @@ export default function ProjectForm({
                         <select
                             id="status"
                             name="status"
-                            defaultValue={
-                                selectedStatus
-                            }
+                            defaultValue={selectedStatus}
                             className={inputClassNameNoIcon}
                         >
-                            <option value="draft">
-                                Rascunho
-                            </option>
+                            <option value="draft">Rascunho</option>
 
-                            <option value="active">
-                                Ativo
-                            </option>
+                            <option value="active">Ativo</option>
 
-                            <option value="paused">
-                                Pausado
-                            </option>
+                            <option value="paused">Pausado</option>
 
-                            <option value="completed">
-                                Concluído
-                            </option>
-
-
+                            <option value="completed">Concluído</option>
                         </select>
                     </div>
                     <div>
@@ -224,31 +158,18 @@ export default function ProjectForm({
                             id="currency"
                             name="currency"
                             required
-                            defaultValue={
-                                project?.currency ?? 'BRL'
-                            }
+                            defaultValue={project?.currency ?? 'BRL'}
                             className={inputClassNameNoIcon}
                         >
-                            <option value="BRL">
-                                Real brasileiro (BRL)
-                            </option>
+                            <option value="BRL">Real brasileiro (BRL)</option>
 
-                            <option value="USD">
-                                Dólar americano (USD)
-                            </option>
+                            <option value="USD">Dólar americano (USD)</option>
 
-                            <option value="EUR">
-                                Euro (EUR)
-                            </option>
+                            <option value="EUR">Euro (EUR)</option>
                         </select>
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors
-                                        ?.currency
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.currency : undefined}
                         />
                     </div>
                 </div>
@@ -256,9 +177,7 @@ export default function ProjectForm({
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Cobrança
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Cobrança</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Configure o valor padrão usado nos lançamentos de horas.
@@ -279,22 +198,14 @@ export default function ProjectForm({
                         type="number"
                         min="0"
                         step="0.01"
-                        defaultValue={
-                            project
-                                ?.defaultHourlyRate ??
-                            ''
-                        }
+                        defaultValue={project?.defaultHourlyRate ?? ''}
                         placeholder="0.00"
                         className={inputClassNameNoIcon}
                     />
 
                     <FieldError
                         message={
-                            !state?.success
-                                ? state
-                                    ?.fieldErrors
-                                    ?.defaultHourlyRate
-                                : undefined
+                            !state?.success ? state?.fieldErrors?.defaultHourlyRate : undefined
                         }
                     />
                 </div>
@@ -302,12 +213,11 @@ export default function ProjectForm({
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Dados de faturamento
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Dados de faturamento</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
-                        Estes dados serão preenchidos automaticamente ao criar uma fatura para este projeto.
+                        Estes dados serão preenchidos automaticamente ao criar uma fatura para este
+                        projeto.
                     </p>
                 </div>
 
@@ -324,10 +234,7 @@ export default function ProjectForm({
                             id="billingName"
                             name="billingName"
                             type="text"
-                            defaultValue={
-                                project?.billing.name ??
-                                ''
-                            }
+                            defaultValue={project?.billing.name ?? ''}
                             placeholder="Nome do destinatário"
                             className={inputClassNameNoIcon}
                         />
@@ -345,10 +252,7 @@ export default function ProjectForm({
                             id="billingCompany"
                             name="billingCompany"
                             type="text"
-                            defaultValue={
-                                project?.billing.company ??
-                                ''
-                            }
+                            defaultValue={project?.billing.company ?? ''}
                             placeholder="Nome da empresa"
                             className={inputClassNameNoIcon}
                         />
@@ -366,22 +270,13 @@ export default function ProjectForm({
                             id="billingEmail"
                             name="billingEmail"
                             type="email"
-                            defaultValue={
-                                project?.billing.email ??
-                                ''
-                            }
+                            defaultValue={project?.billing.email ?? ''}
                             placeholder="cliente@empresa.com"
                             className={inputClassNameNoIcon}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state
-                                        ?.fieldErrors
-                                        ?.billingEmail
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.billingEmail : undefined}
                         />
                     </div>
 
@@ -397,100 +292,60 @@ export default function ProjectForm({
                             id="billingPhone"
                             name="billingPhone"
                             type="tel"
-                            defaultValue={
-                                project?.billing.phone ??
-                                ''
-                            }
+                            defaultValue={project?.billing.phone ?? ''}
                             placeholder="+55 11 99999-9999"
                             className={inputClassNameNoIcon}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state
-                                        ?.fieldErrors
-                                        ?.billingPhone
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.billingPhone : undefined}
                         />
                     </div>
 
                     <AddressFields
                         defaultValues={{
-                            addressLine1:
-                                project?.billing
-                                    .addressLine1 ??
-                                '',
+                            addressLine1: project?.billing.addressLine1 ?? '',
 
-                            addressLine2:
-                                project?.billing
-                                    .addressLine2 ??
-                                '',
+                            addressLine2: project?.billing.addressLine2 ?? '',
 
-                            city:
-                                project?.billing.city ??
-                                '',
+                            city: project?.billing.city ?? '',
 
-                            state:
-                                project?.billing.state ??
-                                '',
+                            state: project?.billing.state ?? '',
 
-                            postalCode:
-                                project?.billing
-                                    .postalCode ??
-                                '',
+                            postalCode: project?.billing.postalCode ?? '',
 
-                            countryCode:
-                                project?.billing
-                                    .countryCode ??
-                                'BR',
+                            countryCode: project?.billing.countryCode ?? 'BR',
                         }}
                         names={{
-                            addressLine1:
-                                'billingAddressLine1',
+                            addressLine1: 'billingAddressLine1',
 
-                            addressLine2:
-                                'billingAddressLine2',
+                            addressLine2: 'billingAddressLine2',
 
-                            city:
-                                'billingCity',
+                            city: 'billingCity',
 
-                            state:
-                                'billingState',
+                            state: 'billingState',
 
-                            postalCode:
-                                'billingPostalCode',
+                            postalCode: 'billingPostalCode',
 
-                            countryCode:
-                                'billingCountryCode',
+                            countryCode: 'billingCountryCode',
                         }}
                         ids={{
-                            addressLine1:
-                                'billingAddressLine1',
+                            addressLine1: 'billingAddressLine1',
 
-                            addressLine2:
-                                'billingAddressLine2',
+                            addressLine2: 'billingAddressLine2',
 
-                            city:
-                                'billingCity',
+                            city: 'billingCity',
 
-                            state:
-                                'billingState',
+                            state: 'billingState',
 
-                            postalCode:
-                                'billingPostalCode',
+                            postalCode: 'billingPostalCode',
 
-                            countryCode:
-                                'billingCountryCode',
+                            countryCode: 'billingCountryCode',
                         }}
                         errors={{
-                            countryCode:
-                                !state?.success
-                                    ? state
-                                        ?.fieldErrors
-                                        ?.billingCountryCode
-                                    : undefined,
+                            countryCode: !state?.success
+                                ? state?.fieldErrors?.billingCountryCode
+                                : undefined,
                         }}
                     />
                 </div>
@@ -498,9 +353,7 @@ export default function ProjectForm({
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Período
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Período</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         As datas são opcionais e ajudam a acompanhar o ciclo do projeto.
@@ -520,21 +373,12 @@ export default function ProjectForm({
                             id="startDate"
                             name="startDate"
                             type="date"
-                            defaultValue={
-                                project?.startDate ??
-                                ''
-                            }
+                            defaultValue={project?.startDate ?? ''}
                             className={inputClassNameNoIcon}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state
-                                        ?.fieldErrors
-                                        ?.startDate
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.startDate : undefined}
                         />
                     </div>
 
@@ -550,21 +394,12 @@ export default function ProjectForm({
                             id="endDate"
                             name="endDate"
                             type="date"
-                            defaultValue={
-                                project?.endDate ??
-                                ''
-                            }
+                            defaultValue={project?.endDate ?? ''}
                             className={inputClassNameNoIcon}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state
-                                        ?.fieldErrors
-                                        ?.endDate
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.endDate : undefined}
                         />
                     </div>
                 </div>
@@ -572,11 +407,7 @@ export default function ProjectForm({
 
             <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
                 <Link
-                    href={
-                        project
-                            ? `/projetos/${project.id}`
-                            : '/projetos'
-                    }
+                    href={project ? `/projetos/${project.id}` : '/projetos'}
                     className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                 >
                     Cancelar
@@ -592,8 +423,8 @@ export default function ProjectForm({
                     {isPending
                         ? 'Salvando...'
                         : project
-                            ? 'Salvar alterações'
-                            : 'Cadastrar projeto'}
+                          ? 'Salvar alterações'
+                          : 'Cadastrar projeto'}
                 </button>
             </div>
         </form>

@@ -2,9 +2,7 @@
 
 import 'server-only';
 
-import {
-  getCurrentUserId,
-} from '@/lib/auth/current-user';
+import { getCurrentUserId } from '@/lib/auth/current-user';
 
 /*
  * Alias temporário.
@@ -14,5 +12,5 @@ import {
  * o usuário real da sessão.
  */
 export async function getCurrentAppUserId(): Promise<string> {
-  return getCurrentUserId();
+    return getCurrentUserId();
 }

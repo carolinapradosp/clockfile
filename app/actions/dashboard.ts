@@ -4,254 +4,155 @@
 
 import { sql } from '@/lib/db';
 
-import {
-  getCurrentUserId,
-} from '@/lib/auth/current-user';
+import { getCurrentUserId } from '@/lib/auth/current-user';
 
 import type {
-  DashboardCurrencyTotal,
-  DashboardData,
-  DashboardRecentActivity,
-  DashboardRecentInvoice,
-  DashboardRecentReportEntry,
+    DashboardCurrencyTotal,
+    DashboardData,
+    DashboardRecentActivity,
+    DashboardRecentInvoice,
+    DashboardRecentReportEntry,
 } from '@/interfaces/Dashboard';
 
 type ActiveProjectsRow = {
-  active_projects:
-    | number
-    | string;
+    active_projects: number | string;
 };
 
 type MonthlyReportSummaryRow = {
-  total_entries:
-    | number
-    | string;
+    total_entries: number | string;
 
-  total_minutes:
-    | number
-    | string
-    | null;
+    total_minutes: number | string | null;
 };
 
 type CurrencyTotalRow = {
-  currency: string | null;
+    currency: string | null;
 
-  total_amount:
-    | number
-    | string
-    | null;
+    total_amount: number | string | null;
 };
 
 type OpenInvoicesCountRow = {
-  open_invoices:
-    | number
-    | string;
+    open_invoices: number | string;
 };
 
 type RecentActivityRow = {
-  activity_type:
-    | 'report-entry'
-    | 'invoice';
+    activity_type: 'report-entry' | 'invoice';
 
-  id: string;
+    id: string;
 
-  project_id: string | null;
-  project_name: string | null;
+    project_id: string | null;
+    project_name: string | null;
 
-  title: string;
-  description: string | null;
+    title: string;
+    description: string | null;
 
-  activity_date:
-    | string
-    | Date;
+    activity_date: string | Date;
 
-  duration_minutes:
-    | number
-    | string
-    | null;
+    duration_minutes: number | string | null;
 
-  amount:
-    | number
-    | string
-    | null;
+    amount: number | string | null;
 
-  currency: string | null;
+    currency: string | null;
 
-  invoice_number: string | null;
-  recipient_name: string | null;
+    invoice_number: string | null;
+    recipient_name: string | null;
 
-  invoice_status:
-    | 'draft'
-    | 'issued'
-    | 'sent'
-    | 'paid'
-    | 'overdue'
-    | 'cancelled'
-    | null;
+    invoice_status: 'draft' | 'issued' | 'sent' | 'paid' | 'overdue' | 'cancelled' | null;
 
-  created_at:
-    | string
-    | Date;
+    created_at: string | Date;
 };
 
-function normalizeDate(
-  value: string | Date
-): string {
-  if (value instanceof Date) {
-    return value
-      .toISOString()
-      .slice(0, 10);
-  }
+function normalizeDate(value: string | Date): string {
+    if (value instanceof Date) {
+        return value.toISOString().slice(0, 10);
+    }
 
-  return String(value).slice(
-    0,
-    10
-  );
+    return String(value).slice(0, 10);
 }
 
-function normalizeDateTime(
-  value: string | Date
-): string {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
+function normalizeDateTime(value: string | Date): string {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
 
-  return new Date(
-    value
-  ).toISOString();
+    return new Date(value).toISOString();
 }
 
-function mapCurrencyTotals(
-  rows: CurrencyTotalRow[]
-): DashboardCurrencyTotal[] {
-  return rows.map((row) => ({
-    currency:
-      row.currency ?? 'USD',
+function mapCurrencyTotals(rows: CurrencyTotalRow[]): DashboardCurrencyTotal[] {
+    return rows.map((row) => ({
+        currency: row.currency ?? 'USD',
 
-    amount:
-      Number(
-        row.total_amount ?? 0
-      ),
-  }));
+        amount: Number(row.total_amount ?? 0),
+    }));
 }
 
-function mapRecentActivity(
-  row: RecentActivityRow
-): DashboardRecentActivity {
-  if (
-    row.activity_type ===
-    'report-entry'
-  ) {
-    const activity:
-      DashboardRecentReportEntry = {
-        type: 'report-entry',
+function mapRecentActivity(row: RecentActivityRow): DashboardRecentActivity {
+    if (row.activity_type === 'report-entry') {
+        const activity: DashboardRecentReportEntry = {
+            type: 'report-entry',
+
+            id: String(row.id),
+
+            projectId: String(row.project_id),
+
+            projectName: row.project_name ?? 'Projeto não informado',
+
+            title: row.title,
+
+            description: row.description ?? '',
+
+            date: normalizeDate(row.activity_date),
+
+            durationMinutes: Number(row.duration_minutes ?? 0),
+
+            amount: Number(row.amount ?? 0),
+
+            currency: row.currency ?? 'USD',
+
+            createdAt: normalizeDateTime(row.created_at),
+        };
+
+        return activity;
+    }
+
+    const activity: DashboardRecentInvoice = {
+        type: 'invoice',
 
         id: String(row.id),
 
-        projectId:
-          String(
-            row.project_id
-          ),
+        projectId: row.project_id ? String(row.project_id) : null,
 
-        projectName:
-          row.project_name ??
-          'Projeto não informado',
+        projectName: row.project_name,
 
-        title: row.title,
+        invoiceNumber: row.invoice_number ?? '',
 
-        description:
-          row.description ?? '',
+        recipientName: row.recipient_name,
 
-        date:
-          normalizeDate(
-            row.activity_date
-          ),
+        status: row.invoice_status ?? 'draft',
 
-        durationMinutes:
-          Number(
-            row.duration_minutes ??
-            0
-          ),
+        totalAmount: Number(row.amount ?? 0),
 
-        amount:
-          Number(
-            row.amount ?? 0
-          ),
+        currency: row.currency ?? 'USD',
 
-        currency:
-          row.currency ?? 'USD',
+        date: normalizeDate(row.activity_date),
 
-        createdAt:
-          normalizeDateTime(
-            row.created_at
-          ),
-      };
-
-    return activity;
-  }
-
-  const activity:
-    DashboardRecentInvoice = {
-      type: 'invoice',
-
-      id: String(row.id),
-
-      projectId:
-        row.project_id
-          ? String(
-              row.project_id
-            )
-          : null,
-
-      projectName:
-        row.project_name,
-
-      invoiceNumber:
-        row.invoice_number ??
-        '',
-
-      recipientName:
-        row.recipient_name,
-
-      status:
-        row.invoice_status ??
-        'draft',
-
-      totalAmount:
-        Number(
-          row.amount ?? 0
-        ),
-
-      currency:
-        row.currency ?? 'USD',
-
-      date:
-        normalizeDate(
-          row.activity_date
-        ),
-
-      createdAt:
-        normalizeDateTime(
-          row.created_at
-        ),
+        createdAt: normalizeDateTime(row.created_at),
     };
 
-  return activity;
+    return activity;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
-  const ownerId =
-    await getCurrentUserId();
+    const ownerId = await getCurrentUserId();
 
-  const [
-    activeProjectsRows,
-    monthlyReportRows,
-    monthlyGeneratedAmountRows,
-    openInvoicesCountRows,
-    openInvoiceTotalRows,
-    recentActivityRows,
-  ] = await Promise.all([
-    sql`
+    const [
+        activeProjectsRows,
+        monthlyReportRows,
+        monthlyGeneratedAmountRows,
+        openInvoicesCountRows,
+        openInvoiceTotalRows,
+        recentActivityRows,
+    ] = await Promise.all([
+        sql`
       SELECT
         COUNT(*) AS active_projects
 
@@ -264,7 +165,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         AND status = 'active'
     `,
 
-    sql`
+        sql`
       SELECT
         COUNT(*) AS total_entries,
 
@@ -317,7 +218,7 @@ export async function getDashboardData(): Promise<DashboardData> {
           + INTERVAL '1 month'
     `,
 
-    sql`
+        sql`
       SELECT
         COALESCE(
           entry.currency,
@@ -365,7 +266,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       ORDER BY currency ASC
     `,
 
-    sql`
+        sql`
       SELECT
         COUNT(*) AS open_invoices
 
@@ -382,7 +283,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         )
     `,
 
-    sql`
+        sql`
       SELECT
         currency,
 
@@ -408,7 +309,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       ORDER BY currency ASC
     `,
 
-    sql`
+        sql`
       SELECT *
       FROM (
         SELECT
@@ -545,67 +446,31 @@ export async function getDashboardData(): Promise<DashboardData> {
 
       LIMIT 8
     `,
-  ]);
+    ]);
 
-  const activeProjects =
-    activeProjectsRows[0] as
-      | ActiveProjectsRow
-      | undefined;
+    const activeProjects = activeProjectsRows[0] as ActiveProjectsRow | undefined;
 
-  const monthlyReport =
-    monthlyReportRows[0] as
-      | MonthlyReportSummaryRow
-      | undefined;
+    const monthlyReport = monthlyReportRows[0] as MonthlyReportSummaryRow | undefined;
 
-  const openInvoices =
-    openInvoicesCountRows[0] as
-      | OpenInvoicesCountRow
-      | undefined;
+    const openInvoices = openInvoicesCountRows[0] as OpenInvoicesCountRow | undefined;
 
-  return {
-    activeProjects:
-      Number(
-        activeProjects
-          ?.active_projects ?? 0
-      ),
+    return {
+        activeProjects: Number(activeProjects?.active_projects ?? 0),
 
-    currentMonth: {
-      totalEntries:
-        Number(
-          monthlyReport
-            ?.total_entries ?? 0
-        ),
+        currentMonth: {
+            totalEntries: Number(monthlyReport?.total_entries ?? 0),
 
-      totalMinutes:
-        Number(
-          monthlyReport
-            ?.total_minutes ?? 0
-        ),
+            totalMinutes: Number(monthlyReport?.total_minutes ?? 0),
 
-      generatedAmounts:
-        mapCurrencyTotals(
-          monthlyGeneratedAmountRows as
-            CurrencyTotalRow[]
-        ),
-    },
+            generatedAmounts: mapCurrencyTotals(monthlyGeneratedAmountRows as CurrencyTotalRow[]),
+        },
 
-    openInvoices: {
-      count:
-        Number(
-          openInvoices
-            ?.open_invoices ?? 0
-        ),
+        openInvoices: {
+            count: Number(openInvoices?.open_invoices ?? 0),
 
-      totals:
-        mapCurrencyTotals(
-          openInvoiceTotalRows as
-            CurrencyTotalRow[]
-        ),
-    },
+            totals: mapCurrencyTotals(openInvoiceTotalRows as CurrencyTotalRow[]),
+        },
 
-    recentActivity: (
-      recentActivityRows as
-        RecentActivityRow[]
-    ).map(mapRecentActivity),
-  };
+        recentActivity: (recentActivityRows as RecentActivityRow[]).map(mapRecentActivity),
+    };
 }

@@ -2,17 +2,11 @@
 
 import Link from 'next/link';
 
-import {
-    notFound,
-    redirect,
-} from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { ArrowLeft } from 'lucide-react';
 
-import {
-    getInvoiceById,
-    getInvoiceProjectOptions,
-} from '@/app/actions/invoice';
+import { getInvoiceById, getInvoiceProjectOptions } from '@/app/actions/invoice';
 
 import InvoiceForm from '@/components/invoices/InvoiceForm';
 
@@ -22,18 +16,10 @@ type EditInvoicePageProps = {
     }>;
 };
 
-export default async function EditInvoicePage({
-    params,
-}: EditInvoicePageProps) {
+export default async function EditInvoicePage({ params }: EditInvoicePageProps) {
     const { id } = await params;
 
-    const [
-        invoice,
-        projects,
-    ] = await Promise.all([
-        getInvoiceById(id),
-        getInvoiceProjectOptions(),
-    ]);
+    const [invoice, projects] = await Promise.all([getInvoiceById(id), getInvoiceProjectOptions()]);
 
     if (!invoice) {
         notFound();
@@ -43,12 +29,8 @@ export default async function EditInvoicePage({
      * Somente rascunhos podem ser
      * editados livremente.
      */
-    if (
-        invoice.status !== 'draft'
-    ) {
-        redirect(
-            `/faturas/${invoice.id}`
-        );
+    if (invoice.status !== 'draft') {
+        redirect(`/faturas/${invoice.id}`);
     }
 
     return (
@@ -58,7 +40,6 @@ export default async function EditInvoicePage({
                 className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para a fatura
             </Link>
 
@@ -72,10 +53,7 @@ export default async function EditInvoicePage({
                 </p>
             </header>
 
-            <InvoiceForm
-                invoice={invoice}
-                projects={projects}
-            />
+            <InvoiceForm invoice={invoice} projects={projects} />
         </div>
     );
 }

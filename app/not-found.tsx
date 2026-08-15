@@ -1,5 +1,5 @@
-import Logo from "@/components/layout/Logo";
-import Link from "next/link";
+import Logo from '@/components/layout/Logo';
+import Link from 'next/link';
 
 export default function NotFound() {
     return (
@@ -7,16 +7,9 @@ export default function NotFound() {
             <div>
                 <Logo />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">
-                Página não encontrada
-            </h1>
-            <p className="text-slate-500">
-                A página que você está procurando não existe.
-            </p>
-            <Link
-                href="/"
-                className="underline"
-            >
+            <h1 className="text-3xl font-bold text-slate-900">Página não encontrada</h1>
+            <p className="text-slate-500">A página que você está procurando não existe.</p>
+            <Link href="/" className="underline">
                 Voltar para a página inicial
             </Link>
         </div>

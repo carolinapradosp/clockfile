@@ -4,24 +4,13 @@
 
 import Link from 'next/link';
 
-import {
-    Download,
-    LoaderCircle,
-    Save,
-} from 'lucide-react';
+import { Download, LoaderCircle, Save } from 'lucide-react';
 
-import {
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import {
-    getUnbilledReportEntries,
-    saveInvoice,
-} from '@/app/actions/invoice';
+import { getUnbilledReportEntries, saveInvoice } from '@/app/actions/invoice';
 
 import InvoiceItemsEditor from '@/components/invoices/InvoiceItemsEditor';
 
@@ -37,28 +26,15 @@ import type {
 } from '@/interfaces/Invoice';
 import formatCurrency, { inputClassNameNoIcon } from '@/lib/utils';
 
+import NameField, { isValidName } from '@/components/forms/NameField';
 
-import NameField, {
-    isValidName,
-} from '@/components/forms/NameField';
+import EmailField, { isValidEmail } from '@/components/forms/EmailField';
 
-import EmailField, {
-    isValidEmail,
-} from '@/components/forms/EmailField';
-
-import PhoneField, {
-    isValidPhone,
-} from '@/components/forms/PhoneField';
+import PhoneField, { isValidPhone } from '@/components/forms/PhoneField';
 import { isValidCountryCode } from '@/lib/countries';
 import AddressFields from '../forms/AddressFields';
 
-type EditableInvoiceItemField =
-    | 'description'
-    | 'link'
-    | 'quantity'
-    | 'rate'
-    | 'amount'
-    | 'source';
+type EditableInvoiceItemField = 'description' | 'link' | 'quantity' | 'rate' | 'amount' | 'source';
 
 type InvoiceFormProps = {
     projects: InvoiceProjectOption[];
@@ -68,8 +44,6 @@ type InvoiceFormProps = {
     initialProjectId?: string;
     initialMonth?: string;
 };
-
-
 
 const textareaClassName = `
   min-h-28
@@ -91,17 +65,12 @@ const textareaClassName = `
   focus:ring-blue-500/10
 `;
 
-
-
 function createLocalId() {
     return crypto.randomUUID();
 }
 
 function createEmptyItem(
-    source: Exclude<
-        InvoiceItemSource,
-        'monthly-report'
-    > = 'manual'
+    source: Exclude<InvoiceItemSource, 'monthly-report'> = 'manual'
 ): InvoiceItem {
     return {
         id: createLocalId(),
@@ -119,174 +88,96 @@ function createEmptyItem(
     };
 }
 
-function normalizeInitialItems(
-    invoice?: Invoice
-): InvoiceItem[] {
+function normalizeInitialItems(invoice?: Invoice): InvoiceItem[] {
     if (!invoice?.items.length) {
-        return [
-            createEmptyItem(),
-        ];
+        return [createEmptyItem()];
     }
 
-    return invoice.items.map(
-        (item) => ({
-            id: item.id,
+    return invoice.items.map((item) => ({
+        id: item.id,
 
-            description:
-                item.description,
+        description: item.description,
 
-            link:
-                item.link ?? '',
+        link: item.link ?? '',
 
-            quantity:
-                item.quantity === null
-                    ? ''
-                    : String(
-                        item.quantity
-                    ),
+        quantity: item.quantity === null ? '' : String(item.quantity),
 
-            rate:
-                item.rate === null
-                    ? ''
-                    : String(
-                        item.rate
-                    ),
+        rate: item.rate === null ? '' : String(item.rate),
 
-            amount:
-                String(item.amount),
+        amount: String(item.amount),
 
-            source:
-                item.source,
+        source: item.source,
 
-            reportEntryIds:
-                item.reportEntryIds,
-        })
-    );
+        reportEntryIds: item.reportEntryIds,
+    }));
 }
 
-function createInitialBillTo(
-    invoice?: Invoice
-): InvoiceBillToInput {
+function createInitialBillTo(invoice?: Invoice): InvoiceBillToInput {
     return {
-        name:
-            invoice?.billTo.name ?? '',
+        name: invoice?.billTo.name ?? '',
 
-        company:
-            invoice?.billTo.company ??
-            '',
+        company: invoice?.billTo.company ?? '',
 
-        email:
-            invoice?.billTo.email ?? '',
+        email: invoice?.billTo.email ?? '',
 
-        phone:
-            invoice?.billTo.phone ?? '',
+        phone: invoice?.billTo.phone ?? '',
 
-        addressLine1:
-            invoice?.billTo
-                .addressLine1 ?? '',
+        addressLine1: invoice?.billTo.addressLine1 ?? '',
 
-        addressLine2:
-            invoice?.billTo
-                .addressLine2 ?? '',
+        addressLine2: invoice?.billTo.addressLine2 ?? '',
 
-        city:
-            invoice?.billTo.city ?? '',
+        city: invoice?.billTo.city ?? '',
 
-        state:
-            invoice?.billTo.state ?? '',
+        state: invoice?.billTo.state ?? '',
 
-        postalCode:
-            invoice?.billTo
-                .postalCode ?? '',
+        postalCode: invoice?.billTo.postalCode ?? '',
 
-        countryCode:
-            invoice?.billTo
-                .countryCode ?? '',
+        countryCode: invoice?.billTo.countryCode ?? '',
     };
 }
 
-
-function createBillToFromProject(
-    project?: InvoiceProjectOption
-): InvoiceBillToInput {
+function createBillToFromProject(project?: InvoiceProjectOption): InvoiceBillToInput {
     return {
-        name:
-            project?.billing.name ??
-            '',
+        name: project?.billing.name ?? '',
 
-        company:
-            project?.billing.company ??
-            '',
+        company: project?.billing.company ?? '',
 
-        email:
-            project?.billing.email ??
-            '',
+        email: project?.billing.email ?? '',
 
-        phone:
-            project?.billing.phone ??
-            '',
+        phone: project?.billing.phone ?? '',
 
-        addressLine1:
-            project?.billing
-                .addressLine1 ??
-            '',
+        addressLine1: project?.billing.addressLine1 ?? '',
 
-        addressLine2:
-            project?.billing
-                .addressLine2 ??
-            '',
+        addressLine2: project?.billing.addressLine2 ?? '',
 
-        city:
-            project?.billing.city ??
-            '',
+        city: project?.billing.city ?? '',
 
-        state:
-            project?.billing.state ??
-            '',
+        state: project?.billing.state ?? '',
 
-        postalCode:
-            project?.billing
-                .postalCode ??
-            '',
+        postalCode: project?.billing.postalCode ?? '',
 
-        countryCode:
-            project?.billing
-                .countryCode ??
-            '',
+        countryCode: project?.billing.countryCode ?? '',
     };
 }
 
-function roundCurrency(
-    value: number
-) {
-    return (
-        Math.round(value * 100) /
-        100
-    );
+function roundCurrency(value: number) {
+    return Math.round(value * 100) / 100;
 }
 
 function getDefaultInvoiceDate() {
-    return new Date()
-        .toISOString()
-        .slice(0, 10);
+    return new Date().toISOString().slice(0, 10);
 }
 
 function getDefaultDueDate() {
     const date = new Date();
 
-    date.setDate(
-        date.getDate() + 15
-    );
+    date.setDate(date.getDate() + 15);
 
-    return date
-        .toISOString()
-        .slice(0, 10);
+    return date.toISOString().slice(0, 10);
 }
 
 function getDefaultMonth() {
-    return new Date()
-        .toISOString()
-        .slice(0, 7);
+    return new Date().toISOString().slice(0, 7);
 }
 
 function buildMonthlyReportItem({
@@ -294,114 +185,55 @@ function buildMonthlyReportItem({
     project,
     referenceMonth,
 }: {
-    entries:
-    InvoiceReportEntryOption[];
+    entries: InvoiceReportEntryOption[];
 
-    project:
-    InvoiceProjectOption;
+    project: InvoiceProjectOption;
 
     referenceMonth: string;
 }): InvoiceItem {
-    const totalMinutes =
-        entries.reduce(
-            (total, entry) =>
-                total +
-                entry.durationMinutes,
-            0
-        );
+    const totalMinutes = entries.reduce((total, entry) => total + entry.durationMinutes, 0);
 
-    const quantity =
-        roundCurrency(
-            totalMinutes / 60
-        );
+    const quantity = roundCurrency(totalMinutes / 60);
 
     const rates = entries
-        .map(
-            (entry) => entry.rate
-        )
-        .filter(
-            (
-                rate
-            ): rate is number =>
-                rate !== null
-        );
+        .map((entry) => entry.rate)
+        .filter((rate): rate is number => rate !== null);
 
-    const uniqueRates =
-        Array.from(
-            new Set(rates)
-        );
+    const uniqueRates = Array.from(new Set(rates));
 
-    const rate =
-        uniqueRates.length === 1
-            ? uniqueRates[0]
-            : project.defaultHourlyRate;
+    const rate = uniqueRates.length === 1 ? uniqueRates[0] : project.defaultHourlyRate;
 
-    const amount =
-        roundCurrency(
-            entries.reduce(
-                (total, entry) =>
-                    total + entry.amount,
-                0
-            )
-        );
+    const amount = roundCurrency(entries.reduce((total, entry) => total + entry.amount, 0));
 
-    const [
-        year,
-        month,
-    ] = referenceMonth
-        .split('-')
-        .map(Number);
+    const [year, month] = referenceMonth.split('-').map(Number);
 
-    const monthLabel =
-        new Date(
-            Date.UTC(
-                year,
-                month - 1,
-                1
-            )
-        ).toLocaleDateString(
-            'en-US',
-            {
-                month: 'long',
-                year: 'numeric',
-                timeZone: 'UTC',
-            }
-        );
+    const monthLabel = new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    });
 
     return {
         id: createLocalId(),
 
-        description:
-            `${project.name} — ${monthLabel}`,
+        description: `${project.name} — ${monthLabel}`,
 
         link: '',
 
-        quantity:
-            String(quantity),
+        quantity: String(quantity),
 
-        rate:
-            rate === null
-                ? ''
-                : String(rate),
+        rate: rate === null ? '' : String(rate),
 
-        amount:
-            String(amount),
+        amount: String(amount),
 
-        source:
-            'monthly-report',
+        source: 'monthly-report',
 
-        reportEntryIds:
-            entries.map(
-                (entry) => entry.id
-            ),
+        reportEntryIds: entries.map((entry) => entry.id),
     };
 }
 
-function normalizeOptionalValue(
-    value: string
-): string | null {
-    const normalized =
-        value.trim();
+function normalizeOptionalValue(value: string): string | null {
+    const normalized = value.trim();
 
     return normalized || null;
 }
@@ -412,220 +244,88 @@ export default function InvoiceForm({
     initialProjectId,
     initialMonth,
 }: InvoiceFormProps) {
-
-    const initialProject =
-        projects.find(
-            (project) =>
-                project.id ===
-                initialProjectId
-        );
+    const initialProject = projects.find((project) => project.id === initialProjectId);
     const router = useRouter();
-    const errorRef =
-        useRef<HTMLDivElement>(
-            null
-        );
-    const [
-        billTo,
-        setBillTo,
-    ] = useState<InvoiceBillToInput>(
-        invoice
-            ? createInitialBillTo(
-                invoice
-            )
-            : createBillToFromProject(
-                initialProject
-            )
+    const errorRef = useRef<HTMLDivElement>(null);
+    const [billTo, setBillTo] = useState<InvoiceBillToInput>(
+        invoice ? createInitialBillTo(invoice) : createBillToFromProject(initialProject)
     );
 
-    const [
-        projectId,
-        setProjectId,
-    ] = useState(
-        invoice?.projectId ??
-        initialProjectId ??
-        ''
+    const [projectId, setProjectId] = useState(invoice?.projectId ?? initialProjectId ?? '');
+
+    const [referenceMonth, setReferenceMonth] = useState(
+        invoice?.referenceMonth ?? initialMonth ?? getDefaultMonth()
     );
 
-    const [
-        referenceMonth,
-        setReferenceMonth,
-    ] = useState(
-        invoice?.referenceMonth ??
-        initialMonth ??
-        getDefaultMonth()
-    );
+    const [invoiceDate, setInvoiceDate] = useState(invoice?.invoiceDate ?? getDefaultInvoiceDate());
 
-    const [
-        invoiceDate,
-        setInvoiceDate,
-    ] = useState(
-        invoice?.invoiceDate ??
-        getDefaultInvoiceDate()
-    );
+    const [dueDate, setDueDate] = useState(invoice?.dueDate ?? getDefaultDueDate());
 
-    const [
-        dueDate,
-        setDueDate,
-    ] = useState(
-        invoice?.dueDate ??
-        getDefaultDueDate()
-    );
-
-    const [
-        currency,
-        setCurrency,
-    ] = useState(
+    const [currency, setCurrency] = useState(
         invoice?.currency ??
-        projects.find(
-            (project) =>
-                project.id ===
-                initialProjectId
-        )?.currency ??
-        'USD'
+            projects.find((project) => project.id === initialProjectId)?.currency ??
+            'USD'
     );
 
-    const [
-        taxPercentage,
-        setTaxPercentage,
-    ] = useState(
-        String(
-            invoice
-                ?.taxPercentage ?? 0
-        )
-    );
+    const [taxPercentage, setTaxPercentage] = useState(String(invoice?.taxPercentage ?? 0));
 
-    const [
-        notes,
-        setNotes,
-    ] = useState(
-        invoice?.notes ?? ''
-    );
+    const [notes, setNotes] = useState(invoice?.notes ?? '');
 
-    const [
-        items,
-        setItems,
-    ] = useState<
-        InvoiceItem[]
-    >(
-        normalizeInitialItems(
-            invoice
-        )
-    );
+    const [items, setItems] = useState<InvoiceItem[]>(normalizeInitialItems(invoice));
 
-    const [
-        isSaving,
-        setIsSaving,
-    ] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const [
-        isImporting,
-        setIsImporting,
-    ] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
-    const [
-        error,
-        setError,
-    ] = useState('');
+    const [error, setError] = useState('');
 
-    const [
-        successMessage,
-        setSuccessMessage,
-    ] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const subtotal = useMemo(
         () =>
             roundCurrency(
-                items.reduce(
-                    (
-                        total,
-                        item
-                    ) => {
-                        const amount =
-                            Number(
-                                item.amount
-                            );
+                items.reduce((total, item) => {
+                    const amount = Number(item.amount);
 
-                        return (
-                            total +
-                            (
-                                Number.isFinite(
-                                    amount
-                                )
-                                    ? amount
-                                    : 0
-                            )
-                        );
-                    },
-                    0
-                )
+                    return total + (Number.isFinite(amount) ? amount : 0);
+                }, 0)
             ),
         [items]
     );
 
-    const numericTax =
-        Number(
-            taxPercentage
-        );
+    const numericTax = Number(taxPercentage);
 
     const taxAmount =
-        Number.isFinite(
-            numericTax
-        ) &&
-            numericTax >= 0
-            ? roundCurrency(
-                subtotal *
-                (
-                    numericTax /
-                    100
-                )
-            )
+        Number.isFinite(numericTax) && numericTax >= 0
+            ? roundCurrency(subtotal * (numericTax / 100))
             : 0;
 
-    const total =
-        roundCurrency(
-            subtotal +
-            taxAmount
-        );
+    const total = roundCurrency(subtotal + taxAmount);
 
     function handleBillToChange(
-        field:
-            keyof InvoiceBillToInput,
+        field: keyof InvoiceBillToInput,
 
         value: string
     ) {
-        const normalizedValue =
-            field === 'countryCode'
-                ? value.toUpperCase()
-                : value;
+        const normalizedValue = field === 'countryCode' ? value.toUpperCase() : value;
 
-        setBillTo(
-            (current) => ({
-                ...current,
+        setBillTo((current) => ({
+            ...current,
 
-                [field]:
-                    normalizedValue,
-            })
-        );
+            [field]: normalizedValue,
+        }));
     }
 
-    function handleProjectChange(
-        value: string
-    ) {
+    function handleProjectChange(value: string) {
         setProjectId(value);
 
-        const project =
-            projects.find(
-                (item) =>
-                    item.id === value
-            );
+        const project = projects.find((item) => item.id === value);
 
         if (!project) {
             return;
         }
 
-        setCurrency(
-            project.currency
-        );
+        setCurrency(project.currency);
 
         /*
          * Em uma fatura nova,
@@ -637,135 +337,73 @@ export default function InvoiceForm({
          * salvo na fatura.
          */
         if (!invoice) {
-            setBillTo(
-                createBillToFromProject(
-                    project
-                )
-            );
+            setBillTo(createBillToFromProject(project));
         }
     }
 
     function handleItemChange(
         id: string,
 
-        field:
-            EditableInvoiceItemField,
+        field: EditableInvoiceItemField,
 
         value: string
     ) {
-        setItems(
-            (currentItems) =>
-                currentItems.map(
-                    (item) => {
-                        if (
-                            item.id !== id
-                        ) {
-                            return item;
-                        }
+        setItems((currentItems) =>
+            currentItems.map((item) => {
+                if (item.id !== id) {
+                    return item;
+                }
 
-                        const updatedItem = {
-                            ...item,
-                            [field]: value,
-                        };
+                const updatedItem = {
+                    ...item,
+                    [field]: value,
+                };
 
-                        if (
-                            field ===
-                            'quantity' ||
-                            field === 'rate'
-                        ) {
-                            const quantity =
-                                Number(
-                                    updatedItem
-                                        .quantity
-                                );
+                if (field === 'quantity' || field === 'rate') {
+                    const quantity = Number(updatedItem.quantity);
 
-                            const rate =
-                                Number(
-                                    updatedItem.rate
-                                );
+                    const rate = Number(updatedItem.rate);
 
-                            if (
-                                Number.isFinite(
-                                    quantity
-                                ) &&
-                                quantity >= 0 &&
-                                Number.isFinite(
-                                    rate
-                                ) &&
-                                rate >= 0
-                            ) {
-                                updatedItem.amount =
-                                    String(
-                                        roundCurrency(
-                                            quantity *
-                                            rate
-                                        )
-                                    );
-                            }
-                        }
-
-                        return updatedItem;
+                    if (
+                        Number.isFinite(quantity) &&
+                        quantity >= 0 &&
+                        Number.isFinite(rate) &&
+                        rate >= 0
+                    ) {
+                        updatedItem.amount = String(roundCurrency(quantity * rate));
                     }
-                )
+                }
+
+                return updatedItem;
+            })
         );
     }
 
-    function removeItem(
-        id: string
-    ) {
-        setItems(
-            (currentItems) =>
-                currentItems.filter(
-                    (item) =>
-                        item.id !== id
-                )
-        );
+    function removeItem(id: string) {
+        setItems((currentItems) => currentItems.filter((item) => item.id !== id));
     }
 
-    function addItem(
-        source: Exclude<
-            InvoiceItemSource,
-            'monthly-report'
-        >
-    ) {
-        setItems(
-            (currentItems) => [
-                ...currentItems,
-                createEmptyItem(
-                    source
-                ),
-            ]
-        );
+    function addItem(source: Exclude<InvoiceItemSource, 'monthly-report'>) {
+        setItems((currentItems) => [...currentItems, createEmptyItem(source)]);
     }
 
     async function importReportEntries() {
         if (!projectId) {
-            showError(
-                'Selecione um projeto antes de importar as horas.'
-            );
+            showError('Selecione um projeto antes de importar as horas.');
 
             return;
         }
 
         if (!referenceMonth) {
-            showError(
-                'Selecione o mês de referência.'
-            );
+            showError('Selecione o mês de referência.');
 
             return;
         }
 
-        const project =
-            projects.find(
-                (item) =>
-                    item.id ===
-                    projectId
-            );
+        const project = projects.find((item) => item.id === projectId);
 
         if (!project) {
-            showError(
-                'O projeto selecionado não foi encontrado.'
-            );
+            showError('O projeto selecionado não foi encontrado.');
 
             return;
         }
@@ -775,88 +413,50 @@ export default function InvoiceForm({
             setError('');
             setSuccessMessage('');
 
-            const entries =
-                await getUnbilledReportEntries(
-                    {
-                        projectId,
+            const entries = await getUnbilledReportEntries({
+                projectId,
 
-                        month:
-                            referenceMonth,
+                month: referenceMonth,
 
-                        invoiceId:
-                            invoice?.id,
-                    }
-                );
+                invoiceId: invoice?.id,
+            });
 
-            if (
-                entries.length === 0
-            ) {
-                showError(
-                    'Nenhum lançamento disponível para faturamento nesse projeto e mês.'
-                );
+            if (entries.length === 0) {
+                showError('Nenhum lançamento disponível para faturamento nesse projeto e mês.');
 
                 return;
             }
 
-            const reportItem =
-                buildMonthlyReportItem(
-                    {
-                        entries,
-                        project,
-                        referenceMonth,
-                    }
+            const reportItem = buildMonthlyReportItem({
+                entries,
+                project,
+                referenceMonth,
+            });
+
+            setItems((currentItems) => {
+                const withoutPreviousReport = currentItems.filter(
+                    (item) => item.source !== 'monthly-report'
                 );
 
-            setItems(
-                (currentItems) => {
-                    const withoutPreviousReport =
-                        currentItems.filter(
-                            (item) =>
-                                item.source !==
-                                'monthly-report'
-                        );
+                const meaningfulItems = withoutPreviousReport.filter(
+                    (item) => item.description.trim() || item.amount.trim()
+                );
 
-                    const meaningfulItems =
-                        withoutPreviousReport.filter(
-                            (item) =>
-                                item.description.trim() ||
-                                item.amount.trim()
-                        );
+                return [reportItem, ...meaningfulItems];
+            });
 
-                    return [
-                        reportItem,
-                        ...meaningfulItems,
-                    ];
-                }
-            );
+            setCurrency(project.currency);
 
-            setCurrency(
-                project.currency
-            );
+            setSuccessMessage(`${entries.length} lançamento(s) foram importados para a fatura.`);
+        } catch (importError) {
+            console.error('Erro ao importar lançamentos:', importError);
 
-            setSuccessMessage(
-                `${entries.length} lançamento(s) foram importados para a fatura.`
-            );
-        } catch (
-        importError
-        ) {
-            console.error(
-                'Erro ao importar lançamentos:',
-                importError
-            );
-
-            showError(
-                'Não foi possível carregar os lançamentos.'
-            );
+            showError('Não foi possível carregar os lançamentos.');
         } finally {
-            setIsImporting(
-                false
-            );
+            setIsImporting(false);
         }
     }
-    function showError(
-        message: string
-    ) {
+    function showError(message: string) {
         setError(message);
         setSuccessMessage('');
 
@@ -878,249 +478,129 @@ export default function InvoiceForm({
         });
     }
 
+    function buildPayload(status: InvoiceStatus): SaveInvoiceInput | null {
+        const recipientName = billTo.name.trim();
 
-    function buildPayload(
-        status: InvoiceStatus
-    ): SaveInvoiceInput | null {
-        const recipientName =
-            billTo.name.trim();
+        const recipientEmail = billTo.email?.trim() ?? '';
 
-        const recipientEmail =
-            billTo.email?.trim() ??
-            '';
+        const recipientPhone = billTo.phone?.trim() ?? '';
 
-        const recipientPhone =
-            billTo.phone?.trim() ??
-            '';
-
-        const countryCode =
-            billTo.countryCode
-                ?.trim()
-                .toUpperCase() ??
-            '';
+        const countryCode = billTo.countryCode?.trim().toUpperCase() ?? '';
 
         if (!recipientName) {
-            showError(
-                'Informe o nome do destinatário.'
-            );
+            showError('Informe o nome do destinatário.');
 
             return null;
         }
 
-        if (
-            !isValidName(
-                recipientName
-            )
-        ) {
-            showError(
-                'Informe um nome válido, sem números.'
-            );
+        if (!isValidName(recipientName)) {
+            showError('Informe um nome válido, sem números.');
 
             return null;
         }
 
-        if (
-            recipientEmail &&
-            !isValidEmail(
-                recipientEmail
-            )
-        ) {
-            showError(
-                'Informe um e-mail válido para o destinatário.'
-            );
+        if (recipientEmail && !isValidEmail(recipientEmail)) {
+            showError('Informe um e-mail válido para o destinatário.');
 
             return null;
         }
 
-        if (
-            recipientPhone &&
-            !isValidPhone(
-                recipientPhone
-            )
-        ) {
-            showError(
-                'Informe um telefone válido com DDD.'
-            );
+        if (recipientPhone && !isValidPhone(recipientPhone)) {
+            showError('Informe um telefone válido com DDD.');
 
             return null;
         }
 
         if (!countryCode) {
-            showError(
-                'Selecione o país do destinatário.'
-            );
+            showError('Selecione o país do destinatário.');
 
             return null;
         }
-        if (
-            !isValidCountryCode(
-                countryCode
-            )
-        ) {
-            showError(
-                'Selecione um país válido.'
-            );
+        if (!isValidCountryCode(countryCode)) {
+            showError('Selecione um país válido.');
 
             return null;
         }
 
         if (!referenceMonth) {
-            showError(
-                'Informe o mês de referência.'
-            );
+            showError('Informe o mês de referência.');
 
             return null;
         }
 
         if (!invoiceDate) {
-            showError(
-                'Informe a data da fatura.'
-            );
+            showError('Informe a data da fatura.');
 
             return null;
         }
 
         // restante do buildPayload continua igual
 
-        const normalizedItems =
-            items.map(
-                (
-                    item,
-                    position
-                ) => ({
-                    description:
-                        item.description,
+        const normalizedItems = items.map((item, position) => ({
+            description: item.description,
 
-                    link:
-                        item.link.trim()
-                            ? item.link
-                            : null,
+            link: item.link.trim() ? item.link : null,
 
-                    quantity:
-                        item.quantity.trim()
-                            ? Number(
-                                item.quantity
-                            )
-                            : null,
+            quantity: item.quantity.trim() ? Number(item.quantity) : null,
 
-                    rate:
-                        item.rate.trim()
-                            ? Number(
-                                item.rate
-                            )
-                            : null,
+            rate: item.rate.trim() ? Number(item.rate) : null,
 
-                    amount:
-                        Number(
-                            item.amount
-                        ),
+            amount: Number(item.amount),
 
-                    source:
-                        item.source,
+            source: item.source,
 
-                    position,
+            position,
 
-                    reportEntryIds:
-                        item.reportEntryIds,
-                })
-            );
+            reportEntryIds: item.reportEntryIds,
+        }));
 
         return {
-            invoiceId:
-                invoice?.id,
+            invoiceId: invoice?.id,
 
-            projectId:
-                projectId || null,
+            projectId: projectId || null,
 
             referenceMonth,
 
             invoiceDate,
 
-            dueDate:
-                dueDate || null,
+            dueDate: dueDate || null,
 
             currency,
 
-            taxPercentage:
-                Number(
-                    taxPercentage
-                ),
+            taxPercentage: Number(taxPercentage),
 
-            notes:
-                notes.trim() ||
-                null,
+            notes: notes.trim() || null,
 
             status,
 
             billTo: {
-                name:
-                    billTo.name.trim(),
+                name: billTo.name.trim(),
 
-                company:
-                    normalizeOptionalValue(
-                        billTo.company ??
-                        ''
-                    ),
+                company: normalizeOptionalValue(billTo.company ?? ''),
 
-                email:
-                    normalizeOptionalValue(
-                        billTo.email ?? ''
-                    ),
+                email: normalizeOptionalValue(billTo.email ?? ''),
 
-                phone:
-                    normalizeOptionalValue(
-                        billTo.phone ?? ''
-                    ),
+                phone: normalizeOptionalValue(billTo.phone ?? ''),
 
-                addressLine1:
-                    normalizeOptionalValue(
-                        billTo
-                            .addressLine1 ??
-                        ''
-                    ),
+                addressLine1: normalizeOptionalValue(billTo.addressLine1 ?? ''),
 
-                addressLine2:
-                    normalizeOptionalValue(
-                        billTo
-                            .addressLine2 ??
-                        ''
-                    ),
+                addressLine2: normalizeOptionalValue(billTo.addressLine2 ?? ''),
 
-                city:
-                    normalizeOptionalValue(
-                        billTo.city ?? ''
-                    ),
+                city: normalizeOptionalValue(billTo.city ?? ''),
 
-                state:
-                    normalizeOptionalValue(
-                        billTo.state ?? ''
-                    ),
+                state: normalizeOptionalValue(billTo.state ?? ''),
 
-                postalCode:
-                    normalizeOptionalValue(
-                        billTo
-                            .postalCode ??
-                        ''
-                    ),
+                postalCode: normalizeOptionalValue(billTo.postalCode ?? ''),
 
-                countryCode:
-                    normalizeOptionalValue(
-                        billTo
-                            .countryCode ??
-                        ''
-                    ),
+                countryCode: normalizeOptionalValue(billTo.countryCode ?? ''),
             },
 
-            items:
-                normalizedItems,
+            items: normalizedItems,
         };
     }
 
-    async function handleSave(
-        status: InvoiceStatus
-    ) {
-        const payload =
-            buildPayload(status);
+    async function handleSave(status: InvoiceStatus) {
+        const payload = buildPayload(status);
 
         if (!payload) {
             return;
@@ -1132,33 +612,21 @@ export default function InvoiceForm({
             setError('');
             setSuccessMessage('');
 
-            const result =
-                await saveInvoice(
-                    payload
-                );
+            const result = await saveInvoice(payload);
 
             if (!result.success) {
-                showError(
-                    result.message
-                );
+                showError(result.message);
 
                 return;
             }
 
-            router.replace(
-                `/faturas/${result.invoiceId}`
-            );
+            router.replace(`/faturas/${result.invoiceId}`);
 
             router.refresh();
         } catch (saveError) {
-            console.error(
-                'Erro ao salvar fatura:',
-                saveError
-            );
+            console.error('Erro ao salvar fatura:', saveError);
 
-            showError(
-                'Não foi possível salvar a fatura.'
-            );
+            showError('Não foi possível salvar a fatura.');
         } finally {
             setIsSaving(false);
         }
@@ -1182,15 +650,11 @@ export default function InvoiceForm({
                 </div>
             )}
 
-
-
             {/* INFORMAÇÕES DA FATURA */}
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Informações da fatura
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Informações da fatura</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Selecione o projeto, período e moeda da cobrança.
@@ -1209,31 +673,16 @@ export default function InvoiceForm({
                         <select
                             id="invoice-project"
                             value={projectId}
-                            onChange={(event) =>
-                                handleProjectChange(
-                                    event.target.value
-                                )
-                            }
+                            onChange={(event) => handleProjectChange(event.target.value)}
                             className={inputClassNameNoIcon}
                         >
-                            <option value="">
-                                Sem projeto específico
-                            </option>
+                            <option value="">Sem projeto específico</option>
 
-                            {projects.map(
-                                (project) => (
-                                    <option
-                                        key={
-                                            project.id
-                                        }
-                                        value={
-                                            project.id
-                                        }
-                                    >
-                                        {project.name}
-                                    </option>
-                                )
-                            )}
+                            {projects.map((project) => (
+                                <option key={project.id} value={project.id}>
+                                    {project.name}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
@@ -1248,14 +697,8 @@ export default function InvoiceForm({
                         <input
                             id="reference-month"
                             type="month"
-                            value={
-                                referenceMonth
-                            }
-                            onChange={(event) =>
-                                setReferenceMonth(
-                                    event.target.value
-                                )
-                            }
+                            value={referenceMonth}
+                            onChange={(event) => setReferenceMonth(event.target.value)}
                             className={inputClassNameNoIcon}
                         />
                     </div>
@@ -1271,24 +714,14 @@ export default function InvoiceForm({
                         <select
                             id="currency"
                             value={currency}
-                            onChange={(event) =>
-                                setCurrency(
-                                    event.target.value
-                                )
-                            }
+                            onChange={(event) => setCurrency(event.target.value)}
                             className={inputClassNameNoIcon}
                         >
-                            <option value="BRL">
-                                Real brasileiro (BRL)
-                            </option>
+                            <option value="BRL">Real brasileiro (BRL)</option>
 
-                            <option value="USD">
-                                Dólar americano (USD)
-                            </option>
+                            <option value="USD">Dólar americano (USD)</option>
 
-                            <option value="EUR">
-                                Euro (EUR)
-                            </option>
+                            <option value="EUR">Euro (EUR)</option>
                         </select>
                     </div>
 
@@ -1304,11 +737,7 @@ export default function InvoiceForm({
                             id="invoice-date"
                             type="date"
                             value={invoiceDate}
-                            onChange={(event) =>
-                                setInvoiceDate(
-                                    event.target.value
-                                )
-                            }
+                            onChange={(event) => setInvoiceDate(event.target.value)}
                             className={inputClassNameNoIcon}
                         />
                     </div>
@@ -1325,11 +754,7 @@ export default function InvoiceForm({
                             id="due-date"
                             type="date"
                             value={dueDate}
-                            onChange={(event) =>
-                                setDueDate(
-                                    event.target.value
-                                )
-                            }
+                            onChange={(event) => setDueDate(event.target.value)}
                             className={inputClassNameNoIcon}
                         />
                     </div>
@@ -1338,42 +763,26 @@ export default function InvoiceForm({
                 <div className="mt-5">
                     <button
                         type="button"
-                        onClick={
-                            importReportEntries
-                        }
-                        disabled={
-                            isImporting ||
-                            !projectId ||
-                            !referenceMonth
-                        }
+                        onClick={importReportEntries}
+                        disabled={isImporting || !projectId || !referenceMonth}
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {isImporting ? (
-                            <LoaderCircle
-                                size={17}
-                                className="animate-spin"
-                            />
+                            <LoaderCircle size={17} className="animate-spin" />
                         ) : (
-                            <Download
-                                size={17}
-                            />
+                            <Download size={17} />
                         )}
 
-                        {isImporting
-                            ? 'Importando...'
-                            : 'Importar horas do mês'}
+                        {isImporting ? 'Importando...' : 'Importar horas do mês'}
                     </button>
                 </div>
             </section>
-
 
             {/* DESTINATÁRIO */}
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Destinatário
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Destinatário</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Informe os dados que serão exibidos na fatura.
@@ -1386,12 +795,7 @@ export default function InvoiceForm({
                         name="billToName"
                         label="Nome"
                         value={billTo.name}
-                        onChange={(value) =>
-                            handleBillToChange(
-                                'name',
-                                value
-                            )
-                        }
+                        onChange={(value) => handleBillToChange('name', value)}
                         required
                         placeholder="Nome do destinatário"
                     />
@@ -1408,16 +812,8 @@ export default function InvoiceForm({
                             id="bill-to-company"
                             maxLength={150}
                             type="text"
-                            value={
-                                billTo.company ??
-                                ''
-                            }
-                            onChange={(event) =>
-                                handleBillToChange(
-                                    'company',
-                                    event.target.value
-                                )
-                            }
+                            value={billTo.company ?? ''}
+                            onChange={(event) => handleBillToChange('company', event.target.value)}
                             placeholder="Nome da empresa"
                             className={inputClassNameNoIcon}
                         />
@@ -1427,15 +823,8 @@ export default function InvoiceForm({
                         id="bill-to-email"
                         name="billToEmail"
                         label="E-mail"
-                        value={
-                            billTo.email ?? ''
-                        }
-                        onChange={(value) =>
-                            handleBillToChange(
-                                'email',
-                                value
-                            )
-                        }
+                        value={billTo.email ?? ''}
+                        onChange={(value) => handleBillToChange('email', value)}
                         required={false}
                     />
 
@@ -1443,91 +832,51 @@ export default function InvoiceForm({
                         id="bill-to-phone"
                         name="billToPhone"
                         label="Telefone"
-                        value={
-                            billTo.phone ?? ''
-                        }
-                        onChange={(value) =>
-                            handleBillToChange(
-                                'phone',
-                                value
-                            )
-                        }
+                        value={billTo.phone ?? ''}
+                        onChange={(value) => handleBillToChange('phone', value)}
                         required={false}
                     />
 
-
                     <AddressFields
                         values={{
-                            addressLine1:
-                                billTo.addressLine1 ??
-                                '',
+                            addressLine1: billTo.addressLine1 ?? '',
 
-                            addressLine2:
-                                billTo.addressLine2 ??
-                                '',
+                            addressLine2: billTo.addressLine2 ?? '',
 
-                            city:
-                                billTo.city ??
-                                '',
+                            city: billTo.city ?? '',
 
-                            state:
-                                billTo.state ??
-                                '',
+                            state: billTo.state ?? '',
 
-                            postalCode:
-                                billTo.postalCode ??
-                                '',
+                            postalCode: billTo.postalCode ?? '',
 
-                            countryCode:
-                                billTo.countryCode ??
-                                '',
+                            countryCode: billTo.countryCode ?? '',
                         }}
-                        onChange={(
-                            field,
-                            value
-                        ) =>
-                            handleBillToChange(
-                                field,
-                                value
-                            )
-                        }
+                        onChange={(field, value) => handleBillToChange(field, value)}
                         ids={{
-                            addressLine1:
-                                'bill-to-address-line-1',
+                            addressLine1: 'bill-to-address-line-1',
 
-                            addressLine2:
-                                'bill-to-address-line-2',
+                            addressLine2: 'bill-to-address-line-2',
 
-                            city:
-                                'bill-to-city',
+                            city: 'bill-to-city',
 
-                            state:
-                                'bill-to-state',
+                            state: 'bill-to-state',
 
-                            postalCode:
-                                'bill-to-postal-code',
+                            postalCode: 'bill-to-postal-code',
 
-                            countryCode:
-                                'bill-to-country',
+                            countryCode: 'bill-to-country',
                         }}
                         names={{
-                            addressLine1:
-                                'billToAddressLine1',
+                            addressLine1: 'billToAddressLine1',
 
-                            addressLine2:
-                                'billToAddressLine2',
+                            addressLine2: 'billToAddressLine2',
 
-                            city:
-                                'billToCity',
+                            city: 'billToCity',
 
-                            state:
-                                'billToState',
+                            state: 'billToState',
 
-                            postalCode:
-                                'billToPostalCode',
+                            postalCode: 'billToPostalCode',
 
-                            countryCode:
-                                'billToCountryCode',
+                            countryCode: 'billToCountryCode',
                         }}
                         countryRequired
                     />
@@ -1536,12 +885,8 @@ export default function InvoiceForm({
 
             <InvoiceItemsEditor
                 items={items}
-                onChange={
-                    handleItemChange
-                }
-                onRemove={
-                    removeItem
-                }
+                onChange={handleItemChange}
+                onRemove={removeItem}
                 onAdd={addItem}
             />
 
@@ -1557,15 +902,9 @@ export default function InvoiceForm({
                     <textarea
                         id="invoice-notes"
                         value={notes}
-                        onChange={(event) =>
-                            setNotes(
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => setNotes(event.target.value)}
                         placeholder="Condições de pagamento, informações bancárias ou observações..."
-                        className={
-                            textareaClassName
-                        }
+                        className={textareaClassName}
                     />
                 </div>
 
@@ -1584,33 +923,22 @@ export default function InvoiceForm({
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={
-                                    taxPercentage
-                                }
-                                onChange={(event) =>
-                                    setTaxPercentage(
-                                        event.target.value
-                                    )
-                                }
+                                value={taxPercentage}
+                                onChange={(event) => setTaxPercentage(event.target.value)}
                                 className="h-10 w-24 rounded-xl border border-slate-200 px-3 text-right text-sm outline-none focus:border-blue-500"
                             />
 
-                            <span className="text-sm text-slate-500">
-                                %
-                            </span>
+                            <span className="text-sm text-slate-500">%</span>
                         </div>
                     </div>
 
                     <div className="mt-6 space-y-3 border-t border-slate-100 pt-5 text-sm">
                         <div className="flex justify-between gap-4 text-slate-500">
-                            <span>
-                                Subtotal
-                            </span>
+                            <span>Subtotal</span>
 
                             <span className="font-semibold text-slate-800">
                                 {formatCurrency({
-                                    value:
-                                        subtotal,
+                                    value: subtotal,
 
                                     currency,
                                 })}
@@ -1618,14 +946,11 @@ export default function InvoiceForm({
                         </div>
 
                         <div className="flex justify-between gap-4 text-slate-500">
-                            <span>
-                                Imposto
-                            </span>
+                            <span>Imposto</span>
 
                             <span className="font-semibold text-slate-800">
                                 {formatCurrency({
-                                    value:
-                                        taxAmount,
+                                    value: taxAmount,
 
                                     currency,
                                 })}
@@ -1633,14 +958,11 @@ export default function InvoiceForm({
                         </div>
 
                         <div className="flex justify-between gap-4 border-t border-slate-100 pt-4">
-                            <span className="font-bold text-slate-900">
-                                Total
-                            </span>
+                            <span className="font-bold text-slate-900">Total</span>
 
                             <span className="text-xl font-bold text-slate-900">
                                 {formatCurrency({
-                                    value:
-                                        total,
+                                    value: total,
 
                                     currency,
                                 })}
@@ -1652,11 +974,7 @@ export default function InvoiceForm({
 
             <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
                 <Link
-                    href={
-                        invoice
-                            ? `/faturas/${invoice.id}`
-                            : '/faturas'
-                    }
+                    href={invoice ? `/faturas/${invoice.id}` : '/faturas'}
                     className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                 >
                     Cancelar
@@ -1664,38 +982,24 @@ export default function InvoiceForm({
 
                 <button
                     type="button"
-                    onClick={() =>
-                        handleSave(
-                            'draft'
-                        )
-                    }
+                    onClick={() => handleSave('draft')}
                     disabled={isSaving}
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60"
                 >
                     <Save size={18} />
 
-                    {isSaving
-                        ? 'Salvando...'
-                        : 'Salvar rascunho'}
+                    {isSaving ? 'Salvando...' : 'Salvar rascunho'}
                 </button>
 
                 <button
                     type="button"
-                    onClick={() =>
-                        handleSave(
-                            'issued'
-                        )
-                    }
+                    onClick={() => handleSave('issued')}
                     disabled={isSaving}
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
                 >
                     <Save size={18} />
 
-                    {isSaving
-                        ? 'Salvando...'
-                        : invoice
-                            ? 'Salvar e emitir'
-                            : 'Criar e emitir'}
+                    {isSaving ? 'Salvando...' : invoice ? 'Salvar e emitir' : 'Criar e emitir'}
                 </button>
             </div>
         </div>

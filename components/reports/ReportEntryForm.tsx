@@ -4,22 +4,12 @@
 
 import Link from 'next/link';
 import { Save } from 'lucide-react';
-import {
-    useActionState,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import { useActionState, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import {
-    createReportEntry,
-    updateReportEntry,
-} from '@/app/actions/report';
+import { createReportEntry, updateReportEntry } from '@/app/actions/report';
 
-import {
-    durationToMinutes,
-} from '@/lib/time';
+import { durationToMinutes } from '@/lib/time';
 
 import type {
     ReportEntry,
@@ -36,8 +26,6 @@ type ReportEntryFormProps = {
 };
 
 const initialState: ReportEntryActionState = null;
-
-
 
 const textareaClassName = `
   min-h-36
@@ -59,7 +47,6 @@ const textareaClassName = `
   focus:ring-blue-500/10
 `;
 
-
 export default function ReportEntryForm({
     projects,
     entry,
@@ -67,69 +54,42 @@ export default function ReportEntryForm({
 }: ReportEntryFormProps) {
     const router = useRouter();
 
-    const action = entry
-        ? updateReportEntry.bind(null, entry.id)
-        : createReportEntry;
+    const action = entry ? updateReportEntry.bind(null, entry.id) : createReportEntry;
 
-    const [state, formAction, isPending] =
-        useActionState(action, initialState);
+    const [state, formAction, isPending] = useActionState(action, initialState);
 
-    const defaultProjectId =
-        entry?.projectId ??
-        initialProjectId ??
-        '';
+    const defaultProjectId = entry?.projectId ?? initialProjectId ?? '';
 
-    const defaultProject = projects.find(
-        (project) =>
-            project.id === defaultProjectId
-    );
+    const defaultProject = projects.find((project) => project.id === defaultProjectId);
 
-    const [selectedProjectId, setSelectedProjectId] =
-        useState(defaultProjectId);
+    const [selectedProjectId, setSelectedProjectId] = useState(defaultProjectId);
 
-    const [duration, setDuration] = useState(
-        entry?.duration ?? ''
-    );
+    const [duration, setDuration] = useState(entry?.duration ?? '');
 
     const [rate, setRate] = useState(
-        entry?.rate !== null &&
-            entry?.rate !== undefined
+        entry?.rate !== null && entry?.rate !== undefined
             ? String(entry.rate)
             : defaultProject?.defaultHourlyRate !== null &&
                 defaultProject?.defaultHourlyRate !== undefined
-                ? String(defaultProject.defaultHourlyRate)
-                : ''
+              ? String(defaultProject.defaultHourlyRate)
+              : ''
     );
 
     const selectedProject = useMemo(
-        () =>
-            projects.find(
-                (project) =>
-                    project.id === selectedProjectId
-            ),
+        () => projects.find((project) => project.id === selectedProjectId),
         [projects, selectedProjectId]
     );
 
-    const durationMinutes =
-        durationToMinutes(duration);
+    const durationMinutes = durationToMinutes(duration);
 
     const numericRate = Number(rate);
 
     const calculatedAmount =
-        Number.isFinite(numericRate) &&
-            numericRate >= 0 &&
-            durationMinutes > 0
-            ? Math.round(
-                (durationMinutes / 60) *
-                numericRate *
-                100
-            ) / 100
+        Number.isFinite(numericRate) && numericRate >= 0 && durationMinutes > 0
+            ? Math.round((durationMinutes / 60) * numericRate * 100) / 100
             : 0;
 
-    const currency =
-        selectedProject?.currency ??
-        entry?.currency ??
-        'USD';
+    const currency = selectedProject?.currency ?? entry?.currency ?? 'USD';
 
     useEffect(() => {
         if (!state?.success) {
@@ -140,16 +100,12 @@ export default function ReportEntryForm({
         router.refresh();
     }, [router, state]);
 
-    function handleProjectChange(
-        event: React.ChangeEvent<HTMLSelectElement>
-    ) {
+    function handleProjectChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const projectId = event.target.value;
 
         setSelectedProjectId(projectId);
 
-        const project = projects.find(
-            (item) => item.id === projectId
-        );
+        const project = projects.find((item) => item.id === projectId);
 
         /*
          * Ao selecionar outro projeto, sugerimos
@@ -158,23 +114,15 @@ export default function ReportEntryForm({
          * O usuário ainda pode alterar o valor
          * manualmente depois.
          */
-        if (
-            project?.defaultHourlyRate !== null &&
-            project?.defaultHourlyRate !== undefined
-        ) {
-            setRate(
-                String(project.defaultHourlyRate)
-            );
+        if (project?.defaultHourlyRate !== null && project?.defaultHourlyRate !== undefined) {
+            setRate(String(project.defaultHourlyRate));
         } else {
             setRate('');
         }
     }
 
     return (
-        <form
-            action={formAction}
-            className="space-y-8"
-        >
+        <form action={formAction} className="space-y-8">
             {state && !state.success && (
                 <div
                     role="alert"
@@ -186,9 +134,7 @@ export default function ReportEntryForm({
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Projeto e atividade
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Projeto e atividade</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Selecione o projeto e descreva o trabalho realizado.
@@ -212,31 +158,23 @@ export default function ReportEntryForm({
                             onChange={handleProjectChange}
                             className={inputClassNameNoIcon}
                         >
-                            <option value="">
-                                Selecione um projeto
-                            </option>
+                            <option value="">Selecione um projeto</option>
 
                             {projects.map((project) => (
-                                <option
-                                    key={project.id}
-                                    value={project.id}
-                                >
+                                <option key={project.id} value={project.id}>
                                     {project.name}
                                 </option>
                             ))}
                         </select>
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors?.projectId
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.projectId : undefined}
                         />
 
                         {projects.length === 0 && (
                             <p className="mt-2 text-sm font-medium text-amber-700">
-                                Nenhum projeto disponível. Cadastre um projeto antes de criar um lançamento.
+                                Nenhum projeto disponível. Cadastre um projeto antes de criar um
+                                lançamento.
                             </p>
                         )}
                     </div>
@@ -260,11 +198,7 @@ export default function ReportEntryForm({
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors?.task
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.task : undefined}
                         />
                     </div>
 
@@ -281,21 +215,12 @@ export default function ReportEntryForm({
                             name="date"
                             type="date"
                             required
-                            defaultValue={
-                                entry?.date ??
-                                new Date()
-                                    .toISOString()
-                                    .slice(0, 10)
-                            }
+                            defaultValue={entry?.date ?? new Date().toISOString().slice(0, 10)}
                             className={inputClassNameNoIcon}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors?.date
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.date : undefined}
                         />
                     </div>
 
@@ -311,19 +236,13 @@ export default function ReportEntryForm({
                             id="description"
                             name="description"
                             required
-                            defaultValue={
-                                entry?.description ?? ''
-                            }
+                            defaultValue={entry?.description ?? ''}
                             placeholder="Descreva a atividade realizada..."
                             className={textareaClassName}
                         />
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors?.description
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.description : undefined}
                         />
                     </div>
                 </div>
@@ -331,9 +250,7 @@ export default function ReportEntryForm({
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Horas e cobrança
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Horas e cobrança</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         O valor é calculado com base na duração e no rate informado.
@@ -356,9 +273,7 @@ export default function ReportEntryForm({
                             required
                             value={duration}
                             onChange={(event) => {
-                                setDuration(
-                                    event.target.value
-                                );
+                                setDuration(event.target.value);
                             }}
                             step={60}
                             className={inputClassNameNoIcon}
@@ -369,11 +284,7 @@ export default function ReportEntryForm({
                         </p>
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors?.duration
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.duration : undefined}
                         />
                     </div>
 
@@ -401,24 +312,16 @@ export default function ReportEntryForm({
                             className={inputClassNameNoIcon}
                         />
 
-                        <p className="mt-2 text-xs text-slate-500">
-                            Moeda: {currency}
-                        </p>
+                        <p className="mt-2 text-xs text-slate-500">Moeda: {currency}</p>
 
                         <FieldError
-                            message={
-                                !state?.success
-                                    ? state?.fieldErrors?.rate
-                                    : undefined
-                            }
+                            message={!state?.success ? state?.fieldErrors?.rate : undefined}
                         />
                     </div>
                 </div>
 
                 <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-                    <p className="text-sm font-medium text-emerald-800">
-                        Valor calculado
-                    </p>
+                    <p className="text-sm font-medium text-emerald-800">Valor calculado</p>
 
                     <p className="mt-2 text-3xl font-bold tracking-tight text-emerald-700">
                         {formatCurrency({
@@ -430,12 +333,9 @@ export default function ReportEntryForm({
                     <p className="mt-2 text-xs text-emerald-700/80">
                         {durationMinutes > 0
                             ? `${durationMinutes} minutos × ${formatCurrency({
-                                value:
-                                    Number.isFinite(numericRate)
-                                        ? numericRate
-                                        : 0,
-                                currency,
-                            })}/hora`
+                                  value: Number.isFinite(numericRate) ? numericRate : 0,
+                                  currency,
+                              })}/hora`
                             : 'Informe a duração para calcular o valor.'}
                     </p>
                 </div>
@@ -451,19 +351,12 @@ export default function ReportEntryForm({
 
                 <button
                     type="submit"
-                    disabled={
-                        isPending ||
-                        projects.length === 0
-                    }
+                    disabled={isPending || projects.length === 0}
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     <Save size={18} />
 
-                    {isPending
-                        ? 'Salvando...'
-                        : entry
-                            ? 'Salvar alterações'
-                            : 'Salvar lançamento'}
+                    {isPending ? 'Salvando...' : entry ? 'Salvar alterações' : 'Salvar lançamento'}
                 </button>
             </div>
         </form>

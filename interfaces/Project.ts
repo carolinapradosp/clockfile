@@ -1,11 +1,6 @@
 // interfaces/Project.ts
 
-export type ProjectStatus =
-    | 'draft'
-    | 'active'
-    | 'paused'
-    | 'completed'
-    | 'archived';
+export type ProjectStatus = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
 
 export type ProjectBillingDetails = {
     name: string | null;
@@ -79,11 +74,6 @@ export type ProjectActionState =
           success: false;
           message: string;
 
-          fieldErrors?: Partial<
-              Record<
-                  keyof ProjectFormData,
-                  string
-              >
-          >;
+          fieldErrors?: Partial<Record<keyof ProjectFormData, string>>;
       }
     | null;

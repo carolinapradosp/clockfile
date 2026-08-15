@@ -4,13 +4,9 @@ import Image from 'next/image';
 
 import logoPV from '@/public/logo-300.png';
 
-import type {
-    CurrentUser,
-} from '@/lib/auth/current-user';
+import type { CurrentUser } from '@/lib/auth/current-user';
 
-import type {
-    Invoice,
-} from '@/interfaces/Invoice';
+import type { Invoice } from '@/interfaces/Invoice';
 import formatCurrency, { formatDate, formatReferenceMonth, invoiceStatusLabels } from '@/lib/utils';
 
 type InvoiceDocumentProps = {
@@ -18,36 +14,20 @@ type InvoiceDocumentProps = {
     user: CurrentUser;
 };
 
-
-function normalizeExternalLink(
-    value: string
-) {
-    if (
-        value.startsWith('http://') ||
-        value.startsWith('https://')
-    ) {
+function normalizeExternalLink(value: string) {
+    if (value.startsWith('http://') || value.startsWith('https://')) {
         return value;
     }
 
     return `https://${value}`;
 }
 
-function getRecipientTitle(
-    invoice: Invoice
-) {
-    return (
-        invoice.billTo.company ??
-        invoice.billTo.name ??
-        'Recipient not informed'
-    );
+function getRecipientTitle(invoice: Invoice) {
+    return invoice.billTo.company ?? invoice.billTo.name ?? 'Recipient not informed';
 }
 
-export default function InvoiceDocument({
-    invoice,
-    user,
-}: InvoiceDocumentProps) {
-    const recipientTitle =
-        getRecipientTitle(invoice);
+export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps) {
+    const recipientTitle = getRecipientTitle(invoice);
 
     const addressParts = [
         invoice.billTo.addressLine1,
@@ -56,10 +36,7 @@ export default function InvoiceDocument({
         invoice.billTo.state,
         invoice.billTo.postalCode,
         invoice.billTo.countryCode,
-    ].filter(
-        (value): value is string =>
-            Boolean(value)
-    );
+    ].filter((value): value is string => Boolean(value));
 
     return (
         <article
@@ -80,15 +57,11 @@ export default function InvoiceDocument({
                     />
 
                     <div className="mt-5 space-y-1 text-sm text-slate-500">
-                        <p className="font-semibold text-slate-800">
-                            {user.name}
-                        </p>
+                        <p className="font-semibold text-slate-800">{user.name}</p>
 
                         <p>{user.email}</p>
 
-                        {user.phone && (
-                            <p>{user.phone}</p>
-                        )}
+                        {user.phone && <p>{user.phone}</p>}
                     </div>
                 </div>
 
@@ -102,11 +75,7 @@ export default function InvoiceDocument({
                     </h1>
 
                     <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                        {
-                            invoiceStatusLabels[
-                            invoice.status
-                            ]
-                        }
+                        {invoiceStatusLabels[invoice.status]}
                     </span>
                 </div>
             </header>
@@ -120,46 +89,23 @@ export default function InvoiceDocument({
                     </p>
 
                     <div className="mt-3 space-y-1 text-sm text-slate-600">
-                        <p className="text-base font-bold text-slate-900">
-                            {recipientTitle}
-                        </p>
+                        <p className="text-base font-bold text-slate-900">{recipientTitle}</p>
 
-                        {invoice.billTo.company &&
-                            invoice.billTo.name && (
-                                <p>
-                                    {invoice.billTo.name}
-                                </p>
-                            )}
-
-                        {invoice.billTo.email && (
-                            <p>
-                                {invoice.billTo.email}
-                            </p>
+                        {invoice.billTo.company && invoice.billTo.name && (
+                            <p>{invoice.billTo.name}</p>
                         )}
 
-                        {invoice.billTo.phone && (
-                            <p>
-                                {invoice.billTo.phone}
-                            </p>
-                        )}
+                        {invoice.billTo.email && <p>{invoice.billTo.email}</p>}
 
-                        {addressParts.length >
-                            0 && (
-                                <div className="pt-2">
-                                    {addressParts.map(
-                                        (
-                                            part,
-                                            index
-                                        ) => (
-                                            <p
-                                                key={`${part}-${index}`}
-                                            >
-                                                {part}
-                                            </p>
-                                        )
-                                    )}
-                                </div>
-                            )}
+                        {invoice.billTo.phone && <p>{invoice.billTo.phone}</p>}
+
+                        {addressParts.length > 0 && (
+                            <div className="pt-2">
+                                {addressParts.map((part, index) => (
+                                    <p key={`${part}-${index}`}>{part}</p>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -182,9 +128,7 @@ export default function InvoiceDocument({
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {formatDate(
-                                invoice.dueDate
-                            )}
+                            {formatDate(invoice.dueDate)}
                         </p>
                     </div>
 
@@ -194,9 +138,7 @@ export default function InvoiceDocument({
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {formatReferenceMonth(
-                                invoice.referenceMonth
-                            )}
+                            {formatReferenceMonth(invoice.referenceMonth)}
                         </p>
                     </div>
 
@@ -218,17 +160,13 @@ export default function InvoiceDocument({
 
             <section className="mb-8 flex justify-end">
                 <div className="flex w-full items-center justify-between rounded-xl bg-slate-100 px-5 py-4 sm:w-auto sm:min-w-80 sm:gap-16">
-                    <span className="text-sm font-bold text-slate-700">
-                        Balance due
-                    </span>
+                    <span className="text-sm font-bold text-slate-700">Balance due</span>
 
                     <span className="text-2xl font-bold text-slate-950">
                         {formatCurrency({
-                            value:
-                                invoice.totalAmount,
+                            value: invoice.totalAmount,
 
-                            currency:
-                                invoice.currency,
+                            currency: invoice.currency,
                         })}
                     </span>
                 </div>
@@ -241,79 +179,59 @@ export default function InvoiceDocument({
                     <table className="w-full min-w-162.5 border-collapse text-left">
                         <thead>
                             <tr className="bg-slate-950 text-xs font-semibold uppercase tracking-wide text-white">
-                                <th className="px-4 py-3">
-                                    Item
-                                </th>
+                                <th className="px-4 py-3">Item</th>
 
-                                <th className="px-4 py-3 text-right">
-                                    Quantity
-                                </th>
+                                <th className="px-4 py-3 text-right">Quantity</th>
 
-                                <th className="px-4 py-3 text-right">
-                                    Rate
-                                </th>
+                                <th className="px-4 py-3 text-right">Rate</th>
 
-                                <th className="px-4 py-3 text-right">
-                                    Amount
-                                </th>
+                                <th className="px-4 py-3 text-right">Amount</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {invoice.items.map(
-                                (item) => (
-                                    <tr
-                                        key={item.id}
-                                        className="border-b border-slate-200"
-                                    >
-                                        <td className="px-4 py-4 align-top">
-                                            <p className="text-sm font-semibold text-slate-900">
-                                                {item.description}
-                                            </p>
+                            {invoice.items.map((item) => (
+                                <tr key={item.id} className="border-b border-slate-200">
+                                    <td className="px-4 py-4 align-top">
+                                        <p className="text-sm font-semibold text-slate-900">
+                                            {item.description}
+                                        </p>
 
-                                            {item.link && (
-                                                <a
-                                                    href={normalizeExternalLink(
-                                                        item.link
-                                                    )}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="mt-1 block break-all text-xs text-slate-500"
-                                                >
-                                                    {item.link}
-                                                </a>
-                                            )}
-                                        </td>
+                                        {item.link && (
+                                            <a
+                                                href={normalizeExternalLink(item.link)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-1 block break-all text-xs text-slate-500"
+                                            >
+                                                {item.link}
+                                            </a>
+                                        )}
+                                    </td>
 
-                                        <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
-                                            {item.quantity ??
-                                                '—'}
-                                        </td>
+                                    <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
+                                        {item.quantity ?? '—'}
+                                    </td>
 
-                                        <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
-                                            {item.rate !== null
-                                                ? formatCurrency({
-                                                    value:
-                                                        item.rate,
+                                    <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
+                                        {item.rate !== null
+                                            ? formatCurrency({
+                                                  value: item.rate,
 
-                                                    currency:
-                                                        invoice.currency,
-                                                })
-                                                : '—'}
-                                        </td>
+                                                  currency: invoice.currency,
+                                              })
+                                            : '—'}
+                                    </td>
 
-                                        <td className="px-4 py-4 text-right align-top text-sm font-semibold text-slate-900">
-                                            {formatCurrency({
-                                                value:
-                                                    item.amount,
+                                    <td className="px-4 py-4 text-right align-top text-sm font-semibold text-slate-900">
+                                        {formatCurrency({
+                                            value: item.amount,
 
-                                                currency:
-                                                    invoice.currency,
-                                            })}
-                                        </td>
-                                    </tr>
-                                )
-                            )}
+                                            currency: invoice.currency,
+                                        })}
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
@@ -328,45 +246,36 @@ export default function InvoiceDocument({
 
                         <span className="font-semibold text-slate-800">
                             {formatCurrency({
-                                value:
-                                    invoice.subtotal,
+                                value: invoice.subtotal,
 
-                                currency:
-                                    invoice.currency,
+                                currency: invoice.currency,
                             })}
                         </span>
                     </div>
 
                     <div className="flex justify-between gap-6 text-slate-500">
                         <span>
-                            Tax (
-                            {invoice.taxPercentage}
+                            Tax ({invoice.taxPercentage}
                             %)
                         </span>
 
                         <span className="font-semibold text-slate-800">
                             {formatCurrency({
-                                value:
-                                    invoice.taxAmount,
+                                value: invoice.taxAmount,
 
-                                currency:
-                                    invoice.currency,
+                                currency: invoice.currency,
                             })}
                         </span>
                     </div>
 
                     <div className="flex justify-between gap-6 border-t border-slate-200 pt-4 text-base">
-                        <span className="font-bold text-slate-900">
-                            Total
-                        </span>
+                        <span className="font-bold text-slate-900">Total</span>
 
                         <span className="text-xl font-bold text-slate-950">
                             {formatCurrency({
-                                value:
-                                    invoice.totalAmount,
+                                value: invoice.totalAmount,
 
-                                currency:
-                                    invoice.currency,
+                                currency: invoice.currency,
                             })}
                         </span>
                     </div>
@@ -386,8 +295,6 @@ export default function InvoiceDocument({
                     </p>
                 </section>
             )}
-
-
         </article>
     );
 }

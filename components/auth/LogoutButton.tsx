@@ -5,21 +5,14 @@
 import { LogOut } from 'lucide-react';
 import { useTransition } from 'react';
 
-import {
-    handleLogout,
-} from '@/app/actions/auth';
+import { handleLogout } from '@/app/actions/auth';
 
 type LogoutButtonProps = {
     collapsed?: boolean;
 };
 
-export default function LogoutButton({
-    collapsed = false,
-}: LogoutButtonProps) {
-    const [
-        isPending,
-        startTransition,
-    ] = useTransition();
+export default function LogoutButton({ collapsed = false }: LogoutButtonProps) {
+    const [isPending, startTransition] = useTransition();
 
     function logout() {
         startTransition(async () => {
@@ -32,11 +25,7 @@ export default function LogoutButton({
             type="button"
             onClick={logout}
             disabled={isPending}
-            title={
-                collapsed
-                    ? 'Sair'
-                    : undefined
-            }
+            title={collapsed ? 'Sair' : undefined}
             aria-label="Sair da conta"
             className={`
         flex h-11 items-center
@@ -52,28 +41,12 @@ export default function LogoutButton({
         disabled:cursor-wait
         disabled:opacity-50
 
-        ${collapsed
-                    ? 'lg:w-11 lg:justify-center'
-                    : 'w-full gap-3'
-                }
+        ${collapsed ? 'lg:w-11 lg:justify-center' : 'w-full gap-3'}
       `}
         >
-            <LogOut
-                size={18}
-                className="shrink-0"
-            />
+            <LogOut size={18} className="shrink-0" />
 
-            <span
-                className={
-                    collapsed
-                        ? 'lg:hidden'
-                        : ''
-                }
-            >
-                {isPending
-                    ? 'Saindo...'
-                    : 'Sair'}
-            </span>
+            <span className={collapsed ? 'lg:hidden' : ''}>{isPending ? 'Saindo...' : 'Sair'}</span>
         </button>
     );
 }

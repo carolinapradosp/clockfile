@@ -9,6 +9,5 @@ export default function Logo() {
                 <Image src={logoPV} alt="Clockfile" width={200} height={50} />
             </Link>
         </div>
-
-    )
+    );
 }

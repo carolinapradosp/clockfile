@@ -4,10 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
-import {
-    getReportEntryById,
-    getReportProjectOptions,
-} from '@/app/actions/report';
+import { getReportEntryById, getReportProjectOptions } from '@/app/actions/report';
 
 import ReportEntryForm from '@/components/reports/ReportEntryForm';
 
@@ -17,16 +14,13 @@ type EditReportEntryPageProps = {
     }>;
 };
 
-export default async function EditReportEntryPage({
-    params,
-}: EditReportEntryPageProps) {
+export default async function EditReportEntryPage({ params }: EditReportEntryPageProps) {
     const { id } = await params;
 
-    const [entry, projects] =
-        await Promise.all([
-            getReportEntryById(id),
-            getReportProjectOptions(),
-        ]);
+    const [entry, projects] = await Promise.all([
+        getReportEntryById(id),
+        getReportProjectOptions(),
+    ]);
 
     if (!entry) {
         notFound();
@@ -39,7 +33,6 @@ export default async function EditReportEntryPage({
                 className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para relatórios
             </Link>
 
@@ -48,21 +41,17 @@ export default async function EditReportEntryPage({
                     Editar lançamento
                 </h1>
 
-                <p className="mt-2 text-sm text-slate-500">
-                    Atualize a atividade {entry.task}.
-                </p>
+                <p className="mt-2 text-sm text-slate-500">Atualize a atividade {entry.task}.</p>
 
                 {!entry.projectId && (
                     <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                        Este é um registro antigo. Selecione um projeto para concluir a migração do lançamento.
+                        Este é um registro antigo. Selecione um projeto para concluir a migração do
+                        lançamento.
                     </div>
                 )}
             </header>
 
-            <ReportEntryForm
-                entry={entry}
-                projects={projects}
-            />
+            <ReportEntryForm entry={entry} projects={projects} />
         </div>
     );
 }

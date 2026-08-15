@@ -6,36 +6,18 @@ import { Plus } from 'lucide-react';
 
 import InvoiceItemRow from '@/components/invoices/InvoiceItemRow';
 
-import type {
-    InvoiceItem,
-    InvoiceItemSource,
-} from '@/interfaces/Invoice';
+import type { InvoiceItem, InvoiceItemSource } from '@/interfaces/Invoice';
 
-type EditableInvoiceItemField =
-    | 'description'
-    | 'link'
-    | 'quantity'
-    | 'rate'
-    | 'amount'
-    | 'source';
+type EditableInvoiceItemField = 'description' | 'link' | 'quantity' | 'rate' | 'amount' | 'source';
 
 type InvoiceItemsEditorProps = {
     items: InvoiceItem[];
 
-    onChange: (
-        id: string,
-        field: EditableInvoiceItemField,
-        value: string
-    ) => void;
+    onChange: (id: string, field: EditableInvoiceItemField, value: string) => void;
 
     onRemove: (id: string) => void;
 
-    onAdd: (
-        source: Exclude<
-            InvoiceItemSource,
-            'monthly-report'
-        >
-    ) => void;
+    onAdd: (source: Exclude<InvoiceItemSource, 'monthly-report'>) => void;
 };
 
 export default function InvoiceItemsEditor({
@@ -48,9 +30,7 @@ export default function InvoiceItemsEditor({
         <section>
             <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Itens da fatura
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Itens da fatura</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Revise as horas importadas e adicione outros custos.

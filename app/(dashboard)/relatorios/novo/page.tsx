@@ -3,9 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-import {
-    getReportProjectOptions,
-} from '@/app/actions/report';
+import { getReportProjectOptions } from '@/app/actions/report';
 
 import ReportEntryForm from '@/components/reports/ReportEntryForm';
 
@@ -15,13 +13,10 @@ type NewReportEntryPageProps = {
     }>;
 };
 
-export default async function NewReportEntryPage({
-    searchParams,
-}: NewReportEntryPageProps) {
+export default async function NewReportEntryPage({ searchParams }: NewReportEntryPageProps) {
     const params = await searchParams;
 
-    const projects =
-        await getReportProjectOptions();
+    const projects = await getReportProjectOptions();
 
     return (
         <div className="mx-auto max-w-4xl">
@@ -30,7 +25,6 @@ export default async function NewReportEntryPage({
                 className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para relatórios
             </Link>
 
@@ -44,12 +38,7 @@ export default async function NewReportEntryPage({
                 </p>
             </header>
 
-            <ReportEntryForm
-                projects={projects}
-                initialProjectId={
-                    params.projectId
-                }
-            />
+            <ReportEntryForm projects={projects} initialProjectId={params.projectId} />
         </div>
     );
 }

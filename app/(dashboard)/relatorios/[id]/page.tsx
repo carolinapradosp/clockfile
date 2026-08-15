@@ -14,9 +14,7 @@ import {
     FileText,
 } from 'lucide-react';
 
-import {
-    getReportEntryById,
-} from '@/app/actions/report';
+import { getReportEntryById } from '@/app/actions/report';
 
 import DeleteReportEntryButton from '@/components/reports/DeleteReportEntryButton';
 import formatCurrency, { formatDate } from '@/lib/utils';
@@ -27,35 +25,23 @@ type ReportEntryDetailsPageProps = {
     }>;
 };
 
+function formatDecimalHours(durationMinutes: number): string {
+    const decimalHours = durationMinutes / 60;
 
-function formatDecimalHours(
-    durationMinutes: number
-): string {
-    const decimalHours =
-        durationMinutes / 60;
-
-    return decimalHours.toLocaleString(
-        'pt-BR',
-        {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        }
-    );
+    return decimalHours.toLocaleString('pt-BR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    });
 }
 
-export default async function ReportEntryDetailsPage({
-    params,
-}: ReportEntryDetailsPageProps) {
+export default async function ReportEntryDetailsPage({ params }: ReportEntryDetailsPageProps) {
     const { id } = await params;
 
-    const entry =
-        await getReportEntryById(id);
+    const entry = await getReportEntryById(id);
 
     if (!entry) {
         notFound();
     }
-
-
 
     return (
         <div className="mx-auto max-w-5xl">
@@ -64,7 +50,6 @@ export default async function ReportEntryDetailsPage({
                 className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para relatórios
             </Link>
 
@@ -83,8 +68,7 @@ export default async function ReportEntryDetailsPage({
                     </div>
 
                     <p className="mt-2 text-sm text-slate-500">
-                        Lançamento realizado em{' '}
-                        {formatDate(entry.date)}.
+                        Lançamento realizado em {formatDate(entry.date)}.
                     </p>
                 </div>
 
@@ -94,7 +78,6 @@ export default async function ReportEntryDetailsPage({
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                     >
                         <Edit3 size={17} />
-
                         Editar
                     </Link>
 
@@ -114,7 +97,8 @@ export default async function ReportEntryDetailsPage({
                     </p>
 
                     <p className="mt-1 text-sm leading-relaxed text-amber-700">
-                        Edite o registro e selecione um projeto para concluir a migração dos dados antigos.
+                        Edite o registro e selecione um projeto para concluir a migração dos dados
+                        antigos.
                     </p>
 
                     <Link
@@ -149,9 +133,7 @@ export default async function ReportEntryDetailsPage({
                             Tarefa
                         </p>
 
-                        <p className="mt-2 text-base font-semibold text-slate-900">
-                            {entry.task}
-                        </p>
+                        <p className="mt-2 text-base font-semibold text-slate-900">{entry.task}</p>
                     </div>
 
                     <div className="mt-6 border-t border-slate-100 pt-6">
@@ -172,13 +154,9 @@ export default async function ReportEntryDetailsPage({
                         </div>
 
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">
-                                Projeto
-                            </h2>
+                            <h2 className="text-lg font-bold text-slate-900">Projeto</h2>
 
-                            <p className="text-sm text-slate-500">
-                                Origem do lançamento.
-                            </p>
+                            <p className="text-sm text-slate-500">Origem do lançamento.</p>
                         </div>
                     </div>
 
@@ -193,9 +171,7 @@ export default async function ReportEntryDetailsPage({
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Resumo financeiro
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Resumo financeiro</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Duração e valores utilizados no cálculo deste lançamento.
@@ -230,18 +206,13 @@ export default async function ReportEntryDetailsPage({
                             </p>
 
                             <p className="mt-1 text-xs text-slate-500">
-                                {formatDecimalHours(
-                                    entry.durationMinutes
-                                )}{' '}
-                                horas
+                                {formatDecimalHours(entry.durationMinutes)} horas
                             </p>
                         </article>
 
                         <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
-                                <CircleDollarSign
-                                    size={19}
-                                />
+                                <CircleDollarSign size={19} />
                             </div>
 
                             <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -251,25 +222,20 @@ export default async function ReportEntryDetailsPage({
                             <p className="mt-2 text-base font-bold text-slate-900">
                                 {entry.rate !== null
                                     ? formatCurrency({
-                                        value: entry.rate,
-                                        currency:
-                                            entry.currency,
-                                    })
+                                          value: entry.rate,
+                                          currency: entry.currency,
+                                      })
                                     : 'Não informado'}
                             </p>
 
                             {entry.rate !== null && (
-                                <p className="mt-1 text-xs text-slate-500">
-                                    por hora
-                                </p>
+                                <p className="mt-1 text-xs text-slate-500">por hora</p>
                             )}
                         </article>
 
                         <article className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
-                                <CircleDollarSign
-                                    size={19}
-                                />
+                                <CircleDollarSign size={19} />
                             </div>
 
                             <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-emerald-700/70">
@@ -279,14 +245,11 @@ export default async function ReportEntryDetailsPage({
                             <p className="mt-2 text-xl font-bold text-emerald-700">
                                 {formatCurrency({
                                     value: entry.amount,
-                                    currency:
-                                        entry.currency,
+                                    currency: entry.currency,
                                 })}
                             </p>
 
-                            <p className="mt-1 text-xs text-emerald-700/70">
-                                {entry.currency}
-                            </p>
+                            <p className="mt-1 text-xs text-emerald-700/70">{entry.currency}</p>
                         </article>
                     </div>
                 </section>

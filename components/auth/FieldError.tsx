@@ -1,15 +1,7 @@
-export default function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
+export default function FieldError({ message }: { message?: string }) {
     if (!message) {
         return null;
     }
 
-    return (
-        <p className="mt-2 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
+    return <p className="mt-2 text-xs font-medium text-red-600">{message}</p>;
 }

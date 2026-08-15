@@ -1,59 +1,54 @@
 // interfaces/ReportEntry.ts
 
 export type ReportEntry = {
-  id: string;
+    id: string;
 
-  projectId: string;
-  projectName: string;
+    projectId: string;
+    projectName: string;
 
-  task: string;
-  description: string;
+    task: string;
+    description: string;
 
-  date: string;
+    date: string;
 
-  duration: string;
-  durationMinutes: number;
+    duration: string;
+    durationMinutes: number;
 
-  rate: number | null;
-  amount: number;
+    rate: number | null;
+    amount: number;
 
-  currency: string;
+    currency: string;
 
-  createdAt: string;
-  updatedAt: string;
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type ReportEntryFormData = {
-  projectId: string;
-  task: string;
-  description: string;
-  date: string;
-  duration: string;
-  rate: string;
+    projectId: string;
+    task: string;
+    description: string;
+    date: string;
+    duration: string;
+    rate: string;
 };
 
 export type ReportEntryActionState =
-  | {
-      success: true;
-      message: string;
-      entryId: string;
-    }
-  | {
-      success: false;
-      message: string;
-      fieldErrors?: Partial<
-        Record<
-          keyof ReportEntryFormData,
-          string
-        >
-      >;
-    }
-  | null;
+    | {
+          success: true;
+          message: string;
+          entryId: string;
+      }
+    | {
+          success: false;
+          message: string;
+          fieldErrors?: Partial<Record<keyof ReportEntryFormData, string>>;
+      }
+    | null;
 
 export type ReportProjectOption = {
-  id: string;
-  name: string;
+    id: string;
+    name: string;
 
-  defaultHourlyRate: number | null;
-  currency: string;
+    defaultHourlyRate: number | null;
+    currency: string;
 };

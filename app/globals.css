@@ -1,72 +1,69 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 html {
-  background: #f8fafc;
+    background: #f8fafc;
 }
 
 body {
-  background: #fff;
-  color: #181818;
-  font-family: Arial, Helvetica, sans-serif;
+    background: #fff;
+    color: #181818;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 @page {
-  size: A4;
-  margin: 0;
+    size: A4;
+    margin: 0;
 }
 
 @media print {
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
 
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
 
-  .invoice-print-actions {
-    display: none !important;
-  }
+    .invoice-print-actions {
+        display: none !important;
+    }
 
-  .invoice-document {
-    box-sizing: border-box !important;
+    .invoice-document {
+        box-sizing: border-box !important;
 
-    width: 100% !important;
-    max-width: none !important;
-    min-height: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: auto !important;
 
-    margin: 0 !important;
+        margin: 0 !important;
 
-    padding:
-      12mm
-      14mm
-      14mm !important;
+        padding: 12mm 14mm 14mm !important;
 
-    box-shadow: none !important;
-  }
+        box-shadow: none !important;
+    }
 
-  a {
-    color: inherit !important;
-    text-decoration: none !important;
-  }
+    a {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
 
-  table {
-    width: 100% !important;
-    page-break-inside: auto;
-  }
+    table {
+        width: 100% !important;
+        page-break-inside: auto;
+    }
 
-  tr {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+    tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
 
-  thead {
-    display: table-header-group;
-  }
+    thead {
+        display: table-header-group;
+    }
 
-  footer {
-    break-inside: avoid;
-  }
+    footer {
+        break-inside: avoid;
+    }
 }
