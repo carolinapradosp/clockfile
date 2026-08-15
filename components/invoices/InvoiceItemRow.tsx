@@ -8,6 +8,7 @@ import type {
     InvoiceItem,
     InvoiceItemSource,
 } from '@/interfaces/Invoice';
+import { inputClassNameNoIcon } from '@/lib/utils';
 
 type EditableInvoiceItemField =
     | 'description'
@@ -31,23 +32,7 @@ type InvoiceItemRowProps = {
     canRemove: boolean;
 };
 
-const inputClassName = `
-  h-11
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-3
-  text-sm
-  text-slate-800
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
+
 
 const SOURCE_LABELS: Record<
     InvoiceItemSource,
@@ -118,7 +103,7 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="Descrição do item"
-                        className={inputClassName}
+                        className={inputClassNameNoIcon}
                     />
 
                     <input
@@ -132,7 +117,7 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="Link ou URL do projeto"
-                        className={`${inputClassName} mt-3`}
+                        className={`${inputClassNameNoIcon} mt-3`}
                     />
                 </div>
 
@@ -158,7 +143,7 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="0"
-                        className={`${inputClassName} text-right`}
+                        className={`${inputClassNameNoIcon} text-right`}
                     />
                 </div>
 
@@ -184,7 +169,7 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="0.00"
-                        className={`${inputClassName} text-right`}
+                        className={`${inputClassNameNoIcon} text-right`}
                     />
                 </div>
 
@@ -210,7 +195,7 @@ export default function InvoiceItemRow({
                             )
                         }
                         placeholder="0.00"
-                        className={`${inputClassName} text-right font-semibold`}
+                        className={`${inputClassNameNoIcon} text-right font-semibold`}
                     />
                 </div>
 
@@ -233,7 +218,7 @@ export default function InvoiceItemRow({
                                     event.target.value
                                 )
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="manual">
                                 Item manual

@@ -20,45 +20,11 @@ import {
     loginUser,
     type LoginActionState,
 } from '@/app/actions/auth';
+import FieldError from './FieldError';
+import { inputClassName } from '@/lib/utils';
 
 const initialState: LoginActionState =
     null;
-
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-slate-50
-  pl-11
-  pr-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:bg-white
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
-
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
-
-    return (
-        <p className="mt-2 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
 
 export default function FormLogin() {
     const [

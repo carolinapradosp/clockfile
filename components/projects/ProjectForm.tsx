@@ -10,6 +10,7 @@ import {
     useActionState,
     useEffect,
 } from 'react';
+import { inputClassNameNoIcon } from '@/lib/utils';
 
 import {
     useRouter,
@@ -25,6 +26,8 @@ import type {
     ProjectActionState,
     ProjectStatus,
 } from '@/interfaces/Project';
+import FieldError from '../auth/FieldError';
+import AddressFields from '../forms/AddressFields';
 
 type ProjectFormProps = {
     project?: Project;
@@ -32,24 +35,6 @@ type ProjectFormProps = {
 
 const initialState:
     ProjectActionState = null;
-
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
 
 const textareaClassName = `
   min-h-36
@@ -71,21 +56,7 @@ const textareaClassName = `
   focus:ring-blue-500/10
 `;
 
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
 
-    return (
-        <p className="mt-2 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
 
 export default function ProjectForm({
     project,
@@ -169,7 +140,7 @@ export default function ProjectForm({
                                 project?.name ?? ''
                             }
                             placeholder="Ex.: Website institucional"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -220,7 +191,7 @@ export default function ProjectForm({
                             defaultValue={
                                 selectedStatus
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="draft">
                                 Rascunho
@@ -256,7 +227,7 @@ export default function ProjectForm({
                             defaultValue={
                                 project?.currency ?? 'BRL'
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="BRL">
                                 Real brasileiro (BRL)
@@ -314,7 +285,7 @@ export default function ProjectForm({
                             ''
                         }
                         placeholder="0.00"
-                        className={inputClassName}
+                        className={inputClassNameNoIcon}
                     />
 
                     <FieldError
@@ -358,7 +329,7 @@ export default function ProjectForm({
                                 ''
                             }
                             placeholder="Nome do destinatário"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -379,7 +350,7 @@ export default function ProjectForm({
                                 ''
                             }
                             placeholder="Nome da empresa"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
                     </div>
 
@@ -400,7 +371,7 @@ export default function ProjectForm({
                                 ''
                             }
                             placeholder="cliente@empresa.com"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -431,7 +402,7 @@ export default function ProjectForm({
                                 ''
                             }
                             placeholder="+55 11 99999-9999"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -445,139 +416,83 @@ export default function ProjectForm({
                         />
                     </div>
 
-                    <div className="md:col-span-2">
-                        <label
-                            htmlFor="billingAddressLine1"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Endereço
-                        </label>
-
-                        <input
-                            id="billingAddressLine1"
-                            name="billingAddressLine1"
-                            type="text"
-                            defaultValue={
+                    <AddressFields
+                        defaultValues={{
+                            addressLine1:
                                 project?.billing
-                                    .addressLine1 ?? ''
-                            }
-                            placeholder="Rua, número e endereço principal"
-                            className={inputClassName}
-                        />
-                    </div>
+                                    .addressLine1 ??
+                                '',
 
-                    <div className="md:col-span-2">
-                        <label
-                            htmlFor="billingAddressLine2"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Complemento
-                        </label>
-
-                        <input
-                            id="billingAddressLine2"
-                            name="billingAddressLine2"
-                            type="text"
-                            defaultValue={
+                            addressLine2:
                                 project?.billing
-                                    .addressLine2 ?? ''
-                            }
-                            placeholder="Sala, apartamento ou complemento"
-                            className={inputClassName}
-                        />
-                    </div>
+                                    .addressLine2 ??
+                                '',
 
-                    <div>
-                        <label
-                            htmlFor="billingCity"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Cidade
-                        </label>
-
-                        <input
-                            id="billingCity"
-                            name="billingCity"
-                            type="text"
-                            defaultValue={
+                            city:
                                 project?.billing.city ??
-                                ''
-                            }
-                            className={inputClassName}
-                        />
-                    </div>
+                                '',
 
-                    <div>
-                        <label
-                            htmlFor="billingState"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            Estado
-                        </label>
-
-                        <input
-                            id="billingState"
-                            name="billingState"
-                            type="text"
-                            defaultValue={
+                            state:
                                 project?.billing.state ??
-                                ''
-                            }
-                            className={inputClassName}
-                        />
-                    </div>
+                                '',
 
-                    <div>
-                        <label
-                            htmlFor="billingPostalCode"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            CEP / Código postal
-                        </label>
-
-                        <input
-                            id="billingPostalCode"
-                            name="billingPostalCode"
-                            type="text"
-                            defaultValue={
+                            postalCode:
                                 project?.billing
-                                    .postalCode ?? ''
-                            }
-                            className={inputClassName}
-                        />
-                    </div>
+                                    .postalCode ??
+                                '',
 
-                    <div>
-                        <label
-                            htmlFor="billingCountryCode"
-                            className="mb-2 block text-sm font-semibold text-slate-700"
-                        >
-                            País
-                        </label>
-
-                        <input
-                            id="billingCountryCode"
-                            name="billingCountryCode"
-                            type="text"
-                            maxLength={2}
-                            defaultValue={
+                            countryCode:
                                 project?.billing
-                                    .countryCode ?? 'BR'
-                            }
-                            placeholder="BR"
-                            className={`${inputClassName} uppercase`}
-                        />
+                                    .countryCode ??
+                                'BR',
+                        }}
+                        names={{
+                            addressLine1:
+                                'billingAddressLine1',
 
-                        <FieldError
-                            message={
+                            addressLine2:
+                                'billingAddressLine2',
+
+                            city:
+                                'billingCity',
+
+                            state:
+                                'billingState',
+
+                            postalCode:
+                                'billingPostalCode',
+
+                            countryCode:
+                                'billingCountryCode',
+                        }}
+                        ids={{
+                            addressLine1:
+                                'billingAddressLine1',
+
+                            addressLine2:
+                                'billingAddressLine2',
+
+                            city:
+                                'billingCity',
+
+                            state:
+                                'billingState',
+
+                            postalCode:
+                                'billingPostalCode',
+
+                            countryCode:
+                                'billingCountryCode',
+                        }}
+                        errors={{
+                            countryCode:
                                 !state?.success
                                     ? state
                                         ?.fieldErrors
                                         ?.billingCountryCode
-                                    : undefined
-                            }
-                        />
-                    </div>
+                                    : undefined,
+                        }}
+                    />
                 </div>
             </section>
 
@@ -609,7 +524,7 @@ export default function ProjectForm({
                                 project?.startDate ??
                                 ''
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -639,7 +554,7 @@ export default function ProjectForm({
                                 project?.endDate ??
                                 ''
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError

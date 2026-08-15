@@ -19,27 +19,10 @@ import {
 import type {
     DeleteAccountActionState,
 } from '@/interfaces/Account';
+import { inputClassNameNoIcon } from '@/lib/utils';
 
 const initialState: DeleteAccountActionState =
     null;
-
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-red-200
-  bg-white
-  px-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-red-500
-  focus:ring-4
-  focus:ring-red-500/10
-`;
 
 export default function DeleteAccountForm() {
     const [
@@ -129,9 +112,10 @@ export default function DeleteAccountForm() {
                             id="delete-account-password"
                             name="password"
                             type="password"
+                            maxLength={12}
                             required
                             autoComplete="current-password"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         {state?.fieldErrors
@@ -163,7 +147,7 @@ export default function DeleteAccountForm() {
                             type="text"
                             required
                             autoComplete="off"
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         {state?.fieldErrors

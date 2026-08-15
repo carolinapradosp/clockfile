@@ -11,21 +11,12 @@ import type {
 import type {
     Invoice,
 } from '@/interfaces/Invoice';
-import formatCurrency, { formatDate, formatReferenceMonth } from '@/lib/utils';
+import formatCurrency, { formatDate, formatReferenceMonth, invoiceStatusLabels } from '@/lib/utils';
 
 type InvoiceDocumentProps = {
     invoice: Invoice;
     user: CurrentUser;
 };
-
-const invoiceStatusLabels = {
-    draft: 'Rascunho',
-    issued: 'Emitida',
-    sent: 'Enviada',
-    paid: 'Paga',
-    overdue: 'Vencida',
-    cancelled: 'Cancelada',
-} as const;
 
 
 function normalizeExternalLink(
@@ -85,7 +76,7 @@ export default function InvoiceDocument({
                         width={250}
                         height={50}
                         priority
-                        className="h-auto w-[210px]"
+                        className="h-auto w-52.5"
                     />
 
                     <div className="mt-5 space-y-1 text-sm text-slate-500">
@@ -247,7 +238,7 @@ export default function InvoiceDocument({
 
             <section>
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[650px] border-collapse text-left">
+                    <table className="w-full min-w-162.5 border-collapse text-left">
                         <thead>
                             <tr className="bg-slate-950 text-xs font-semibold uppercase tracking-wide text-white">
                                 <th className="px-4 py-3">

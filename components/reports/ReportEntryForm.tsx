@@ -26,7 +26,8 @@ import type {
     ReportEntryActionState,
     ReportProjectOption,
 } from '@/interfaces/ReportEntry';
-import formatCurrency from '@/lib/utils';
+import formatCurrency, { inputClassNameNoIcon } from '@/lib/utils';
+import FieldError from '../auth/FieldError';
 
 type ReportEntryFormProps = {
     projects: ReportProjectOption[];
@@ -36,23 +37,7 @@ type ReportEntryFormProps = {
 
 const initialState: ReportEntryActionState = null;
 
-const inputClassName = `
-  h-12
-  w-full
-  rounded-xl
-  border
-  border-slate-200
-  bg-white
-  px-4
-  text-sm
-  text-slate-900
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  focus:border-blue-500
-  focus:ring-4
-  focus:ring-blue-500/10
-`;
+
 
 const textareaClassName = `
   min-h-36
@@ -73,22 +58,6 @@ const textareaClassName = `
   focus:ring-4
   focus:ring-blue-500/10
 `;
-
-function FieldError({
-    message,
-}: {
-    message?: string;
-}) {
-    if (!message) {
-        return null;
-    }
-
-    return (
-        <p className="mt-1 text-xs font-medium text-red-600">
-            {message}
-        </p>
-    );
-}
 
 
 export default function ReportEntryForm({
@@ -241,7 +210,7 @@ export default function ReportEntryForm({
                             required
                             value={selectedProjectId}
                             onChange={handleProjectChange}
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         >
                             <option value="">
                                 Selecione um projeto
@@ -286,8 +255,8 @@ export default function ReportEntryForm({
                             type="text"
                             required
                             defaultValue={entry?.task ?? ''}
-                            placeholder="Ex.: WP-0075"
-                            className={inputClassName}
+                            placeholder="Insira um identificador ou nome da tarefa..."
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -318,7 +287,7 @@ export default function ReportEntryForm({
                                     .toISOString()
                                     .slice(0, 10)
                             }
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <FieldError
@@ -392,7 +361,7 @@ export default function ReportEntryForm({
                                 );
                             }}
                             step={60}
-                            className={inputClassName}
+                            className={inputClassNameNoIcon}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">
@@ -420,15 +389,16 @@ export default function ReportEntryForm({
                             id="rate"
                             name="rate"
                             type="number"
-                            required
                             min="0"
                             step="0.01"
                             value={rate}
                             onChange={(event) => {
                                 setRate(event.target.value);
                             }}
+                            disabled
                             placeholder="0.00"
-                            className={inputClassName}
+                            style={{ backgroundColor: '#f4f4f4', color: '#727272' }}
+                            className={inputClassNameNoIcon}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">

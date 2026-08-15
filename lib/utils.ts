@@ -154,6 +154,55 @@ export function isValidPhone(
 }
 
 
+export function formatPhone(
+    value: string
+): string {
+    const digits = value
+        .replace(/\D/g, '')
+        .slice(0, 11);
+
+    if (!digits) {
+        return '';
+    }
+
+    if (digits.length <= 2) {
+        return `(${digits}`;
+    }
+
+    const areaCode =
+        digits.slice(0, 2);
+
+    const number =
+        digits.slice(2);
+
+    if (number.length <= 4) {
+        return `(${areaCode}) ${number}`;
+    }
+
+    if (number.length <= 8) {
+        return `(${areaCode}) ${number.slice(
+            0,
+            4
+        )}-${number.slice(4)}`;
+    }
+
+    return `(${areaCode}) ${number.slice(
+        0,
+        5
+    )}-${number.slice(5)}`;
+}
+
+
+export function sanitizeName(
+    value: string
+): string {
+    return value.replace(
+        /\d/g,
+        ''
+    );
+}
+
+
 export function isValidUuid(
   value: string
 ): boolean {
@@ -192,3 +241,50 @@ export function isValidDate(
       .slice(0, 10) === value
   );
 }
+
+export const invoiceStatusLabels = {
+    draft: 'Rascunho',
+    issued: 'Emitida',
+    sent: 'Enviada',
+    paid: 'Paga',
+    overdue: 'Vencida',
+    cancelled: 'Cancelada',
+} as const;
+
+export const inputClassName = `
+  h-12
+  w-full
+  rounded-xl
+  border
+  border-slate-200
+  bg-slate-50
+  pl-11
+  pr-4
+  text-sm
+  text-slate-900
+  outline-none
+  transition-all
+  placeholder:text-slate-400
+  focus:border-blue-500
+  focus:bg-white
+  focus:ring-4
+  focus:ring-blue-500/10
+`;
+
+export const inputClassNameNoIcon = `
+  h-12
+  w-full
+  rounded-xl
+  border
+  border-slate-200
+  bg-white
+  px-4
+  text-sm
+  text-slate-900
+  outline-none
+  transition-all
+  placeholder:text-slate-400
+  focus:border-blue-500
+  focus:ring-4
+  focus:ring-blue-500/10
+`;
