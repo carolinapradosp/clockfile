@@ -1,10 +1,7 @@
 // app/(dashboard)/relatorios/[id]/not-found.tsx
 
 import Link from 'next/link';
-import {
-    ArrowLeft,
-    FileQuestion,
-} from 'lucide-react';
+import { ArrowLeft, FileQuestion } from 'lucide-react';
 
 export default function ReportEntryNotFound() {
     return (
@@ -27,7 +24,6 @@ export default function ReportEntryNotFound() {
                     className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700"
                 >
                     <ArrowLeft size={17} />
-
                     Voltar para relatórios
                 </Link>
             </div>

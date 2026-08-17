@@ -4,9 +4,7 @@ import Link from 'next/link';
 
 import { ArrowLeft } from 'lucide-react';
 
-import {
-    getInvoiceProjectOptions,
-} from '@/app/actions/invoice';
+import { getInvoiceProjectOptions } from '@/app/actions/invoice';
 
 import InvoiceForm from '@/components/invoices/InvoiceForm';
 import { isValidMonth } from '@/lib/utils';
@@ -18,23 +16,12 @@ type NewInvoicePageProps = {
     }>;
 };
 
+export default async function NewInvoicePage({ searchParams }: NewInvoicePageProps) {
+    const params = await searchParams;
 
+    const projects = await getInvoiceProjectOptions();
 
-export default async function NewInvoicePage({
-    searchParams,
-}: NewInvoicePageProps) {
-    const params =
-        await searchParams;
-
-    const projects =
-        await getInvoiceProjectOptions();
-
-    const initialProject =
-        projects.find(
-            (project) =>
-                project.id ===
-                params.projectId
-        );
+    const initialProject = projects.find((project) => project.id === params.projectId);
 
     return (
         <div className="mx-auto max-w-6xl">
@@ -43,14 +30,11 @@ export default async function NewInvoicePage({
                 className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para faturas
             </Link>
 
             <header className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                    Nova fatura
-                </h1>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Nova fatura</h1>
 
                 <p className="mt-2 text-sm text-slate-500">
                     Informe o destinatário, importe horas do projeto ou adicione itens manualmente.
@@ -59,14 +43,8 @@ export default async function NewInvoicePage({
 
             <InvoiceForm
                 projects={projects}
-                initialProjectId={
-                    initialProject?.id
-                }
-                initialMonth={
-                    isValidMonth(params.month)
-                        ? params.month
-                        : undefined
-                }
+                initialProjectId={initialProject?.id}
+                initialMonth={isValidMonth(params.month) ? params.month : undefined}
             />
         </div>
     );

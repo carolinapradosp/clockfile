@@ -1,29 +1,22 @@
 // app/(dashboard)/configuracoes/page.tsx
 
-import type {
-    Metadata,
-} from 'next';
+import type { Metadata } from 'next';
 
-import {
-    Settings,
-} from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 import AccountProfileForm from '@/components/account/AccountProfileForm';
 import ChangePasswordForm from '@/components/account/ChangePasswordForm';
 // import DeleteAccountForm from '@/components/account/DeleteAccountForm';
 import SessionSecurityCard from '@/components/account/SessionSecurityCard';
 
-import {
-    requireCurrentUser,
-} from '@/lib/auth/current-user';
+import { requireCurrentUser } from '@/lib/auth/current-user';
 
 export const metadata: Metadata = {
     title: 'Configurações',
 };
 
 export default async function SettingsPage() {
-    const user =
-        await requireCurrentUser();
+    const user = await requireCurrentUser();
 
     return (
         <div className="mx-auto max-w-5xl">

@@ -7,354 +7,242 @@ import { revalidatePath } from 'next/cache';
 import { sql } from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth/current-user';
 
-import {
-  durationToMinutes,
-  minutesToDuration,
-} from '@/lib/time';
+import { durationToMinutes, minutesToDuration } from '@/lib/time';
 
 import type {
-  ReportEntry,
-  ReportEntryActionState,
-  ReportEntryFormData,
-  ReportProjectOption,
+    ReportEntry,
+    ReportEntryActionState,
+    ReportEntryFormData,
+    ReportProjectOption,
 } from '@/interfaces/ReportEntry';
 import { isValidDate, isValidMonth, isValidUuid } from '@/lib/utils';
 
 type ProjectReportSummaryRow = {
-  entries_count: number | string;
-  total_minutes: number | string | null;
-  total_amount: number | string | null;
-  currency: string | null;
+    entries_count: number | string;
+    total_minutes: number | string | null;
+    total_amount: number | string | null;
+    currency: string | null;
 };
 
 export type ProjectReportSummary = {
-  entriesCount: number;
-  totalMinutes: number;
-  totalAmount: number;
-  currency: string;
-  recentEntries: ReportEntry[];
+    entriesCount: number;
+    totalMinutes: number;
+    totalAmount: number;
+    currency: string;
+    recentEntries: ReportEntry[];
 };
 
 type ReportEntryRow = {
-  id: string;
+    id: string;
 
-  project_id: string;
-  project_name: string;
+    project_id: string;
+    project_name: string;
 
-  task: string;
-  description: string;
+    task: string;
+    description: string;
 
-  date: string | Date;
+    date: string | Date;
 
-  duration: string | null;
+    duration: string | null;
 
-  duration_minutes:
-    | number
-    | string
-    | null;
+    duration_minutes: number | string | null;
 
-  rate:
-    | number
-    | string
-    | null;
+    rate: number | string | null;
 
-  amount:
-    | number
-    | string
-    | null;
+    amount: number | string | null;
 
-  currency: string | null;
+    currency: string | null;
 
-  created_at: string | Date;
-  updated_at: string | Date;
+    created_at: string | Date;
+    updated_at: string | Date;
 };
 
 type ProjectOptionRow = {
-  id: string;
-  name: string;
+    id: string;
+    name: string;
 
-  default_hourly_rate:
-    | number
-    | string
-    | null;
+    default_hourly_rate: number | string | null;
 
-  currency: string;
+    currency: string;
 };
 
 type OwnedProjectRow = {
-  id: string;
+    id: string;
 
-  default_hourly_rate:
-    | number
-    | string
-    | null;
+    default_hourly_rate: number | string | null;
 
-  currency: string;
+    currency: string;
 };
 
 const MINIMUM_DURATION_MINUTES = 1;
 
-
-
-function normalizeDate(
-  value: string | Date
-): string {
-  if (value instanceof Date) {
-    return value
-      .toISOString()
-      .slice(0, 10);
-  }
-
-  return String(value).slice(0, 10);
-}
-
-function normalizeDateTime(
-  value: string | Date
-): string {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-
-  return new Date(value).toISOString();
-}
-
-function requiredText(
-  value: FormDataEntryValue | null
-): string {
-  return typeof value === 'string'
-    ? value.trim()
-    : '';
-}
-
-function mapReportEntry(
-  row: ReportEntryRow
-): ReportEntry {
-  const storedMinutes = Number(
-    row.duration_minutes
-  );
-
-  const durationMinutes =
-    Number.isSafeInteger(storedMinutes) &&
-    storedMinutes >= 0
-      ? storedMinutes
-      : durationToMinutes(
-          row.duration ?? ''
-        );
-
-  return {
-    id: String(row.id),
-
-    projectId: String(
-      row.project_id
-    ),
-
-    projectName:
-      row.project_name,
-
-    task: row.task,
-    description: row.description,
-
-    date: normalizeDate(row.date),
-
-    duration:
-      row.duration ||
-      minutesToDuration(
-        durationMinutes
-      ),
-
-    durationMinutes,
-
-    rate:
-      row.rate === null
-        ? null
-        : Number(row.rate),
-
-    amount:
-      row.amount === null
-        ? 0
-        : Number(row.amount),
-
-    currency:
-      row.currency ?? 'USD',
-
-    createdAt: normalizeDateTime(
-      row.created_at
-    ),
-
-    updatedAt: normalizeDateTime(
-      row.updated_at
-    ),
-  };
-}
-
-function parseFormData(
-  formData: FormData
-):
-  | {
-      success: true;
-
-      data: ReportEntryFormData;
-
-      durationMinutes: number;
-      rate: number;
+function normalizeDate(value: string | Date): string {
+    if (value instanceof Date) {
+        return value.toISOString().slice(0, 10);
     }
-  | {
-      success: false;
 
-      result:
-        ReportEntryActionState;
-    } {
-  const projectId =
-    requiredText(
-      formData.get('projectId')
-    );
+    return String(value).slice(0, 10);
+}
 
-  const task =
-    requiredText(
-      formData.get('task')
-    );
+function normalizeDateTime(value: string | Date): string {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
 
-  const description =
-    requiredText(
-      formData.get('description')
-    );
+    return new Date(value).toISOString();
+}
 
-  const date =
-    requiredText(
-      formData.get('date')
-    );
+function requiredText(value: FormDataEntryValue | null): string {
+    return typeof value === 'string' ? value.trim() : '';
+}
 
-  const duration =
-    requiredText(
-      formData.get('duration')
-    );
+function mapReportEntry(row: ReportEntryRow): ReportEntry {
+    const storedMinutes = Number(row.duration_minutes);
 
-  const rateText =
-    requiredText(
-      formData.get('rate')
-    );
+    const durationMinutes =
+        Number.isSafeInteger(storedMinutes) && storedMinutes >= 0
+            ? storedMinutes
+            : durationToMinutes(row.duration ?? '');
 
-  const fieldErrors: Partial<
-    Record<
-      keyof ReportEntryFormData,
-      string
-    >
-  > = {};
-
-  if (!projectId) {
-    fieldErrors.projectId =
-      'Selecione um projeto.';
-  } else if (
-    !isValidUuid(projectId)
-  ) {
-    fieldErrors.projectId =
-      'O projeto selecionado é inválido.';
-  }
-
-  if (!task) {
-    fieldErrors.task =
-      'Informe a tarefa.';
-  }
-
-  if (!description) {
-    fieldErrors.description =
-      'Informe a descrição da atividade.';
-  }
-
-  if (!date) {
-    fieldErrors.date =
-      'Informe a data.';
-  } else if (!isValidDate(date)) {
-    fieldErrors.date =
-      'Informe uma data válida.';
-  }
-
-  const durationMinutes =
-    durationToMinutes(duration);
-
-  if (!duration) {
-    fieldErrors.duration =
-      'Informe a duração.';
-  } else if (
-    durationMinutes <
-    MINIMUM_DURATION_MINUTES
-  ) {
-    fieldErrors.duration =
-      'Informe uma duração válida no formato HH:MM.';
-  }
-
-  const rate = Number(rateText);
-
-  if (!rateText) {
-    fieldErrors.rate =
-      'Informe o valor por hora.';
-  } else if (
-    !Number.isFinite(rate) ||
-    rate < 0
-  ) {
-    fieldErrors.rate =
-      'Informe um valor por hora válido.';
-  }
-
-  if (
-    Object.keys(fieldErrors).length >
-    0
-  ) {
     return {
-      success: false,
+        id: String(row.id),
 
-      result: {
-        success: false,
-        message:
-          'Revise os campos destacados.',
-        fieldErrors,
-      },
+        projectId: String(row.project_id),
+
+        projectName: row.project_name,
+
+        task: row.task,
+        description: row.description,
+
+        date: normalizeDate(row.date),
+
+        duration: row.duration || minutesToDuration(durationMinutes),
+
+        durationMinutes,
+
+        rate: row.rate === null ? null : Number(row.rate),
+
+        amount: row.amount === null ? 0 : Number(row.amount),
+
+        currency: row.currency ?? 'USD',
+
+        createdAt: normalizeDateTime(row.created_at),
+
+        updatedAt: normalizeDateTime(row.updated_at),
     };
-  }
+}
 
-  return {
-    success: true,
+function parseFormData(formData: FormData):
+    | {
+          success: true;
 
-    data: {
-      projectId,
-      task,
-      description,
-      date,
-      duration,
-      rate: rateText,
-    },
+          data: ReportEntryFormData;
 
-    durationMinutes,
-    rate,
-  };
+          durationMinutes: number;
+          rate: number;
+      }
+    | {
+          success: false;
+
+          result: ReportEntryActionState;
+      } {
+    const projectId = requiredText(formData.get('projectId'));
+
+    const task = requiredText(formData.get('task'));
+
+    const description = requiredText(formData.get('description'));
+
+    const date = requiredText(formData.get('date'));
+
+    const duration = requiredText(formData.get('duration'));
+
+    const rateText = requiredText(formData.get('rate'));
+
+    const fieldErrors: Partial<Record<keyof ReportEntryFormData, string>> = {};
+
+    if (!projectId) {
+        fieldErrors.projectId = 'Selecione um projeto.';
+    } else if (!isValidUuid(projectId)) {
+        fieldErrors.projectId = 'O projeto selecionado é inválido.';
+    }
+
+    if (!task) {
+        fieldErrors.task = 'Informe a tarefa.';
+    }
+
+    if (!description) {
+        fieldErrors.description = 'Informe a descrição da atividade.';
+    }
+
+    if (!date) {
+        fieldErrors.date = 'Informe a data.';
+    } else if (!isValidDate(date)) {
+        fieldErrors.date = 'Informe uma data válida.';
+    }
+
+    const durationMinutes = durationToMinutes(duration);
+
+    if (!duration) {
+        fieldErrors.duration = 'Informe a duração.';
+    } else if (durationMinutes < MINIMUM_DURATION_MINUTES) {
+        fieldErrors.duration = 'Informe uma duração válida no formato HH:MM.';
+    }
+
+    const rate = Number(rateText);
+
+    if (!rateText) {
+        fieldErrors.rate = 'Informe o valor por hora.';
+    } else if (!Number.isFinite(rate) || rate < 0) {
+        fieldErrors.rate = 'Informe um valor por hora válido.';
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+        return {
+            success: false,
+
+            result: {
+                success: false,
+                message: 'Revise os campos destacados.',
+                fieldErrors,
+            },
+        };
+    }
+
+    return {
+        success: true,
+
+        data: {
+            projectId,
+            task,
+            description,
+            date,
+            duration,
+            rate: rateText,
+        },
+
+        durationMinutes,
+        rate,
+    };
 }
 
 function calculateAmount({
-  durationMinutes,
-  rate,
+    durationMinutes,
+    rate,
 }: {
-  durationMinutes: number;
-  rate: number;
+    durationMinutes: number;
+    rate: number;
 }): number {
-  return (
-    Math.round(
-      (durationMinutes / 60) *
-        rate *
-        100
-    ) / 100
-  );
+    return Math.round((durationMinutes / 60) * rate * 100) / 100;
 }
 
 async function getOwnedProject({
-  projectId,
-  ownerId,
+    projectId,
+    ownerId,
 }: {
-  projectId: string;
-  ownerId: string;
-}): Promise<
-  OwnedProjectRow | undefined
-> {
-  const rows = await sql`
+    projectId: string;
+    ownerId: string;
+}): Promise<OwnedProjectRow | undefined> {
+    const rows = await sql`
     SELECT
       id,
       default_hourly_rate,
@@ -373,18 +261,13 @@ async function getOwnedProject({
     LIMIT 1
   `;
 
-  return rows[0] as
-    | OwnedProjectRow
-    | undefined;
+    return rows[0] as OwnedProjectRow | undefined;
 }
 
-export async function getReportProjectOptions(): Promise<
-  ReportProjectOption[]
-> {
-  const ownerId =
-    await getCurrentUserId();
+export async function getReportProjectOptions(): Promise<ReportProjectOption[]> {
+    const ownerId = await getCurrentUserId();
 
-  const rows = await sql`
+    const rows = await sql`
     SELECT
       id,
       name,
@@ -400,69 +283,41 @@ export async function getReportProjectOptions(): Promise<
     ORDER BY name ASC
   `;
 
-  return (
-    rows as ProjectOptionRow[]
-  ).map((row) => ({
-    id: String(row.id),
+    return (rows as ProjectOptionRow[]).map((row) => ({
+        id: String(row.id),
 
-    name: row.name,
+        name: row.name,
 
-    defaultHourlyRate:
-      row.default_hourly_rate ===
-      null
-        ? null
-        : Number(
-            row.default_hourly_rate
-          ),
+        defaultHourlyRate:
+            row.default_hourly_rate === null ? null : Number(row.default_hourly_rate),
 
-    currency:
-      row.currency,
-  }));
+        currency: row.currency,
+    }));
 }
 
 export async function getReportEntries({
-  month,
-  projectId,
+    month,
+    projectId,
 }: {
-  month?: string;
-  projectId?: string;
+    month?: string;
+    projectId?: string;
 } = {}): Promise<ReportEntry[]> {
-  const ownerId =
-    await getCurrentUserId();
+    const ownerId = await getCurrentUserId();
 
-  const selectedMonth =
-    month && isValidMonth(month)
-      ? month
-      : new Date()
-          .toISOString()
-          .slice(0, 7);
+    const selectedMonth =
+        month && isValidMonth(month) ? month : new Date().toISOString().slice(0, 7);
 
-  if (
-    projectId &&
-    !isValidUuid(projectId)
-  ) {
-    return [];
-  }
+    if (projectId && !isValidUuid(projectId)) {
+        return [];
+    }
 
-  const startDate =
-    `${selectedMonth}-01`;
+    const startDate = `${selectedMonth}-01`;
 
-  const [year, monthNumber] =
-    selectedMonth
-      .split('-')
-      .map(Number);
+    const [year, monthNumber] = selectedMonth.split('-').map(Number);
 
-  const endDate = new Date(
-    Date.UTC(
-      year,
-      monthNumber,
-      0
-    )
-  )
-    .toISOString()
-    .slice(0, 10);
+    const endDate = new Date(Date.UTC(year, monthNumber, 0)).toISOString().slice(0, 10);
 
-  const rows = await sql`
+    const rows = await sql`
     SELECT
       entry.id,
 
@@ -517,22 +372,17 @@ export async function getReportEntries({
       entry.created_at DESC
   `;
 
-  return (
-    rows as ReportEntryRow[]
-  ).map(mapReportEntry);
+    return (rows as ReportEntryRow[]).map(mapReportEntry);
 }
 
-export async function getReportEntryById(
-  entryId: string
-): Promise<ReportEntry | null> {
-  if (!isValidUuid(entryId)) {
-    return null;
-  }
+export async function getReportEntryById(entryId: string): Promise<ReportEntry | null> {
+    if (!isValidUuid(entryId)) {
+        return null;
+    }
 
-  const ownerId =
-    await getCurrentUserId();
+    const ownerId = await getCurrentUserId();
 
-  const rows = await sql`
+    const rows = await sql`
     SELECT
       entry.id,
 
@@ -576,64 +426,50 @@ export async function getReportEntryById(
     LIMIT 1
   `;
 
-  const entry =
-    rows[0] as
-      | ReportEntryRow
-      | undefined;
+    const entry = rows[0] as ReportEntryRow | undefined;
 
-  return entry
-    ? mapReportEntry(entry)
-    : null;
+    return entry ? mapReportEntry(entry) : null;
 }
 
 export async function createReportEntry(
-  _previousState:
-    ReportEntryActionState,
+    _previousState: ReportEntryActionState,
 
-  formData: FormData
+    formData: FormData
 ): Promise<ReportEntryActionState> {
-  try {
-    const parsed =
-      parseFormData(formData);
+    try {
+        const parsed = parseFormData(formData);
 
-    if (!parsed.success) {
-      return parsed.result;
-    }
+        if (!parsed.success) {
+            return parsed.result;
+        }
 
-    const ownerId =
-      await getCurrentUserId();
+        const ownerId = await getCurrentUserId();
 
-    const project =
-      await getOwnedProject({
-        projectId:
-          parsed.data.projectId,
+        const project = await getOwnedProject({
+            projectId: parsed.data.projectId,
 
-        ownerId,
-      });
+            ownerId,
+        });
 
-    if (!project) {
-      return {
-        success: false,
+        if (!project) {
+            return {
+                success: false,
 
-        message:
-          'O projeto selecionado não foi encontrado.',
+                message: 'O projeto selecionado não foi encontrado.',
 
-        fieldErrors: {
-          projectId:
-            'Selecione um projeto válido.',
-        },
-      };
-    }
+                fieldErrors: {
+                    projectId: 'Selecione um projeto válido.',
+                },
+            };
+        }
 
-    const amount =
-      calculateAmount({
-        durationMinutes:
-          parsed.durationMinutes,
+        const amount = calculateAmount({
+            durationMinutes: parsed.durationMinutes,
 
-        rate: parsed.rate,
-      });
+            rate: parsed.rate,
+        });
 
-    const rows = await sql`
+        const rows = await sql`
       INSERT INTO public.report_entries (
         project_id,
 
@@ -674,109 +510,88 @@ export async function createReportEntry(
       RETURNING id
     `;
 
-    const created =
-      rows[0] as
-        | {
-            id: string;
-          }
-        | undefined;
+        const created = rows[0] as
+            | {
+                  id: string;
+              }
+            | undefined;
 
-    if (!created) {
-      throw new Error(
-        'Lançamento não retornado após a criação.'
-      );
+        if (!created) {
+            throw new Error('Lançamento não retornado após a criação.');
+        }
+
+        revalidatePath('/dashboard');
+        revalidatePath('/relatorios');
+
+        revalidatePath(`/projetos/${parsed.data.projectId}`);
+
+        return {
+            success: true,
+
+            message: 'Lançamento salvo com sucesso.',
+
+            entryId: String(created.id),
+        };
+    } catch (error) {
+        console.error('Erro ao criar lançamento:', error);
+
+        return {
+            success: false,
+
+            message: 'Não foi possível salvar o lançamento.',
+        };
     }
-
-    revalidatePath('/dashboard');
-    revalidatePath('/relatorios');
-
-    revalidatePath(
-      `/projetos/${parsed.data.projectId}`
-    );
-
-    return {
-      success: true,
-
-      message:
-        'Lançamento salvo com sucesso.',
-
-      entryId:
-        String(created.id),
-    };
-  } catch (error) {
-    console.error(
-      'Erro ao criar lançamento:',
-      error
-    );
-
-    return {
-      success: false,
-
-      message:
-        'Não foi possível salvar o lançamento.',
-    };
-  }
 }
 
 export async function updateReportEntry(
-  entryId: string,
+    entryId: string,
 
-  _previousState:
-    ReportEntryActionState,
+    _previousState: ReportEntryActionState,
 
-  formData: FormData
+    formData: FormData
 ): Promise<ReportEntryActionState> {
-  try {
-    if (!isValidUuid(entryId)) {
-      return {
-        success: false,
+    try {
+        if (!isValidUuid(entryId)) {
+            return {
+                success: false,
 
-        message:
-          'Identificador do lançamento inválido.',
-      };
-    }
+                message: 'Identificador do lançamento inválido.',
+            };
+        }
 
-    const parsed =
-      parseFormData(formData);
+        const parsed = parseFormData(formData);
 
-    if (!parsed.success) {
-      return parsed.result;
-    }
+        if (!parsed.success) {
+            return parsed.result;
+        }
 
-    const ownerId =
-      await getCurrentUserId();
+        const ownerId = await getCurrentUserId();
 
-    const project =
-      await getOwnedProject({
-        projectId:
-          parsed.data.projectId,
+        const project = await getOwnedProject({
+            projectId: parsed.data.projectId,
 
-        ownerId,
-      });
+            ownerId,
+        });
 
-    if (!project) {
-      return {
-        success: false,
+        if (!project) {
+            return {
+                success: false,
 
-        message:
-          'O projeto selecionado não foi encontrado.',
+                message: 'O projeto selecionado não foi encontrado.',
 
-        fieldErrors: {
-          projectId:
-            'Selecione um projeto válido.',
-        },
-      };
-    }
+                fieldErrors: {
+                    projectId: 'Selecione um projeto válido.',
+                },
+            };
+        }
 
-    const amount =
-      calculateAmount({
-        durationMinutes:
-          parsed.durationMinutes,
+        const amount = calculateAmount({
+            durationMinutes: parsed.durationMinutes,
 
-        rate: parsed.rate,
-      });
+            rate: parsed.rate,
+        });
 
-    const rows = await sql`
+        const rows = await sql`
       UPDATE public.report_entries entry
 
       SET
@@ -832,90 +647,68 @@ export async function updateReportEntry(
         entry.project_id
     `;
 
-    const updated =
-      rows[0] as
-        | {
-            id: string;
-            project_id: string;
-          }
-        | undefined;
+        const updated = rows[0] as
+            | {
+                  id: string;
+                  project_id: string;
+              }
+            | undefined;
 
-    if (!updated) {
-      return {
-        success: false,
+        if (!updated) {
+            return {
+                success: false,
 
-        message:
-          'Lançamento não encontrado.',
-      };
+                message: 'Lançamento não encontrado.',
+            };
+        }
+
+        revalidatePath('/dashboard');
+        revalidatePath('/relatorios');
+
+        revalidatePath(`/relatorios/${entryId}`);
+
+        revalidatePath(`/relatorios/${entryId}/editar`);
+
+        revalidatePath(`/projetos/${parsed.data.projectId}`);
+
+        if (updated.project_id !== parsed.data.projectId) {
+            revalidatePath(`/projetos/${updated.project_id}`);
+        }
+
+        return {
+            success: true,
+
+            message: 'Lançamento atualizado com sucesso.',
+
+            entryId,
+        };
+    } catch (error) {
+        console.error('Erro ao atualizar lançamento:', error);
+
+        return {
+            success: false,
+
+            message: 'Não foi possível atualizar o lançamento.',
+        };
     }
-
-    revalidatePath('/dashboard');
-    revalidatePath('/relatorios');
-
-    revalidatePath(
-      `/relatorios/${entryId}`
-    );
-
-    revalidatePath(
-      `/relatorios/${entryId}/editar`
-    );
-
-    revalidatePath(
-      `/projetos/${parsed.data.projectId}`
-    );
-
-    if (
-      updated.project_id !==
-      parsed.data.projectId
-    ) {
-      revalidatePath(
-        `/projetos/${updated.project_id}`
-      );
-    }
-
-    return {
-      success: true,
-
-      message:
-        'Lançamento atualizado com sucesso.',
-
-      entryId,
-    };
-  } catch (error) {
-    console.error(
-      'Erro ao atualizar lançamento:',
-      error
-    );
-
-    return {
-      success: false,
-
-      message:
-        'Não foi possível atualizar o lançamento.',
-    };
-  }
 }
 
-export async function deleteReportEntry(
-  entryId: string
-): Promise<{
-  success: boolean;
-  message: string;
+export async function deleteReportEntry(entryId: string): Promise<{
+    success: boolean;
+    message: string;
 }> {
-  try {
-    if (!isValidUuid(entryId)) {
-      return {
-        success: false,
+    try {
+        if (!isValidUuid(entryId)) {
+            return {
+                success: false,
 
-        message:
-          'Identificador do lançamento inválido.',
-      };
-    }
+                message: 'Identificador do lançamento inválido.',
+            };
+        }
 
-    const ownerId =
-      await getCurrentUserId();
+        const ownerId = await getCurrentUserId();
 
-    const rows = await sql`
+        const rows = await sql`
       DELETE FROM public.report_entries
         AS entry
 
@@ -941,62 +734,52 @@ export async function deleteReportEntry(
         entry.project_id
     `;
 
-    const deleted =
-      rows[0] as
-        | {
-            id: string;
-            project_id: string;
-          }
-        | undefined;
+        const deleted = rows[0] as
+            | {
+                  id: string;
+                  project_id: string;
+              }
+            | undefined;
 
-    if (!deleted) {
-      return {
-        success: false,
+        if (!deleted) {
+            return {
+                success: false,
 
-        message:
-          'Lançamento não encontrado.',
-      };
+                message: 'Lançamento não encontrado.',
+            };
+        }
+
+        revalidatePath('/dashboard');
+        revalidatePath('/relatorios');
+
+        revalidatePath(`/projetos/${deleted.project_id}`);
+
+        return {
+            success: true,
+
+            message: 'Lançamento excluído com sucesso.',
+        };
+    } catch (error) {
+        console.error('Erro ao excluir lançamento:', error);
+
+        return {
+            success: false,
+
+            message: 'Não foi possível excluir o lançamento.',
+        };
     }
-
-    revalidatePath('/dashboard');
-    revalidatePath('/relatorios');
-
-    revalidatePath(
-      `/projetos/${deleted.project_id}`
-    );
-
-    return {
-      success: true,
-
-      message:
-        'Lançamento excluído com sucesso.',
-    };
-  } catch (error) {
-    console.error(
-      'Erro ao excluir lançamento:',
-      error
-    );
-
-    return {
-      success: false,
-
-      message:
-        'Não foi possível excluir o lançamento.',
-    };
-  }
 }
 
 export async function getProjectReportSummary(
-  projectId: string
+    projectId: string
 ): Promise<ProjectReportSummary | null> {
-  if (!isValidUuid(projectId)) {
-    return null;
-  }
+    if (!isValidUuid(projectId)) {
+        return null;
+    }
 
-  const ownerId =
-    await getCurrentUserId();
+    const ownerId = await getCurrentUserId();
 
-  const projectRows = await sql`
+    const projectRows = await sql`
     SELECT
       id,
       currency
@@ -1012,19 +795,18 @@ export async function getProjectReportSummary(
     LIMIT 1
   `;
 
-  const project =
-    projectRows[0] as
-      | {
-          id: string;
-          currency: string;
-        }
-      | undefined;
+    const project = projectRows[0] as
+        | {
+              id: string;
+              currency: string;
+          }
+        | undefined;
 
-  if (!project) {
-    return null;
-  }
+    if (!project) {
+        return null;
+    }
 
-  const summaryRows = await sql`
+    const summaryRows = await sql`
     SELECT
       COUNT(*) AS entries_count,
 
@@ -1068,12 +850,9 @@ export async function getProjectReportSummary(
         ${projectId}::uuid
   `;
 
-  const summary =
-    summaryRows[0] as
-      | ProjectReportSummaryRow
-      | undefined;
+    const summary = summaryRows[0] as ProjectReportSummaryRow | undefined;
 
-  const recentRows = await sql`
+    const recentRows = await sql`
     SELECT
       entry.id,
 
@@ -1121,29 +900,15 @@ export async function getProjectReportSummary(
     LIMIT 5
   `;
 
-  return {
-    entriesCount:
-      Number(
-        summary?.entries_count ?? 0
-      ),
+    return {
+        entriesCount: Number(summary?.entries_count ?? 0),
 
-    totalMinutes:
-      Number(
-        summary?.total_minutes ?? 0
-      ),
+        totalMinutes: Number(summary?.total_minutes ?? 0),
 
-    totalAmount:
-      Number(
-        summary?.total_amount ?? 0
-      ),
+        totalAmount: Number(summary?.total_amount ?? 0),
 
-    currency:
-      summary?.currency ??
-      project.currency ??
-      'USD',
+        currency: summary?.currency ?? project.currency ?? 'USD',
 
-    recentEntries: (
-      recentRows as ReportEntryRow[]
-    ).map(mapReportEntry),
-  };
+        recentEntries: (recentRows as ReportEntryRow[]).map(mapReportEntry),
+    };
 }

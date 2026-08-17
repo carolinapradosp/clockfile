@@ -15,14 +15,8 @@ export const COUNTRIES = [
     },
 ] as const;
 
-export type CountryCode =
-    typeof COUNTRIES[number]['value'];
+export type CountryCode = (typeof COUNTRIES)[number]['value'];
 
-export function isValidCountryCode(
-    value: string
-): value is CountryCode {
-    return COUNTRIES.some(
-        (country) =>
-            country.value === value
-    );
+export function isValidCountryCode(value: string): value is CountryCode {
+    return COUNTRIES.some((country) => country.value === value);
 }

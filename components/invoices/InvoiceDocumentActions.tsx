@@ -4,18 +4,13 @@
 
 import Link from 'next/link';
 
-import {
-    ArrowLeft,
-    Printer,
-} from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 
 type InvoiceDocumentActionsProps = {
     invoiceId: string;
 };
 
-export default function InvoiceDocumentActions({
-    invoiceId,
-}: InvoiceDocumentActionsProps) {
+export default function InvoiceDocumentActions({ invoiceId }: InvoiceDocumentActionsProps) {
     function handlePrint() {
         window.print();
     }
@@ -27,7 +22,6 @@ export default function InvoiceDocumentActions({
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para a fatura
             </Link>
 
@@ -37,7 +31,6 @@ export default function InvoiceDocumentActions({
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
                 <Printer size={17} />
-
                 Imprimir ou salvar PDF
             </button>
         </div>

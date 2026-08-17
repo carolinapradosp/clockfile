@@ -15,20 +15,12 @@ type DashboardShellProps = {
     };
 };
 
-export default function DashboardShell({
-    children,
-    user,
-}: DashboardShellProps) {
-    const [collapsed, setCollapsed] =
-        useState(false);
+export default function DashboardShell({ children, user }: DashboardShellProps) {
+    const [collapsed, setCollapsed] = useState(false);
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <Sidebar
-                collapsed={collapsed}
-                onCollapsedChange={setCollapsed}
-                user={user}
-            />
+            <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} user={user} />
 
             <div
                 className={`
@@ -36,16 +28,11 @@ export default function DashboardShell({
           transition-[padding]
           duration-300
 
-          ${collapsed
-                        ? 'lg:pl-20'
-                        : 'lg:pl-72'
-                    }
+          ${collapsed ? 'lg:pl-20' : 'lg:pl-72'}
         `}
             >
                 <main className="min-h-screen px-4 pb-10 pt-20 sm:px-6 lg:px-8 lg:py-8">
-                    <div className="mx-auto w-full max-w-7xl">
-                        {children}
-                    </div>
+                    <div className="mx-auto w-full max-w-7xl">{children}</div>
                 </main>
             </div>
         </div>

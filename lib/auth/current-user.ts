@@ -6,80 +6,62 @@ import { redirect } from 'next/navigation';
 
 import { sql } from '@/lib/db';
 
-import {
-  getValidSession,
-} from '@/lib/auth/session';
+import { getValidSession } from '@/lib/auth/session';
 
 export type CurrentUser = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  status: 'active' | 'blocked';
-  lastLoginAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    status: 'active' | 'blocked';
+    lastLoginAt: string | null;
+    createdAt: string;
+    updatedAt: string;
 };
 
 type CurrentUserRow = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  status: 'active' | 'blocked';
-  last_login_at: string | Date | null;
-  created_at: string | Date;
-  updated_at: string | Date;
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    status: 'active' | 'blocked';
+    last_login_at: string | Date | null;
+    created_at: string | Date;
+    updated_at: string | Date;
 };
 
-function normalizeDateTime(
-  value: string | Date | null
-): string | null {
-  if (!value) {
-    return null;
-  }
+function normalizeDateTime(value: string | Date | null): string | null {
+    if (!value) {
+        return null;
+    }
 
-  return value instanceof Date
-    ? value.toISOString()
-    : new Date(value).toISOString();
+    return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
-function mapCurrentUser(
-  row: CurrentUserRow
-): CurrentUser {
-  return {
-    id: String(row.id),
-    name: row.name,
-    email: row.email,
-    phone: row.phone,
-    status: row.status,
+function mapCurrentUser(row: CurrentUserRow): CurrentUser {
+    return {
+        id: String(row.id),
+        name: row.name,
+        email: row.email,
+        phone: row.phone,
+        status: row.status,
 
-    lastLoginAt:
-      normalizeDateTime(
-        row.last_login_at
-      ),
+        lastLoginAt: normalizeDateTime(row.last_login_at),
 
-    createdAt:
-      normalizeDateTime(
-        row.created_at
-      ) ?? '',
+        createdAt: normalizeDateTime(row.created_at) ?? '',
 
-    updatedAt:
-      normalizeDateTime(
-        row.updated_at
-      ) ?? '',
-  };
+        updatedAt: normalizeDateTime(row.updated_at) ?? '',
+    };
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const session =
-    await getValidSession();
+    const session = await getValidSession();
 
-  if (!session) {
-    return null;
-  }
+    if (!session) {
+        return null;
+    }
 
-  const rows = await sql`
+    const rows = await sql`
     SELECT
       user_account.id,
       user_account.name,
@@ -117,30 +99,23 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     LIMIT 1
   `;
 
-  const user =
-    rows[0] as
-      | CurrentUserRow
-      | undefined;
+    const user = rows[0] as CurrentUserRow | undefined;
 
-  return user
-    ? mapCurrentUser(user)
-    : null;
+    return user ? mapCurrentUser(user) : null;
 }
 
 export async function requireCurrentUser(): Promise<CurrentUser> {
-  const user =
-    await getCurrentUser();
+    const user = await getCurrentUser();
 
-  if (!user) {
-    redirect('/');
-  }
+    if (!user) {
+        redirect('/');
+    }
 
-  return user;
+    return user;
 }
 
 export async function getCurrentUserId(): Promise<string> {
-  const user =
-    await requireCurrentUser();
+    const user = await requireCurrentUser();
 
-  return user.id;
+    return user.id;
 }

@@ -4,48 +4,23 @@
 
 import Link from 'next/link';
 
-import {
-    Eye,
-    EyeOff,
-    Lock,
-    Mail,
-} from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
-import {
-    useActionState,
-    useState,
-} from 'react';
+import { useActionState, useState } from 'react';
 
-import {
-    loginUser,
-    type LoginActionState,
-} from '@/app/actions/auth';
+import { loginUser, type LoginActionState } from '@/app/actions/auth';
 import FieldError from './FieldError';
 import { inputClassName } from '@/lib/utils';
 
-const initialState: LoginActionState =
-    null;
+const initialState: LoginActionState = null;
 
 export default function FormLogin() {
-    const [
-        state,
-        formAction,
-        isPending,
-    ] = useActionState(
-        loginUser,
-        initialState
-    );
+    const [state, formAction, isPending] = useActionState(loginUser, initialState);
 
-    const [
-        showPassword,
-        setShowPassword,
-    ] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <form
-            action={formAction}
-            className="space-y-5"
-        >
+        <form action={formAction} className="space-y-5">
             {state && !state.success && (
                 <div
                     role="alert"
@@ -56,10 +31,7 @@ export default function FormLogin() {
             )}
 
             <div>
-                <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-semibold text-slate-700"
-                >
+                <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
                     E-mail
                 </label>
 
@@ -80,11 +52,7 @@ export default function FormLogin() {
                     />
                 </div>
 
-                <FieldError
-                    message={
-                        state?.fieldErrors?.email
-                    }
-                />
+                <FieldError message={state?.fieldErrors?.email} />
             </div>
 
             <div>
@@ -104,11 +72,7 @@ export default function FormLogin() {
                     <input
                         id="password"
                         name="password"
-                        type={
-                            showPassword
-                                ? 'text'
-                                : 'password'
-                        }
+                        type={showPassword ? 'text' : 'password'}
                         autoComplete="current-password"
                         required
                         placeholder="Sua senha"
@@ -117,31 +81,15 @@ export default function FormLogin() {
 
                     <button
                         type="button"
-                        onClick={() =>
-                            setShowPassword(
-                                (current) => !current
-                            )
-                        }
-                        aria-label={
-                            showPassword
-                                ? 'Ocultar senha'
-                                : 'Mostrar senha'
-                        }
+                        onClick={() => setShowPassword((current) => !current)}
+                        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                         className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                     >
-                        {showPassword ? (
-                            <EyeOff size={18} />
-                        ) : (
-                            <Eye size={18} />
-                        )}
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                 </div>
 
-                <FieldError
-                    message={
-                        state?.fieldErrors?.password
-                    }
-                />
+                <FieldError message={state?.fieldErrors?.password} />
             </div>
 
             <button
@@ -149,9 +97,7 @@ export default function FormLogin() {
                 disabled={isPending}
                 className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
             >
-                {isPending
-                    ? 'Entrando...'
-                    : 'Entrar'}
+                {isPending ? 'Entrando...' : 'Entrar'}
             </button>
 
             <p className="text-center text-sm text-slate-500">

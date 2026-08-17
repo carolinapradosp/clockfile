@@ -61,46 +61,32 @@ const navigationItems: NavigationItem[] = [
     },
 ];
 
-function isActiveRoute(
-    pathname: string,
-    href: string
-): boolean {
+function isActiveRoute(pathname: string, href: string): boolean {
     if (href === '/dashboard') {
         return pathname === href;
     }
 
-    return (
-        pathname === href ||
-        pathname.startsWith(`${href}/`)
-    );
+    return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function getInitials(name: string): string {
-    const parts = name
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
+    const parts = name.trim().split(/\s+/).filter(Boolean);
 
     if (parts.length === 0) {
         return 'U';
     }
 
     if (parts.length === 1) {
-        return parts[0]
-            .slice(0, 2)
-            .toUpperCase();
+        return parts[0].slice(0, 2).toUpperCase();
     }
 
-    return `${parts[0][0]}${parts[parts.length - 1][0]
-        }`.toUpperCase();
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 type SidebarProps = {
     collapsed: boolean;
 
-    onCollapsedChange: (
-        collapsed: boolean
-    ) => void;
+    onCollapsedChange: (collapsed: boolean) => void;
 
     user: {
         name: string;
@@ -108,20 +94,12 @@ type SidebarProps = {
     };
 };
 
-export default function Sidebar({
-    collapsed,
-    onCollapsedChange,
-    user,
-}: SidebarProps) {
+export default function Sidebar({ collapsed, onCollapsedChange, user }: SidebarProps) {
     const pathname = usePathname();
 
-    const [
-        mobileMenuOpenPath,
-        setMobileMenuOpenPath,
-    ] = useState<string | null>(null);
+    const [mobileMenuOpenPath, setMobileMenuOpenPath] = useState<string | null>(null);
 
-    const mobileMenuOpen =
-        mobileMenuOpenPath === pathname;
+    const mobileMenuOpen = mobileMenuOpenPath === pathname;
 
     function closeMobileMenu() {
         setMobileMenuOpenPath(null);
@@ -177,28 +155,16 @@ export default function Sidebar({
           bg-white
           transition-all duration-300
 
-          ${mobileMenuOpen
-                        ? 'translate-x-0'
-                        : '-translate-x-full'
-                    }
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
 
-          ${collapsed
-                        ? 'lg:w-20'
-                        : 'lg:w-72'
-                    }
+          ${collapsed ? 'lg:w-20' : 'lg:w-72'}
 
           lg:translate-x-0
         `}
             >
                 {/* Logo */}
                 <div className="flex h-20 shrink-0 items-center justify-center border-b border-slate-100 px-5">
-                    <div
-                        className={
-                            collapsed
-                                ? 'hidden lg:overflow-hidden'
-                                : ''
-                        }
-                    >
+                    <div className={collapsed ? 'hidden lg:overflow-hidden' : ''}>
                         <Link
                             href="/dashboard"
                             aria-label="Clockfile Dashboard"
@@ -237,10 +203,7 @@ export default function Sidebar({
                 </div>
 
                 {/* Navegação */}
-                <nav
-                    aria-label="Navegação principal"
-                    className="flex-1 overflow-y-auto px-3 py-6"
-                >
+                <nav aria-label="Navegação principal" className="flex-1 overflow-y-auto px-3 py-6">
                     <p
                         className={`
               mb-3 px-3
@@ -250,10 +213,7 @@ export default function Sidebar({
               tracking-[0.16em]
               text-slate-400
 
-              ${collapsed
-                                ? 'lg:hidden'
-                                : ''
-                            }
+              ${collapsed ? 'lg:hidden' : ''}
             `}
                     >
                         Menu
@@ -263,50 +223,32 @@ export default function Sidebar({
                         {navigationItems.map((item) => {
                             const Icon = item.icon;
 
-                            const active = isActiveRoute(
-                                pathname,
-                                item.href
-                            );
+                            const active = isActiveRoute(pathname, item.href);
 
                             return (
                                 <li key={item.href}>
                                     <Link
                                         href={item.href}
                                         onClick={closeMobileMenu}
-                                        title={
-                                            collapsed
-                                                ? item.label
-                                                : undefined
-                                        }
+                                        title={collapsed ? item.label : undefined}
                                         className={`
                       flex h-12 items-center
                       rounded-xl px-3
                       text-sm font-medium
                       transition-colors
 
-                      ${active
-                                                ? 'bg-blue-50 text-blue-700'
-                                                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                                            }
+                      ${
+                          active
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }
 
-                      ${collapsed
-                                                ? 'lg:justify-center'
-                                                : 'gap-3'
-                                            }
+                      ${collapsed ? 'lg:justify-center' : 'gap-3'}
                     `}
                                     >
-                                        <Icon
-                                            size={20}
-                                            className="shrink-0"
-                                        />
+                                        <Icon size={20} className="shrink-0" />
 
-                                        <span
-                                            className={
-                                                collapsed
-                                                    ? 'lg:hidden'
-                                                    : ''
-                                            }
-                                        >
+                                        <span className={collapsed ? 'lg:hidden' : ''}>
                                             {item.label}
                                         </span>
                                     </Link>
@@ -316,9 +258,7 @@ export default function Sidebar({
                     </ul>
 
                     <div className="border-t border-slate-200 pt-3">
-                        <ReportBugButton
-                            collapsed={collapsed}
-                        />
+                        <ReportBugButton collapsed={collapsed} />
                     </div>
                 </nav>
 
@@ -331,53 +271,32 @@ export default function Sidebar({
               bg-slate-50
               p-3
 
-              ${collapsed
-                                ? 'lg:flex lg:justify-center lg:p-2'
-                                : ''
-                            }
+              ${collapsed ? 'lg:flex lg:justify-center lg:p-2' : ''}
             `}
                     >
                         <div
                             className={`
                 flex items-center
 
-                ${collapsed
-                                    ? 'lg:justify-center'
-                                    : 'gap-3'
-                                }
+                ${collapsed ? 'lg:justify-center' : 'gap-3'}
               `}
                         >
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-xs font-bold text-blue-700">
                                 {getInitials(user.name)}
                             </div>
 
-                            <div
-                                className={`min-w-0 ${collapsed
-                                    ? 'lg:hidden'
-                                    : ''
-                                    }`}
-                            >
+                            <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
                                 <p className="truncate text-sm font-semibold text-slate-800">
                                     {user.name}
                                 </p>
 
-                                <p className="truncate text-xs text-slate-500">
-                                    {user.email}
-                                </p>
+                                <p className="truncate text-xs text-slate-500">{user.email}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        className={
-                            collapsed
-                                ? 'lg:flex lg:justify-center'
-                                : ''
-                        }
-                    >
-                        <LogoutButton
-                            collapsed={collapsed}
-                        />
+                    <div className={collapsed ? 'lg:flex lg:justify-center' : ''}>
+                        <LogoutButton collapsed={collapsed} />
                     </div>
 
                     {/* Recolher menu no desktop */}
@@ -386,16 +305,8 @@ export default function Sidebar({
                         onClick={() => {
                             onCollapsedChange(!collapsed);
                         }}
-                        aria-label={
-                            collapsed
-                                ? 'Expandir menu'
-                                : 'Recolher menu'
-                        }
-                        title={
-                            collapsed
-                                ? 'Expandir menu'
-                                : 'Recolher menu'
-                        }
+                        aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+                        title={collapsed ? 'Expandir menu' : 'Recolher menu'}
                         className="
               mt-3 hidden h-10 w-full
               items-center justify-center
@@ -407,11 +318,7 @@ export default function Sidebar({
               lg:flex
             "
                     >
-                        {collapsed ? (
-                            <ChevronRight size={18} />
-                        ) : (
-                            <ChevronLeft size={18} />
-                        )}
+                        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                     </button>
                 </div>
             </aside>

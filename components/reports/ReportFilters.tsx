@@ -3,15 +3,9 @@
 'use client';
 
 import { Filter, RotateCcw } from 'lucide-react';
-import {
-    usePathname,
-    useRouter,
-    useSearchParams,
-} from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import type {
-    ReportProjectOption,
-} from '@/interfaces/ReportEntry';
+import type { ReportProjectOption } from '@/interfaces/ReportEntry';
 import { inputClassNameNoIcon } from '@/lib/utils';
 
 type ReportFiltersProps = {
@@ -19,7 +13,6 @@ type ReportFiltersProps = {
     selectedMonth: string;
     selectedProjectId?: string;
 };
-
 
 export default function ReportFilters({
     projects,
@@ -30,16 +23,8 @@ export default function ReportFilters({
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    function updateFilter({
-        name,
-        value,
-    }: {
-        name: string;
-        value: string;
-    }) {
-        const params = new URLSearchParams(
-            searchParams.toString()
-        );
+    function updateFilter({ name, value }: { name: string; value: string }) {
+        const params = new URLSearchParams(searchParams.toString());
 
         if (value) {
             params.set(name, value);
@@ -47,12 +32,9 @@ export default function ReportFilters({
             params.delete(name);
         }
 
-        router.replace(
-            `${pathname}?${params.toString()}`,
-            {
-                scroll: false,
-            }
-        );
+        router.replace(`${pathname}?${params.toString()}`, {
+            scroll: false,
+        });
     }
 
     function resetFilters() {
@@ -109,15 +91,10 @@ export default function ReportFilters({
                         }}
                         className={`${inputClassNameNoIcon} w-full`}
                     >
-                        <option value="">
-                            Todos os projetos
-                        </option>
+                        <option value="">Todos os projetos</option>
 
                         {projects.map((project) => (
-                            <option
-                                key={project.id}
-                                value={project.id}
-                            >
+                            <option key={project.id} value={project.id}>
                                 {project.name}
                             </option>
                         ))}
@@ -131,7 +108,6 @@ export default function ReportFilters({
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
                 <RotateCcw size={16} />
-
                 Limpar
             </button>
         </div>

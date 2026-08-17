@@ -4,40 +4,22 @@
 
 import { Trash2 } from 'lucide-react';
 
-import type {
-    InvoiceItem,
-    InvoiceItemSource,
-} from '@/interfaces/Invoice';
+import type { InvoiceItem, InvoiceItemSource } from '@/interfaces/Invoice';
 import { inputClassNameNoIcon } from '@/lib/utils';
 
-type EditableInvoiceItemField =
-    | 'description'
-    | 'link'
-    | 'quantity'
-    | 'rate'
-    | 'amount'
-    | 'source';
+type EditableInvoiceItemField = 'description' | 'link' | 'quantity' | 'rate' | 'amount' | 'source';
 
 type InvoiceItemRowProps = {
     item: InvoiceItem;
 
-    onChange: (
-        id: string,
-        field: EditableInvoiceItemField,
-        value: string
-    ) => void;
+    onChange: (id: string, field: EditableInvoiceItemField, value: string) => void;
 
     onRemove: (id: string) => void;
 
     canRemove: boolean;
 };
 
-
-
-const SOURCE_LABELS: Record<
-    InvoiceItemSource,
-    string
-> = {
+const SOURCE_LABELS: Record<InvoiceItemSource, string> = {
     'monthly-report': 'Horas do relatório',
     manual: 'Item manual',
     expense: 'Despesa',
@@ -50,16 +32,13 @@ export default function InvoiceItemRow({
     onRemove,
     canRemove,
 }: InvoiceItemRowProps) {
-    const isReportItem =
-        item.source === 'monthly-report';
+    const isReportItem = item.source === 'monthly-report';
 
     return (
         <article className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                    <p className="text-sm font-bold text-slate-900">
-                        {SOURCE_LABELS[item.source]}
-                    </p>
+                    <p className="text-sm font-bold text-slate-900">{SOURCE_LABELS[item.source]}</p>
 
                     {isReportItem && (
                         <p className="mt-1 text-xs text-slate-500">
@@ -95,13 +74,7 @@ export default function InvoiceItemRow({
                         id={`description-${item.id}`}
                         type="text"
                         value={item.description}
-                        onChange={(event) =>
-                            onChange(
-                                item.id,
-                                'description',
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => onChange(item.id, 'description', event.target.value)}
                         placeholder="Descrição do item"
                         className={inputClassNameNoIcon}
                     />
@@ -109,13 +82,7 @@ export default function InvoiceItemRow({
                     <input
                         type="text"
                         value={item.link}
-                        onChange={(event) =>
-                            onChange(
-                                item.id,
-                                'link',
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => onChange(item.id, 'link', event.target.value)}
                         placeholder="Link ou URL do projeto"
                         className={`${inputClassNameNoIcon} mt-3`}
                     />
@@ -135,13 +102,7 @@ export default function InvoiceItemRow({
                         min="0"
                         step="0.01"
                         value={item.quantity}
-                        onChange={(event) =>
-                            onChange(
-                                item.id,
-                                'quantity',
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => onChange(item.id, 'quantity', event.target.value)}
                         placeholder="0"
                         className={`${inputClassNameNoIcon} text-right`}
                     />
@@ -161,13 +122,7 @@ export default function InvoiceItemRow({
                         min="0"
                         step="0.01"
                         value={item.rate}
-                        onChange={(event) =>
-                            onChange(
-                                item.id,
-                                'rate',
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => onChange(item.id, 'rate', event.target.value)}
                         placeholder="0.00"
                         className={`${inputClassNameNoIcon} text-right`}
                     />
@@ -187,13 +142,7 @@ export default function InvoiceItemRow({
                         min="0"
                         step="0.01"
                         value={item.amount}
-                        onChange={(event) =>
-                            onChange(
-                                item.id,
-                                'amount',
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => onChange(item.id, 'amount', event.target.value)}
                         placeholder="0.00"
                         className={`${inputClassNameNoIcon} text-right font-semibold`}
                     />
@@ -211,26 +160,14 @@ export default function InvoiceItemRow({
                         <select
                             id={`source-${item.id}`}
                             value={item.source}
-                            onChange={(event) =>
-                                onChange(
-                                    item.id,
-                                    'source',
-                                    event.target.value
-                                )
-                            }
+                            onChange={(event) => onChange(item.id, 'source', event.target.value)}
                             className={inputClassNameNoIcon}
                         >
-                            <option value="manual">
-                                Item manual
-                            </option>
+                            <option value="manual">Item manual</option>
 
-                            <option value="expense">
-                                Despesa
-                            </option>
+                            <option value="expense">Despesa</option>
 
-                            <option value="adjustment">
-                                Ajuste
-                            </option>
+                            <option value="adjustment">Ajuste</option>
                         </select>
                     </div>
                 )}

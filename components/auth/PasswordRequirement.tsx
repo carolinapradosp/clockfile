@@ -1,7 +1,4 @@
-import {
-    Check,
-    X,
-} from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
 export default function PasswordRequirement({
     valid,
@@ -18,27 +15,16 @@ export default function PasswordRequirement({
                 gap-2
                 text-xs
                 transition-colors
-                ${valid
-                    ? 'text-emerald-600'
-                    : 'text-slate-400'
-                }
+                ${valid ? 'text-emerald-600' : 'text-slate-400'}
             `}
         >
             {valid ? (
-                <Check
-                    size={14}
-                    className="shrink-0"
-                />
+                <Check size={14} className="shrink-0" />
             ) : (
-                <X
-                    size={14}
-                    className="shrink-0"
-                />
+                <X size={14} className="shrink-0" />
             )}
 
-            <span>
-                {children}
-            </span>
+            <span>{children}</span>
         </div>
     );
 }

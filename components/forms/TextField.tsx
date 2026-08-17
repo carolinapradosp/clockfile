@@ -22,9 +22,7 @@ type TextFieldProps = {
 
     error?: string;
 
-    onChange?: (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 export const inputClassName = `
@@ -74,10 +72,7 @@ export default function TextField({
 }: TextFieldProps) {
     return (
         <div>
-            <label
-                htmlFor={id}
-                className="mb-2 block text-sm font-semibold text-slate-700"
-            >
+            <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-700">
                 {label}
 
                 {required && ' *'}
@@ -97,14 +92,8 @@ export default function TextField({
                 minLength={minLength}
                 maxLength={maxLength}
                 onChange={onChange}
-                aria-invalid={
-                    Boolean(error)
-                }
-                aria-describedby={
-                    error
-                        ? `${id}-error`
-                        : undefined
-                }
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `${id}-error` : undefined}
                 className={inputClassName}
             />
 

@@ -16,9 +16,7 @@ type DashboardLayoutProps = Readonly<{
     children: React.ReactNode;
 }>;
 
-export default async function DashboardLayout({
-    children,
-}: DashboardLayoutProps) {
+export default async function DashboardLayout({ children }: DashboardLayoutProps) {
     /*
      * O proxy verifica apenas a presença do cookie.
      * Aqui validamos efetivamente a sessão no banco.

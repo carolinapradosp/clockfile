@@ -2,59 +2,29 @@
 
 'use client';
 
-import {
-    Bug,
-    CheckCircle2,
-    LoaderCircle,
-    Send,
-    X,
-} from 'lucide-react';
+import { Bug, CheckCircle2, LoaderCircle, Send, X } from 'lucide-react';
 
-import {
-    useState,
-} from 'react';
+import { useState } from 'react';
 
-import {
-    createPortal,
-} from 'react-dom';
+import { createPortal } from 'react-dom';
 
-import {
-    createBugReport,
-} from '@/app/actions/bug-report';
+import { createBugReport } from '@/app/actions/bug-report';
 
 type ReportBugModalProps = {
     open: boolean;
     onClose: () => void;
 };
 
-export default function ReportBugModal({
-    open,
-    onClose,
-}: ReportBugModalProps) {
-    const [
-        subject,
-        setSubject,
-    ] = useState('');
+export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
+    const [subject, setSubject] = useState('');
 
-    const [
-        message,
-        setMessage,
-    ] = useState('');
+    const [message, setMessage] = useState('');
 
-    const [
-        includeTechnicalInfo,
-        setIncludeTechnicalInfo,
-    ] = useState(true);
+    const [includeTechnicalInfo, setIncludeTechnicalInfo] = useState(true);
 
-    const [
-        isPending,
-        setIsPending,
-    ] = useState(false);
+    const [isPending, setIsPending] = useState(false);
 
-    const [
-        result,
-        setResult,
-    ] = useState<{
+    const [result, setResult] = useState<{
         success: boolean;
         message: string;
 
@@ -64,10 +34,7 @@ export default function ReportBugModal({
         };
     } | null>(null);
 
-    if (
-        !open ||
-        typeof document === 'undefined'
-    ) {
+    if (!open || typeof document === 'undefined') {
         return null;
     }
 
@@ -84,10 +51,7 @@ export default function ReportBugModal({
         onClose();
     }
 
-    async function handleSubmit(
-        event:
-            React.FormEvent<HTMLFormElement>
-    ) {
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         if (isPending) {
@@ -98,37 +62,29 @@ export default function ReportBugModal({
             setIsPending(true);
             setResult(null);
 
-            const pageUrl =
-                includeTechnicalInfo
-                    ? `${window.location.pathname}${window.location.search}`
-                    : null;
+            const pageUrl = includeTechnicalInfo
+                ? `${window.location.pathname}${window.location.search}`
+                : null;
 
-            const response =
-                await createBugReport({
-                    subject,
-                    message,
-                    pageUrl,
-                });
+            const response = await createBugReport({
+                subject,
+                message,
+                pageUrl,
+            });
 
             setResult(response);
 
-            if (
-                response.success
-            ) {
+            if (response.success) {
                 setSubject('');
                 setMessage('');
             }
         } catch (error) {
-            console.error(
-                'Erro ao enviar relato:',
-                error
-            );
+            console.error('Erro ao enviar relato:', error);
 
             setResult({
                 success: false,
 
-                message:
-                    'Não foi possível enviar o relato. Tente novamente.',
+                message: 'Não foi possível enviar o relato. Tente novamente.',
             });
         } finally {
             setIsPending(false);
@@ -158,9 +114,7 @@ export default function ReportBugModal({
             <button
                 type="button"
                 aria-label="Fechar modal"
-                onClick={
-                    handleClose
-                }
+                onClick={handleClose}
                 className="absolute inset-0 cursor-default"
             />
 
@@ -185,16 +139,11 @@ export default function ReportBugModal({
 
                 <div className="flex items-start gap-4 border-b border-slate-100 p-6">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <Bug
-                            size={21}
-                        />
+                        <Bug size={21} />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                        <h2
-                            id="bug-report-title"
-                            className="text-lg font-bold text-slate-900"
-                        >
+                        <h2 id="bug-report-title" className="text-lg font-bold text-slate-900">
                             Reportar um problema
                         </h2>
 
@@ -205,12 +154,8 @@ export default function ReportBugModal({
 
                     <button
                         type="button"
-                        onClick={
-                            handleClose
-                        }
-                        disabled={
-                            isPending
-                        }
+                        onClick={handleClose}
+                        disabled={isPending}
                         aria-label="Fechar"
                         className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
                     >
@@ -222,39 +167,26 @@ export default function ReportBugModal({
                     <div className="p-6">
                         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
                             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                                <CheckCircle2
-                                    size={24}
-                                />
+                                <CheckCircle2 size={24} />
                             </div>
 
-                            <h3 className="mt-4 font-bold text-emerald-900">
-                                Relato enviado!
-                            </h3>
+                            <h3 className="mt-4 font-bold text-emerald-900">Relato enviado!</h3>
 
                             <p className="mt-2 text-sm leading-relaxed text-emerald-700">
-                                {
-                                    result.message
-                                }
+                                {result.message}
                             </p>
                         </div>
 
                         <button
                             type="button"
-                            onClick={
-                                handleClose
-                            }
+                            onClick={handleClose}
                             className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
                         >
                             Fechar
                         </button>
                     </div>
                 ) : (
-                    <form
-                        onSubmit={
-                            handleSubmit
-                        }
-                        className="p-6"
-                    >
+                    <form onSubmit={handleSubmit} className="p-6">
                         {/* ASSUNTO */}
 
                         <div>
@@ -268,23 +200,11 @@ export default function ReportBugModal({
                             <input
                                 id="bug-subject"
                                 type="text"
-                                value={
-                                    subject
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    setSubject(
-                                        event.target.value
-                                    )
-                                }
+                                value={subject}
+                                onChange={(event) => setSubject(event.target.value)}
                                 required
-                                minLength={
-                                    3
-                                }
-                                maxLength={
-                                    200
-                                }
+                                minLength={3}
+                                maxLength={200}
                                 placeholder="Ex.: Não consigo salvar uma fatura"
                                 className="
                                     h-12
@@ -306,19 +226,11 @@ export default function ReportBugModal({
                                 "
                             />
 
-                            {result &&
-                                !result.success &&
-                                result
-                                    .fieldErrors
-                                    ?.subject && (
-                                    <p className="mt-2 text-xs font-medium text-red-600">
-                                        {
-                                            result
-                                                .fieldErrors
-                                                .subject
-                                        }
-                                    </p>
-                                )}
+                            {result && !result.success && result.fieldErrors?.subject && (
+                                <p className="mt-2 text-xs font-medium text-red-600">
+                                    {result.fieldErrors.subject}
+                                </p>
+                            )}
                         </div>
 
                         {/* DESCRIÇÃO */}
@@ -333,32 +245,18 @@ export default function ReportBugModal({
                                 </label>
 
                                 <span className="text-xs text-slate-400">
-                                    {
-                                        message.length
-                                    }
+                                    {message.length}
                                     /5000
                                 </span>
                             </div>
 
                             <textarea
                                 id="bug-message"
-                                value={
-                                    message
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    setMessage(
-                                        event.target.value
-                                    )
-                                }
+                                value={message}
+                                onChange={(event) => setMessage(event.target.value)}
                                 required
-                                minLength={
-                                    10
-                                }
-                                maxLength={
-                                    5000
-                                }
+                                minLength={10}
+                                maxLength={5000}
                                 rows={6}
                                 placeholder="Explique o que você estava tentando fazer, o que esperava que acontecesse e o que aconteceu de fato..."
                                 className="
@@ -383,19 +281,11 @@ export default function ReportBugModal({
                                 "
                             />
 
-                            {result &&
-                                !result.success &&
-                                result
-                                    .fieldErrors
-                                    ?.message && (
-                                    <p className="mt-2 text-xs font-medium text-red-600">
-                                        {
-                                            result
-                                                .fieldErrors
-                                                .message
-                                        }
-                                    </p>
-                                )}
+                            {result && !result.success && result.fieldErrors?.message && (
+                                <p className="mt-2 text-xs font-medium text-red-600">
+                                    {result.fieldErrors.message}
+                                </p>
+                            )}
                         </div>
 
                         {/* INFORMAÇÕES TÉCNICAS */}
@@ -403,16 +293,8 @@ export default function ReportBugModal({
                         <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
                             <input
                                 type="checkbox"
-                                checked={
-                                    includeTechnicalInfo
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    setIncludeTechnicalInfo(
-                                        event.target.checked
-                                    )
-                                }
+                                checked={includeTechnicalInfo}
+                                onChange={(event) => setIncludeTechnicalInfo(event.target.checked)}
                                 className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600"
                             />
 
@@ -422,36 +304,30 @@ export default function ReportBugModal({
                                 </p>
 
                                 <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                                    Envia a página atual e informações do navegador para ajudar a identificar o problema.
+                                    Envia a página atual e informações do navegador para ajudar a
+                                    identificar o problema.
                                 </p>
                             </div>
                         </label>
 
                         {/* ERRO GERAL */}
 
-                        {result &&
-                            !result.success && (
-                                <div
-                                    role="alert"
-                                    className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
-                                >
-                                    {
-                                        result.message
-                                    }
-                                </div>
-                            )}
+                        {result && !result.success && (
+                            <div
+                                role="alert"
+                                className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
+                            >
+                                {result.message}
+                            </div>
+                        )}
 
                         {/* AÇÕES */}
 
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
-                                onClick={
-                                    handleClose
-                                }
-                                disabled={
-                                    isPending
-                                }
+                                onClick={handleClose}
+                                disabled={isPending}
                                 className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
                             >
                                 Cancelar
@@ -459,26 +335,17 @@ export default function ReportBugModal({
 
                             <button
                                 type="submit"
-                                disabled={
-                                    isPending
-                                }
+                                disabled={isPending}
                                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
                             >
                                 {isPending ? (
                                     <>
-                                        <LoaderCircle
-                                            size={17}
-                                            className="animate-spin"
-                                        />
-
+                                        <LoaderCircle size={17} className="animate-spin" />
                                         Enviando...
                                     </>
                                 ) : (
                                     <>
-                                        <Send
-                                            size={17}
-                                        />
-
+                                        <Send size={17} />
                                         Enviar relato
                                     </>
                                 )}

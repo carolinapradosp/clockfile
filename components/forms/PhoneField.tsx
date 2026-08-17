@@ -9,21 +9,15 @@ type PhoneFieldProps = {
 
     value: string;
 
-    onChange: (
-        value: string
-    ) => void;
+    onChange: (value: string) => void;
 
     error?: string;
 
     required?: boolean;
 };
 
-export function formatPhone(
-    value: string
-): string {
-    const digits = value
-        .replace(/\D/g, '')
-        .slice(0, 11);
+export function formatPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
 
     if (!digits) {
         return '';
@@ -33,42 +27,25 @@ export function formatPhone(
         return `(${digits}`;
     }
 
-    const areaCode =
-        digits.slice(0, 2);
+    const areaCode = digits.slice(0, 2);
 
-    const number =
-        digits.slice(2);
+    const number = digits.slice(2);
 
     if (number.length <= 4) {
         return `(${areaCode}) ${number}`;
     }
 
     if (number.length <= 8) {
-        return `(${areaCode}) ${number.slice(
-            0,
-            4
-        )}-${number.slice(4)}`;
+        return `(${areaCode}) ${number.slice(0, 4)}-${number.slice(4)}`;
     }
 
-    return `(${areaCode}) ${number.slice(
-        0,
-        5
-    )}-${number.slice(5)}`;
+    return `(${areaCode}) ${number.slice(0, 5)}-${number.slice(5)}`;
 }
 
-export function isValidPhone(
-    value: string
-): boolean {
-    const digits =
-        value.replace(
-            /\D/g,
-            ''
-        );
+export function isValidPhone(value: string): boolean {
+    const digits = value.replace(/\D/g, '');
 
-    return (
-        digits.length === 10 ||
-        digits.length === 11
-    );
+    return digits.length === 10 || digits.length === 11;
 }
 
 export default function PhoneField({
@@ -96,13 +73,7 @@ export default function PhoneField({
             maxLength={15}
             placeholder="(11) 99999-9999"
             error={error}
-            onChange={(event) =>
-                onChange(
-                    formatPhone(
-                        event.target.value
-                    )
-                )
-            }
+            onChange={(event) => onChange(formatPhone(event.target.value))}
         />
     );
 }

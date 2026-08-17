@@ -1,16 +1,8 @@
 // interfaces/BugReport.ts
 
-export type BugReportStatus =
-    | 'open'
-    | 'reviewing'
-    | 'resolved'
-    | 'closed';
+export type BugReportStatus = 'open' | 'reviewing' | 'resolved' | 'closed';
 
-export type BugReportPriority =
-    | 'low'
-    | 'normal'
-    | 'high'
-    | 'critical';
+export type BugReportPriority = 'low' | 'normal' | 'high' | 'critical';
 
 export type CreateBugReportInput = {
     subject: string;

@@ -1,22 +1,15 @@
 'use client';
 
-import {
-    LoaderCircle,
-    Trash2,
-} from 'lucide-react';
+import { LoaderCircle, Trash2 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import {
-    deleteInvoice,
-} from '@/app/actions/invoice';
+import { deleteInvoice } from '@/app/actions/invoice';
 
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
-import type {
-    InvoiceStatus,
-} from '@/interfaces/Invoice';
+import type { InvoiceStatus } from '@/interfaces/Invoice';
 
 type DeleteInvoiceButtonProps = {
     invoiceId: string;
@@ -25,10 +18,7 @@ type DeleteInvoiceButtonProps = {
     variant?: 'button' | 'icon';
 };
 
-const STATUS_LABELS: Record<
-    InvoiceStatus,
-    string
-> = {
+const STATUS_LABELS: Record<InvoiceStatus, string> = {
     draft: 'rascunho',
     issued: 'emitida',
     sent: 'enviada',
@@ -45,18 +35,11 @@ export default function DeleteInvoiceButton({
 }: DeleteInvoiceButtonProps) {
     const router = useRouter();
 
-    const [
-        isPending,
-        setIsPending,
-    ] = useState(false);
+    const [isPending, setIsPending] = useState(false);
 
-    const [
-        isConfirmOpen,
-        setIsConfirmOpen,
-    ] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-    const [error, setError] =
-        useState('');
+    const [error, setError] = useState('');
 
     function handleOpenConfirmation() {
         setError('');
@@ -76,15 +59,10 @@ export default function DeleteInvoiceButton({
             setIsPending(true);
             setError('');
 
-            const result =
-                await deleteInvoice(
-                    invoiceId
-                );
+            const result = await deleteInvoice(invoiceId);
 
             if (!result.success) {
-                setError(
-                    result.message
-                );
+                setError(result.message);
 
                 return;
             }
@@ -94,21 +72,15 @@ export default function DeleteInvoiceButton({
             router.replace('/faturas');
             router.refresh();
         } catch (deleteError) {
-            console.error(
-                'Erro ao excluir fatura:',
-                deleteError
-            );
+            console.error('Erro ao excluir fatura:', deleteError);
 
-            setError(
-                'Não foi possível excluir a fatura.'
-            );
+            setError('Não foi possível excluir a fatura.');
         } finally {
             setIsPending(false);
         }
     }
 
-    const statusLabel =
-        STATUS_LABELS[invoiceStatus];
+    const statusLabel = STATUS_LABELS[invoiceStatus];
 
     const modal = (
         <ConfirmModal
@@ -119,12 +91,8 @@ export default function DeleteInvoiceButton({
             cancelLabel="Cancelar"
             loading={isPending}
             variant="danger"
-            onConfirm={
-                handleConfirmDelete
-            }
-            onCancel={
-                handleCancelConfirmation
-            }
+            onConfirm={handleConfirmDelete}
+            onCancel={handleCancelConfirmation}
         />
     );
 
@@ -134,19 +102,14 @@ export default function DeleteInvoiceButton({
                 <div className="flex flex-col items-end">
                     <button
                         type="button"
-                        onClick={
-                            handleOpenConfirmation
-                        }
+                        onClick={handleOpenConfirmation}
                         disabled={isPending}
                         title={`Excluir fatura #${invoiceNumber}`}
                         aria-label={`Excluir fatura ${invoiceNumber}`}
                         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-wait disabled:opacity-50"
                     >
                         {isPending ? (
-                            <LoaderCircle
-                                size={16}
-                                className="animate-spin"
-                            />
+                            <LoaderCircle size={16} className="animate-spin" />
                         ) : (
                             <Trash2 size={16} />
                         )}
@@ -169,31 +132,20 @@ export default function DeleteInvoiceButton({
             <div>
                 <button
                     type="button"
-                    onClick={
-                        handleOpenConfirmation
-                    }
+                    onClick={handleOpenConfirmation}
                     disabled={isPending}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
                 >
                     {isPending ? (
-                        <LoaderCircle
-                            size={17}
-                            className="animate-spin"
-                        />
+                        <LoaderCircle size={17} className="animate-spin" />
                     ) : (
                         <Trash2 size={17} />
                     )}
 
-                    {isPending
-                        ? 'Excluindo...'
-                        : 'Excluir fatura'}
+                    {isPending ? 'Excluindo...' : 'Excluir fatura'}
                 </button>
 
-                {error && (
-                    <p className="mt-2 max-w-80 text-sm font-medium text-red-600">
-                        {error}
-                    </p>
-                )}
+                {error && <p className="mt-2 max-w-80 text-sm font-medium text-red-600">{error}</p>}
             </div>
 
             {modal}

@@ -2,25 +2,14 @@
 
 import Link from 'next/link';
 
-import {
-    CircleDollarSign,
-    Clock3,
-    FileText,
-    Plus,
-    ReceiptText,
-} from 'lucide-react';
+import { CircleDollarSign, Clock3, FileText, Plus, ReceiptText } from 'lucide-react';
 
-import {
-    getInvoiceProjectOptions,
-    getInvoices,
-} from '@/app/actions/invoice';
+import { getInvoiceProjectOptions, getInvoices } from '@/app/actions/invoice';
 
 import InvoiceFilters from '@/components/invoices/InvoiceFilters';
 import InvoicesTable from '@/components/invoices/InvoicesTable';
 
-import type {
-    InvoiceStatus,
-} from '@/interfaces/Invoice';
+import type { InvoiceStatus } from '@/interfaces/Invoice';
 import formatCurrency, { isValidMonth } from '@/lib/utils';
 
 type InvoicesPageProps = {
@@ -31,25 +20,10 @@ type InvoicesPageProps = {
     }>;
 };
 
-const VALID_STATUSES: InvoiceStatus[] = [
-    'draft',
-    'issued',
-    'sent',
-    'paid',
-    'overdue',
-    'cancelled',
-];
+const VALID_STATUSES: InvoiceStatus[] = ['draft', 'issued', 'sent', 'paid', 'overdue', 'cancelled'];
 
-
-
-function normalizeStatus(
-    value?: string
-): InvoiceStatus | undefined {
-    return VALID_STATUSES.includes(
-        value as InvoiceStatus
-    )
-        ? (value as InvoiceStatus)
-        : undefined;
+function normalizeStatus(value?: string): InvoiceStatus | undefined {
+    return VALID_STATUSES.includes(value as InvoiceStatus) ? (value as InvoiceStatus) : undefined;
 }
 
 function groupTotalsByCurrency(
@@ -58,145 +32,80 @@ function groupTotalsByCurrency(
         totalAmount: number;
     }>
 ) {
-    return values.reduce<
-        Record<string, number>
-    >((totals, item) => {
-        totals[item.currency] =
-            (totals[item.currency] ?? 0) +
-            item.totalAmount;
+    return values.reduce<Record<string, number>>((totals, item) => {
+        totals[item.currency] = (totals[item.currency] ?? 0) + item.totalAmount;
 
         return totals;
     }, {});
 }
 
-function TotalsList({
-    totals,
-}: {
-    totals: Record<string, number>;
-}) {
-    const entries =
-        Object.entries(totals);
+function TotalsList({ totals }: { totals: Record<string, number> }) {
+    const entries = Object.entries(totals);
 
     if (entries.length === 0) {
-        return (
-            <p className="mt-3 text-2xl font-bold text-slate-900">
-                $0.00
-            </p>
-        );
+        return <p className="mt-3 text-2xl font-bold text-slate-900">$0.00</p>;
     }
 
     return (
         <div className="mt-3 space-y-1">
-            {entries.map(
-                ([currency, value]) => (
-                    <p
-                        key={currency}
-                        className="text-xl font-bold text-slate-900"
-                    >
-                        {formatCurrency({
-                            value,
-                            currency,
-                        })}
-                    </p>
-                )
-            )}
+            {entries.map(([currency, value]) => (
+                <p key={currency} className="text-xl font-bold text-slate-900">
+                    {formatCurrency({
+                        value,
+                        currency,
+                    })}
+                </p>
+            ))}
         </div>
     );
 }
 
-export default async function InvoicesPage({
-    searchParams,
-}: InvoicesPageProps) {
-    const params =
-        await searchParams;
+export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
+    const params = await searchParams;
 
-    const selectedMonth =
-        isValidMonth(params.month)
-            ? params.month
-            : undefined;
+    const selectedMonth = isValidMonth(params.month) ? params.month : undefined;
 
-    const selectedStatus =
-        normalizeStatus(
-            params.status
-        );
+    const selectedStatus = normalizeStatus(params.status);
 
-    const selectedProjectId =
-        params.projectId || undefined;
+    const selectedProjectId = params.projectId || undefined;
 
-    const [
-        invoices,
-        projects,
-    ] = await Promise.all([
+    const [invoices, projects] = await Promise.all([
         getInvoices({
             month: selectedMonth,
 
-            projectId:
-                selectedProjectId,
+            projectId: selectedProjectId,
 
-            status:
-                selectedStatus,
+            status: selectedStatus,
         }),
-
 
         getInvoiceProjectOptions(),
     ]);
 
-    const issuedInvoices =
-        invoices.filter(
-            (invoice) =>
-                invoice.status !==
-                'draft' &&
-                invoice.status !==
-                'cancelled'
-        );
+    const issuedInvoices = invoices.filter(
+        (invoice) => invoice.status !== 'draft' && invoice.status !== 'cancelled'
+    );
 
-    const pendingInvoices =
-        invoices.filter(
-            (invoice) =>
-                invoice.status ===
-                'issued' ||
-                invoice.status ===
-                'sent' ||
-                invoice.status ===
-                'overdue'
-        );
+    const pendingInvoices = invoices.filter(
+        (invoice) =>
+            invoice.status === 'issued' || invoice.status === 'sent' || invoice.status === 'overdue'
+    );
 
-    const paidInvoices =
-        invoices.filter(
-            (invoice) =>
-                invoice.status === 'paid'
-        );
+    const paidInvoices = invoices.filter((invoice) => invoice.status === 'paid');
 
-    const issuedTotals =
-        groupTotalsByCurrency(
-            issuedInvoices
-        );
+    const issuedTotals = groupTotalsByCurrency(issuedInvoices);
 
-    const pendingTotals =
-        groupTotalsByCurrency(
-            pendingInvoices
-        );
+    const pendingTotals = groupTotalsByCurrency(pendingInvoices);
 
-    const paidTotals =
-        groupTotalsByCurrency(
-            paidInvoices
-        );
+    const paidTotals = groupTotalsByCurrency(paidInvoices);
 
-    const newInvoiceParams =
-        new URLSearchParams();
+    const newInvoiceParams = new URLSearchParams();
 
     if (selectedProjectId) {
-        newInvoiceParams.set(
-            'projectId',
-            selectedProjectId
-        );
+        newInvoiceParams.set('projectId', selectedProjectId);
     }
 
     if (selectedMonth) {
-        newInvoiceParams.set(
-            'month',
-            selectedMonth
-        );
+        newInvoiceParams.set('month', selectedMonth);
     }
 
     const newInvoiceHref =
@@ -208,9 +117,7 @@ export default async function InvoicesPage({
         <div>
             <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                        Faturas
-                    </h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Faturas</h1>
 
                     <p className="mt-2 text-sm text-slate-500">
                         Crie, acompanhe e gerencie as cobranças dos seus clientes.
@@ -222,11 +129,9 @@ export default async function InvoicesPage({
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                 >
                     <Plus size={18} />
-
                     Nova fatura
                 </Link>
             </header>
-
 
             <InvoiceFilters
                 projects={projects}
@@ -239,9 +144,7 @@ export default async function InvoicesPage({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Faturas
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Faturas</p>
 
                             <p className="mt-3 text-2xl font-bold text-slate-900">
                                 {invoices.length}
@@ -257,13 +160,9 @@ export default async function InvoicesPage({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Total emitido
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Total emitido</p>
 
-                            <TotalsList
-                                totals={issuedTotals}
-                            />
+                            <TotalsList totals={issuedTotals} />
                         </div>
 
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
@@ -275,13 +174,9 @@ export default async function InvoicesPage({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                A receber
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">A receber</p>
 
-                            <TotalsList
-                                totals={pendingTotals}
-                            />
+                            <TotalsList totals={pendingTotals} />
                         </div>
 
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
@@ -293,27 +188,19 @@ export default async function InvoicesPage({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Recebido
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Recebido</p>
 
-                            <TotalsList
-                                totals={paidTotals}
-                            />
+                            <TotalsList totals={paidTotals} />
                         </div>
 
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                            <CircleDollarSign
-                                size={21}
-                            />
+                            <CircleDollarSign size={21} />
                         </div>
                     </div>
                 </article>
             </section>
 
-            <InvoicesTable
-                invoices={invoices}
-            />
+            <InvoicesTable invoices={invoices} />
         </div>
     );
 }

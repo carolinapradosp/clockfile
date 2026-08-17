@@ -2,35 +2,22 @@
 
 import Link from 'next/link';
 
-import {
-    BriefcaseBusiness,
-    Edit3,
-} from 'lucide-react';
+import { BriefcaseBusiness, Edit3 } from 'lucide-react';
 
 import DeleteReportEntryButton from '@/components/reports/DeleteReportEntryButton';
 
-import type {
-    ReportEntry,
-} from '@/interfaces/ReportEntry';
+import type { ReportEntry } from '@/interfaces/ReportEntry';
 import formatCurrency, { formatDate } from '@/lib/utils';
 
 type ReportEntriesTableProps = {
     entries: ReportEntry[];
 };
 
-
-
-
-export default function ReportEntriesTable({
-    entries,
-}: ReportEntriesTableProps) {
+export default function ReportEntriesTable({ entries }: ReportEntriesTableProps) {
     if (entries.length === 0) {
         return (
             <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-                <BriefcaseBusiness
-                    size={27}
-                    className="text-slate-400"
-                />
+                <BriefcaseBusiness size={27} className="text-slate-400" />
 
                 <h2 className="mt-4 text-lg font-bold text-slate-900">
                     Nenhum lançamento encontrado
@@ -51,123 +38,95 @@ export default function ReportEntriesTable({
                     <table className="w-full border-collapse text-left">
                         <thead>
                             <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                <th className="px-5 py-4">
-                                    Data
-                                </th>
+                                <th className="px-5 py-4">Data</th>
 
-                                <th className="px-5 py-4">
-                                    Projeto
-                                </th>
+                                <th className="px-5 py-4">Projeto</th>
 
-                                <th className="px-5 py-4">
-                                    Atividade
-                                </th>
+                                <th className="px-5 py-4">Atividade</th>
 
-                                <th className="px-5 py-4 text-right">
-                                    Duração
-                                </th>
+                                <th className="px-5 py-4 text-right">Duração</th>
 
-                                <th className="px-5 py-4 text-right">
-                                    Rate
-                                </th>
+                                <th className="px-5 py-4 text-right">Rate</th>
 
-                                <th className="px-5 py-4 text-right">
-                                    Valor
-                                </th>
+                                <th className="px-5 py-4 text-right">Valor</th>
 
-                                <th className="w-24 px-5 py-4 text-right">
-                                    Ações
-                                </th>
+                                <th className="w-24 px-5 py-4 text-right">Ações</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {entries.map(
-                                (entry) => (
-                                    <tr
-                                        key={entry.id}
-                                        className="border-b border-slate-100 last:border-b-0"
-                                    >
-                                        <td className="px-5 py-4 align-top text-sm font-medium text-slate-700">
-                                            {formatDate(
-                                                entry.date
-                                            )}
-                                        </td>
+                            {entries.map((entry) => (
+                                <tr
+                                    key={entry.id}
+                                    className="border-b border-slate-100 last:border-b-0"
+                                >
+                                    <td className="px-5 py-4 align-top text-sm font-medium text-slate-700">
+                                        {formatDate(entry.date)}
+                                    </td>
 
-                                        <td className="px-5 py-4 align-top">
+                                    <td className="px-5 py-4 align-top">
+                                        <Link
+                                            href={`/projetos/${entry.projectId}`}
+                                            className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
+                                        >
+                                            {entry.projectName}
+                                        </Link>
+                                    </td>
+
+                                    <td className="max-w-md px-5 py-4 align-top">
+                                        <Link
+                                            href={`/relatorios/${entry.id}`}
+                                            className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
+                                        >
+                                            {entry.task}
+                                        </Link>
+
+                                        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                                            {entry.description}
+                                        </p>
+                                    </td>
+
+                                    <td className="px-5 py-4 text-right align-top text-sm font-medium text-slate-700">
+                                        {entry.duration}
+                                    </td>
+
+                                    <td className="px-5 py-4 text-right align-top text-sm text-slate-500">
+                                        {entry.rate !== null
+                                            ? formatCurrency({
+                                                  value: entry.rate,
+
+                                                  currency: entry.currency,
+                                              })
+                                            : '—'}
+                                    </td>
+
+                                    <td className="px-5 py-4 text-right align-top text-sm font-bold text-slate-800">
+                                        {formatCurrency({
+                                            value: entry.amount,
+
+                                            currency: entry.currency,
+                                        })}
+                                    </td>
+
+                                    <td className="px-5 py-4 align-top">
+                                        <div className="flex justify-end gap-1">
                                             <Link
-                                                href={`/projetos/${entry.projectId}`}
-                                                className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
+                                                href={`/relatorios/${entry.id}/editar`}
+                                                title="Editar lançamento"
+                                                aria-label={`Editar ${entry.task}`}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                                             >
-                                                {entry.projectName}
-                                            </Link>
-                                        </td>
-
-                                        <td className="max-w-md px-5 py-4 align-top">
-                                            <Link
-                                                href={`/relatorios/${entry.id}`}
-                                                className="text-sm font-semibold text-slate-800 transition-colors hover:text-blue-600"
-                                            >
-                                                {entry.task}
+                                                <Edit3 size={16} />
                                             </Link>
 
-                                            <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500">
-                                                {entry.description}
-                                            </p>
-                                        </td>
-
-                                        <td className="px-5 py-4 text-right align-top text-sm font-medium text-slate-700">
-                                            {entry.duration}
-                                        </td>
-
-                                        <td className="px-5 py-4 text-right align-top text-sm text-slate-500">
-                                            {entry.rate !== null
-                                                ? formatCurrency({
-                                                    value:
-                                                        entry.rate,
-
-                                                    currency:
-                                                        entry.currency,
-                                                })
-                                                : '—'}
-                                        </td>
-
-                                        <td className="px-5 py-4 text-right align-top text-sm font-bold text-slate-800">
-                                            {formatCurrency({
-                                                value:
-                                                    entry.amount,
-
-                                                currency:
-                                                    entry.currency,
-                                            })}
-                                        </td>
-
-                                        <td className="px-5 py-4 align-top">
-                                            <div className="flex justify-end gap-1">
-                                                <Link
-                                                    href={`/relatorios/${entry.id}/editar`}
-                                                    title="Editar lançamento"
-                                                    aria-label={`Editar ${entry.task}`}
-                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
-                                                >
-                                                    <Edit3
-                                                        size={16}
-                                                    />
-                                                </Link>
-
-                                                <DeleteReportEntryButton
-                                                    entryId={
-                                                        entry.id
-                                                    }
-                                                    task={
-                                                        entry.task
-                                                    }
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            )}
+                                            <DeleteReportEntryButton
+                                                entryId={entry.id}
+                                                task={entry.task}
+                                            />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
@@ -183,14 +142,10 @@ export default function ReportEntriesTable({
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                    {formatDate(
-                                        entry.date
-                                    )}
+                                    {formatDate(entry.date)}
                                 </p>
 
-                                <h2 className="mt-2 font-bold text-slate-900">
-                                    {entry.task}
-                                </h2>
+                                <h2 className="mt-2 font-bold text-slate-900">{entry.task}</h2>
                             </div>
 
                             <div className="flex gap-1">
@@ -202,10 +157,7 @@ export default function ReportEntriesTable({
                                     <Edit3 size={16} />
                                 </Link>
 
-                                <DeleteReportEntryButton
-                                    entryId={entry.id}
-                                    task={entry.task}
-                                />
+                                <DeleteReportEntryButton entryId={entry.id} task={entry.task} />
                             </div>
                         </div>
 
@@ -223,9 +175,7 @@ export default function ReportEntriesTable({
 
                             <div className="mt-4 grid grid-cols-3 gap-3">
                                 <div>
-                                    <p className="text-xs text-slate-400">
-                                        Duração
-                                    </p>
+                                    <p className="text-xs text-slate-400">Duração</p>
 
                                     <p className="mt-1 text-sm font-semibold text-slate-800">
                                         {entry.duration}
@@ -233,35 +183,27 @@ export default function ReportEntriesTable({
                                 </div>
 
                                 <div>
-                                    <p className="text-xs text-slate-400">
-                                        Rate
-                                    </p>
+                                    <p className="text-xs text-slate-400">Rate</p>
 
                                     <p className="mt-1 text-sm font-semibold text-slate-800">
                                         {entry.rate !== null
                                             ? formatCurrency({
-                                                value:
-                                                    entry.rate,
+                                                  value: entry.rate,
 
-                                                currency:
-                                                    entry.currency,
-                                            })
+                                                  currency: entry.currency,
+                                              })
                                             : '—'}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <p className="text-xs text-slate-400">
-                                        Valor
-                                    </p>
+                                    <p className="text-xs text-slate-400">Valor</p>
 
                                     <p className="mt-1 text-sm font-bold text-slate-900">
                                         {formatCurrency({
-                                            value:
-                                                entry.amount,
+                                            value: entry.amount,
 
-                                            currency:
-                                                entry.currency,
+                                            currency: entry.currency,
                                         })}
                                     </p>
                                 </div>

@@ -10,21 +10,15 @@ type EmailFieldProps = {
     value?: string;
     defaultValue?: string;
 
-    onChange?: (
-        value: string
-    ) => void;
+    onChange?: (value: string) => void;
 
     error?: string;
 
     required?: boolean;
 };
 
-export function isValidEmail(
-    value: string
-): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        value.trim()
-    );
+export function isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 export default function EmailField({
@@ -54,14 +48,7 @@ export default function EmailField({
             maxLength={255}
             placeholder="voce@exemplo.com"
             error={error}
-            onChange={
-                onChange
-                    ? (event) =>
-                        onChange(
-                            event.target.value
-                        )
-                    : undefined
-            }
+            onChange={onChange ? (event) => onChange(event.target.value) : undefined}
         />
     );
 }

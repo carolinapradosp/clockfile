@@ -2,145 +2,105 @@
 
 import 'server-only';
 
-import {
-  createHash,
-  randomBytes,
-} from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 
-import {
-  cookies,
-  headers,
-} from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 import { sql } from '@/lib/db';
 
-export const SESSION_COOKIE_NAME =
-  'clockfile_session';
+export const SESSION_COOKIE_NAME = 'clockfile_session';
 
-const SESSION_DURATION_SECONDS =
-  60 * 60 * 24 * 7;
+const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
 
-const SESSION_REFRESH_THRESHOLD_SECONDS =
-  60 * 60 * 24;
+const SESSION_REFRESH_THRESHOLD_SECONDS = 60 * 60 * 24;
 
 type SessionRow = {
-  id: string;
-  user_id: string;
-  expires_at: string | Date;
+    id: string;
+    user_id: string;
+    expires_at: string | Date;
 };
 
 type CreateSessionOptions = {
-  userAgent?: string | null;
-  ipAddress?: string | null;
+    userAgent?: string | null;
+    ipAddress?: string | null;
 };
 
 export type ValidSession = {
-  id: string;
-  userId: string;
-  expiresAt: string;
+    id: string;
+    userId: string;
+    expiresAt: string;
 };
 
 function createSessionToken(): string {
-  /*
-   * 32 bytes = 256 bits de entropia.
-   * O token puro ficará apenas no cookie.
-   */
-  return randomBytes(32).toString(
-    'base64url'
-  );
+    /*
+     * 32 bytes = 256 bits de entropia.
+     * O token puro ficará apenas no cookie.
+     */
+    return randomBytes(32).toString('base64url');
 }
 
-export function hashSessionToken(
-  token: string
-): string {
-  return createHash('sha256')
-    .update(token)
-    .digest('hex');
+export function hashSessionToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
 }
 
-function normalizeDateTime(
-  value: string | Date
-): string {
-  return value instanceof Date
-    ? value.toISOString()
-    : new Date(value).toISOString();
+function normalizeDateTime(value: string | Date): string {
+    return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
 function getSessionExpiration(): Date {
-  return new Date(
-    Date.now() +
-      SESSION_DURATION_SECONDS * 1000
-  );
+    return new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
 }
 
-function getCookieOptions(
-  expiresAt: Date
-) {
-  return {
-    httpOnly: true,
-    secure:
-      process.env.NODE_ENV ===
-      'production',
-    sameSite: 'lax' as const,
-    path: '/',
-    expires: expiresAt,
-    maxAge: SESSION_DURATION_SECONDS,
-    priority: 'high' as const,
-  };
+function getCookieOptions(expiresAt: Date) {
+    return {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        path: '/',
+        expires: expiresAt,
+        maxAge: SESSION_DURATION_SECONDS,
+        priority: 'high' as const,
+    };
 }
 
-function normalizeIpAddress(
-  value: string | null | undefined
-): string | null {
-  if (!value) {
-    return null;
-  }
+function normalizeIpAddress(value: string | null | undefined): string | null {
+    if (!value) {
+        return null;
+    }
 
+    const firstAddress = value.split(',')[0]?.trim();
 
-  const firstAddress =
-    value.split(',')[0]?.trim();
-
-  return firstAddress || null;
+    return firstAddress || null;
 }
 
 export async function getRequestSessionMetadata(): Promise<CreateSessionOptions> {
-  const headerStore =
-    await headers();
+    const headerStore = await headers();
 
-  return {
-    userAgent:
-      headerStore.get('user-agent'),
+    return {
+        userAgent: headerStore.get('user-agent'),
 
-    ipAddress: normalizeIpAddress(
-      headerStore.get(
-        'x-forwarded-for'
-      ) ??
-        headerStore.get(
-          'x-real-ip'
-        )
-    ),
-  };
+        ipAddress: normalizeIpAddress(
+            headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip')
+        ),
+    };
 }
 
 export async function createSession({
-  userId,
-  userAgent,
-  ipAddress,
+    userId,
+    userAgent,
+    ipAddress,
 }: {
-  userId: string;
-  userAgent?: string | null;
-  ipAddress?: string | null;
+    userId: string;
+    userAgent?: string | null;
+    ipAddress?: string | null;
 }): Promise<void> {
-  const token =
-    createSessionToken();
+    const token = createSessionToken();
 
-  const tokenHash =
-    hashSessionToken(token);
+    const tokenHash = hashSessionToken(token);
 
-  const expiresAt =
-    getSessionExpiration();
+    const expiresAt = getSessionExpiration();
 
-  const rows = await sql`
+    const rows = await sql`
     INSERT INTO public.auth_sessions (
       user_id,
       token_hash,
@@ -157,57 +117,41 @@ export async function createSession({
       NOW(),
       NOW(),
       ${userAgent ?? null},
-      ${normalizeIpAddress(
-        ipAddress
-      )}::inet
+      ${normalizeIpAddress(ipAddress)}::inet
     )
     RETURNING id
   `;
 
-  if (!rows[0]) {
-    throw new Error(
-      'Não foi possível criar a sessão.'
-    );
-  }
+    if (!rows[0]) {
+        throw new Error('Não foi possível criar a sessão.');
+    }
 
-  const cookieStore =
-    await cookies();
+    const cookieStore = await cookies();
 
-  cookieStore.set(
-    SESSION_COOKIE_NAME,
-    token,
-    getCookieOptions(expiresAt)
-  );
+    cookieStore.set(SESSION_COOKIE_NAME, token, getCookieOptions(expiresAt));
 }
 
 export async function getSessionToken(): Promise<string | null> {
-  const cookieStore =
-    await cookies();
+    const cookieStore = await cookies();
 
-  return (
-    cookieStore.get(
-      SESSION_COOKIE_NAME
-    )?.value ?? null
-  );
+    return cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
 }
 
 export async function getValidSession(): Promise<ValidSession | null> {
-  const token =
-    await getSessionToken();
+    const token = await getSessionToken();
 
-  if (!token) {
-    return null;
-  }
+    if (!token) {
+        return null;
+    }
 
-  const tokenHash =
-    hashSessionToken(token);
+    const tokenHash = hashSessionToken(token);
 
-  /*
-   * Atualiza last_seen_at apenas uma vez
-   * a cada 15 minutos para evitar uma escrita
-   * no banco em toda navegação.
-   */
-  const rows = await sql`
+    /*
+     * Atualiza last_seen_at apenas uma vez
+     * a cada 15 minutos para evitar uma escrita
+     * no banco em toda navegação.
+     */
+    const rows = await sql`
     WITH valid_session AS (
       SELECT
         id,
@@ -253,39 +197,31 @@ export async function getValidSession(): Promise<ValidSession | null> {
     FROM valid_session
   `;
 
-  const session =
-    rows[0] as
-      | SessionRow
-      | undefined;
+    const session = rows[0] as SessionRow | undefined;
 
-  if (!session) {
-    return null;
-  }
+    if (!session) {
+        return null;
+    }
 
-  return {
-    id: String(session.id),
-    userId: String(session.user_id),
-    expiresAt: normalizeDateTime(
-      session.expires_at
-    ),
-  };
+    return {
+        id: String(session.id),
+        userId: String(session.user_id),
+        expiresAt: normalizeDateTime(session.expires_at),
+    };
 }
 
 export async function refreshSession(): Promise<boolean> {
-  const token =
-    await getSessionToken();
+    const token = await getSessionToken();
 
-  if (!token) {
-    return false;
-  }
+    if (!token) {
+        return false;
+    }
 
-  const tokenHash =
-    hashSessionToken(token);
+    const tokenHash = hashSessionToken(token);
 
-  const expiresAt =
-    getSessionExpiration();
+    const expiresAt = getSessionExpiration();
 
-  const rows = await sql`
+    const rows = await sql`
     UPDATE public.auth_sessions
     SET
       expires_at =
@@ -305,41 +241,31 @@ export async function refreshSession(): Promise<boolean> {
     RETURNING id
   `;
 
-  /*
-   * A sessão ainda pode estar válida, mas fora
-   * da janela de renovação. Nesse caso não há
-   * necessidade de alterar o cookie.
-   */
-  if (!rows[0]) {
-    return false;
-  }
+    /*
+     * A sessão ainda pode estar válida, mas fora
+     * da janela de renovação. Nesse caso não há
+     * necessidade de alterar o cookie.
+     */
+    if (!rows[0]) {
+        return false;
+    }
 
-  const cookieStore =
-    await cookies();
+    const cookieStore = await cookies();
 
-  cookieStore.set(
-    SESSION_COOKIE_NAME,
-    token,
-    getCookieOptions(expiresAt)
-  );
+    cookieStore.set(SESSION_COOKIE_NAME, token, getCookieOptions(expiresAt));
 
-  return true;
+    return true;
 }
 
 export async function deleteCurrentSession(): Promise<void> {
-  const cookieStore =
-    await cookies();
+    const cookieStore = await cookies();
 
-  const token =
-    cookieStore.get(
-      SESSION_COOKIE_NAME
-    )?.value;
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  if (token) {
-    const tokenHash =
-      hashSessionToken(token);
+    if (token) {
+        const tokenHash = hashSessionToken(token);
 
-    await sql`
+        await sql`
       UPDATE public.auth_sessions
       SET revoked_at =
         COALESCE(
@@ -349,28 +275,20 @@ export async function deleteCurrentSession(): Promise<void> {
       WHERE token_hash =
         ${tokenHash}
     `;
-  }
-
-  cookieStore.set(
-    SESSION_COOKIE_NAME,
-    '',
-    {
-      httpOnly: true,
-      secure:
-        process.env.NODE_ENV ===
-        'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: new Date(0),
-      maxAge: 0,
     }
-  );
+
+    cookieStore.set(SESSION_COOKIE_NAME, '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        expires: new Date(0),
+        maxAge: 0,
+    });
 }
 
-export async function deleteAllUserSessions(
-  userId: string
-): Promise<void> {
-  await sql`
+export async function deleteAllUserSessions(userId: string): Promise<void> {
+    await sql`
     UPDATE public.auth_sessions
     SET revoked_at =
       COALESCE(
@@ -384,7 +302,7 @@ export async function deleteAllUserSessions(
 }
 
 export async function deleteExpiredSessions(): Promise<number> {
-  const rows = await sql`
+    const rows = await sql`
     DELETE FROM public.auth_sessions
     WHERE
       expires_at < NOW()
@@ -397,5 +315,5 @@ export async function deleteExpiredSessions(): Promise<number> {
     RETURNING id
   `;
 
-  return rows.length;
+    return rows.length;
 }

@@ -2,10 +2,7 @@
 
 'use client';
 
-import {
-    AlertTriangle,
-    X,
-} from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 
 type ConfirmModalProps = {
     open: boolean;
@@ -43,8 +40,7 @@ export default function ConfirmModal({
         return null;
     }
 
-    const isDanger =
-        variant === 'danger';
+    const isDanger = variant === 'danger';
 
     return (
         <div
@@ -120,28 +116,18 @@ export default function ConfirmModal({
                             justify-center
                             rounded-xl
 
-                            ${isDanger
-                                ? 'bg-red-50 text-red-600'
-                                : 'bg-amber-50 text-amber-600'
-                            }
+                            ${isDanger ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}
                         `}
                     >
-                        <AlertTriangle
-                            size={21}
-                        />
+                        <AlertTriangle size={21} />
                     </div>
 
                     <div className="pr-8">
-                        <h2
-                            id="confirm-modal-title"
-                            className="text-lg font-bold text-slate-900"
-                        >
+                        <h2 id="confirm-modal-title" className="text-lg font-bold text-slate-900">
                             {title}
                         </h2>
 
-                        <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                            {description}
-                        </p>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-500">{description}</p>
                     </div>
                 </div>
 
@@ -190,15 +176,14 @@ export default function ConfirmModal({
                             disabled:cursor-wait
                             disabled:opacity-60
 
-                            ${isDanger
-                                ? 'bg-red-600 hover:bg-red-700'
-                                : 'bg-slate-900 hover:bg-slate-800'
+                            ${
+                                isDanger
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-slate-900 hover:bg-slate-800'
                             }
                         `}
                     >
-                        {loading
-                            ? 'Processando...'
-                            : confirmLabel}
+                        {loading ? 'Processando...' : confirmLabel}
                     </button>
                 </div>
             </div>

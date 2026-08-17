@@ -9,9 +9,7 @@ type NameFieldProps = {
 
     value: string;
 
-    onChange: (
-        value: string
-    ) => void;
+    onChange: (value: string) => void;
 
     error?: string;
 
@@ -21,25 +19,14 @@ type NameFieldProps = {
     maxLength?: number;
 };
 
-export function sanitizeName(
-    value: string
-): string {
-    return value.replace(
-        /\d/g,
-        ''
-    );
+export function sanitizeName(value: string): string {
+    return value.replace(/\d/g, '');
 }
 
-export function isValidName(
-    value: string
-): boolean {
-    const normalized =
-        value.trim();
+export function isValidName(value: string): boolean {
+    const normalized = value.trim();
 
-    return (
-        normalized.length >= 2 &&
-        !/\d/.test(normalized)
-    );
+    return normalized.length >= 2 && !/\d/.test(normalized);
 }
 
 export default function NameField({
@@ -69,13 +56,7 @@ export default function NameField({
             autoComplete={autoComplete}
             maxLength={maxLength}
             error={error}
-            onChange={(event) =>
-                onChange(
-                    sanitizeName(
-                        event.target.value
-                    )
-                )
-            }
+            onChange={(event) => onChange(sanitizeName(event.target.value))}
         />
     );
 }

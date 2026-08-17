@@ -1,73 +1,65 @@
 // interfaces/Dashboard.ts
 
 export type DashboardCurrencyTotal = {
-  currency: string;
-  amount: number;
+    currency: string;
+    amount: number;
 };
 
 export type DashboardRecentReportEntry = {
-  type: 'report-entry';
+    type: 'report-entry';
 
-  id: string;
-  projectId: string;
-  projectName: string;
+    id: string;
+    projectId: string;
+    projectName: string;
 
-  title: string;
-  description: string;
+    title: string;
+    description: string;
 
-  date: string;
-  durationMinutes: number;
+    date: string;
+    durationMinutes: number;
 
-  amount: number;
-  currency: string;
+    amount: number;
+    currency: string;
 
-  createdAt: string;
+    createdAt: string;
 };
 
 export type DashboardRecentInvoice = {
-  type: 'invoice';
+    type: 'invoice';
 
-  id: string;
-  projectId: string | null;
-  projectName: string | null;
+    id: string;
+    projectId: string | null;
+    projectName: string | null;
 
-  invoiceNumber: string;
+    invoiceNumber: string;
 
-  recipientName: string | null;
+    recipientName: string | null;
 
-  status:
-    | 'draft'
-    | 'issued'
-    | 'sent'
-    | 'paid'
-    | 'overdue'
-    | 'cancelled';
+    status: 'draft' | 'issued' | 'sent' | 'paid' | 'overdue' | 'cancelled';
 
-  totalAmount: number;
-  currency: string;
+    totalAmount: number;
+    currency: string;
 
-  date: string;
-  createdAt: string;
+    date: string;
+    createdAt: string;
 };
 
-export type DashboardRecentActivity =
-  | DashboardRecentReportEntry
-  | DashboardRecentInvoice;
+export type DashboardRecentActivity = DashboardRecentReportEntry | DashboardRecentInvoice;
 
 export type DashboardData = {
-  activeProjects: number;
+    activeProjects: number;
 
-  currentMonth: {
-    totalEntries: number;
-    totalMinutes: number;
+    currentMonth: {
+        totalEntries: number;
+        totalMinutes: number;
 
-    generatedAmounts: DashboardCurrencyTotal[];
-  };
+        generatedAmounts: DashboardCurrencyTotal[];
+    };
 
-  openInvoices: {
-    count: number;
-    totals: DashboardCurrencyTotal[];
-  };
+    openInvoices: {
+        count: number;
+        totals: DashboardCurrencyTotal[];
+    };
 
-  recentActivity: DashboardRecentActivity[];
+    recentActivity: DashboardRecentActivity[];
 };

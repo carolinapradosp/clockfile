@@ -1,16 +1,11 @@
 'use client';
 
-import {
-    LoaderCircle,
-    Trash2,
-} from 'lucide-react';
+import { LoaderCircle, Trash2 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import {
-    deleteProject,
-} from '@/app/actions/projects';
+import { deleteProject } from '@/app/actions/projects';
 
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
@@ -19,26 +14,14 @@ type DeleteProjectButtonProps = {
     projectName: string;
 };
 
-export default function DeleteProjectButton({
-    projectId,
-    projectName,
-}: DeleteProjectButtonProps) {
+export default function DeleteProjectButton({ projectId, projectName }: DeleteProjectButtonProps) {
     const router = useRouter();
 
-    const [
-        isPending,
-        setIsPending,
-    ] = useState(false);
+    const [isPending, setIsPending] = useState(false);
 
-    const [
-        isConfirmOpen,
-        setIsConfirmOpen,
-    ] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-    const [
-        error,
-        setError,
-    ] = useState('');
+    const [error, setError] = useState('');
 
     function handleOpenConfirmation() {
         setError('');
@@ -58,15 +41,10 @@ export default function DeleteProjectButton({
             setIsPending(true);
             setError('');
 
-            const result =
-                await deleteProject(
-                    projectId
-                );
+            const result = await deleteProject(projectId);
 
             if (!result.success) {
-                setError(
-                    result.message
-                );
+                setError(result.message);
 
                 return;
             }
@@ -76,14 +54,9 @@ export default function DeleteProjectButton({
             router.replace('/projetos');
             router.refresh();
         } catch (deleteError) {
-            console.error(
-                'Erro ao excluir projeto:',
-                deleteError
-            );
+            console.error('Erro ao excluir projeto:', deleteError);
 
-            setError(
-                'Não foi possível excluir o projeto.'
-            );
+            setError('Não foi possível excluir o projeto.');
         } finally {
             setIsPending(false);
         }
@@ -94,24 +67,17 @@ export default function DeleteProjectButton({
             <div>
                 <button
                     type="button"
-                    onClick={
-                        handleOpenConfirmation
-                    }
+                    onClick={handleOpenConfirmation}
                     disabled={isPending}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 text-sm font-semibold text-red-600 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
                 >
                     {isPending ? (
-                        <LoaderCircle
-                            size={17}
-                            className="animate-spin"
-                        />
+                        <LoaderCircle size={17} className="animate-spin" />
                     ) : (
                         <Trash2 size={17} />
                     )}
 
-                    {isPending
-                        ? 'Excluindo...'
-                        : 'Excluir'}
+                    {isPending ? 'Excluindo...' : 'Excluir'}
                 </button>
 
                 {error && (
@@ -132,12 +98,8 @@ export default function DeleteProjectButton({
                 cancelLabel="Cancelar"
                 loading={isPending}
                 variant="danger"
-                onConfirm={
-                    handleConfirmDelete
-                }
-                onCancel={
-                    handleCancelConfirmation
-                }
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelConfirmation}
             />
         </>
     );
