@@ -303,13 +303,10 @@ export default function ReportEntryForm({
                             min="0"
                             step="0.01"
                             value={rate}
-                            onChange={(event) => {
-                                setRate(event.target.value);
-                            }}
-                            disabled
+                            readOnly
+                            tabIndex={-1}
                             placeholder="0.00"
-                            style={{ backgroundColor: '#f4f4f4', color: '#727272' }}
-                            className={inputClassNameNoIcon}
+                            className={`${inputClassNameNoIcon} cursor-not-allowed bg-slate-100 text-slate-500`}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">Moeda: {currency}</p>

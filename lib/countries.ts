@@ -10,8 +10,12 @@ export const COUNTRIES = [
         label: 'Estados Unidos',
     },
     {
-        value: 'PT',
-        label: 'Portugal',
+        value: 'AU',
+        label: 'Austrália',
+    },
+    {
+        value: 'OT',
+        label: 'Outros',
     },
 ] as const;
 
