@@ -71,8 +71,8 @@ export default function ReportEntryForm({
             ? String(entry.rate)
             : defaultProject?.defaultHourlyRate !== null &&
                 defaultProject?.defaultHourlyRate !== undefined
-              ? String(defaultProject.defaultHourlyRate)
-              : ''
+                ? String(defaultProject.defaultHourlyRate)
+                : ''
     );
 
     const selectedProject = useMemo(
@@ -303,13 +303,10 @@ export default function ReportEntryForm({
                             min="0"
                             step="0.01"
                             value={rate}
-                            onChange={(event) => {
-                                setRate(event.target.value);
-                            }}
-                            disabled
+                            readOnly
+                            tabIndex={-1}
                             placeholder="0.00"
-                            style={{ backgroundColor: '#f4f4f4', color: '#727272' }}
-                            className={inputClassNameNoIcon}
+                            className={`${inputClassNameNoIcon} cursor-not-allowed bg-slate-100 text-slate-500`}
                         />
 
                         <p className="mt-2 text-xs text-slate-500">Moeda: {currency}</p>
@@ -333,9 +330,9 @@ export default function ReportEntryForm({
                     <p className="mt-2 text-xs text-emerald-700/80">
                         {durationMinutes > 0
                             ? `${durationMinutes} minutos × ${formatCurrency({
-                                  value: Number.isFinite(numericRate) ? numericRate : 0,
-                                  currency,
-                              })}/hora`
+                                value: Number.isFinite(numericRate) ? numericRate : 0,
+                                currency,
+                            })}/hora`
                             : 'Informe a duração para calcular o valor.'}
                     </p>
                 </div>
