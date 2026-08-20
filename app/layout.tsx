@@ -18,7 +18,7 @@ export const metadata: Metadata = {
         default: 'Clockfile',
         template: '%s | Clockfile',
     },
-    icons: '/favicon.png',
+    // icons: '/favicon.png',
 
     description: 'Controle de horas trabalhadas',
     applicationName: 'Clockfile',
@@ -44,6 +44,10 @@ export default function RootLayout({
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
             suppressHydrationWarning
         >
+            <head>
+                <link rel="icon" href="/favicon.png" />
+
+            </head>
             <body className="min-h-full flex flex-col bg-slate-50">{children}</body>
         </html>
     );
