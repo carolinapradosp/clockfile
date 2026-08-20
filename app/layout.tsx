@@ -46,7 +46,6 @@ export default function RootLayout({
         >
             <head>
                 <link rel="icon" href="/favicon.png" />
-
             </head>
             <body className="min-h-full flex flex-col bg-slate-50">{children}</body>
         </html>
