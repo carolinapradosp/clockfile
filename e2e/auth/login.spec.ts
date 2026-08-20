@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+test.use({
+    storageState: {
+        cookies: [],
+        origins: [],
+    },
+});
+
 const TEST_USER = {
     email: 'e2e@clockfile.test',
     password: 'Teste123',
