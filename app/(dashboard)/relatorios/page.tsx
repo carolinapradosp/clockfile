@@ -1,7 +1,7 @@
 // app/(dashboard)/relatorios/page.tsx
 
 import Link from 'next/link';
-import { CircleDollarSign, Clock3, FileClock, Plus } from 'lucide-react';
+import { CircleDollarSign, Clock3, FileClock, Plus, Printer } from 'lucide-react';
 
 import { getReportEntries, getReportProjectOptions } from '@/app/actions/report';
 
@@ -55,6 +55,16 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             ? `/relatorios/novo?${newEntryQuery.toString()}`
             : '/relatorios/novo';
 
+    const printQuery = new URLSearchParams();
+
+    printQuery.set('month', selectedMonth);
+
+    if (selectedProjectId) {
+        printQuery.set('projectId', selectedProjectId);
+    }
+
+    const printHref = `/relatorios/imprimir?${printQuery.toString()}`;
+
     return (
         <div>
             <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -66,13 +76,23 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                     </p>
                 </div>
 
-                <Link
-                    href={newEntryHref}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-                >
-                    <Plus size={18} />
-                    Novo lançamento
-                </Link>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    <Link
+                        href={printHref}
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                    >
+                        <Printer size={18} />
+                        Imprimir
+                    </Link>
+
+                    <Link
+                        href={newEntryHref}
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                    >
+                        <Plus size={18} />
+                        Novo lançamento
+                    </Link>
+                </div>
             </header>
 
             <ReportFilters
