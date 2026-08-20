@@ -26,11 +26,13 @@ body {
         -webkit-print-color-adjust: exact;
     }
 
-    .invoice-print-actions {
+    .invoice-print-actions,
+    .report-print-actions {
         display: none !important;
     }
 
-    .invoice-document {
+    .invoice-document,
+    .report-document {
         box-sizing: border-box !important;
 
         width: 100% !important;
@@ -54,13 +56,13 @@ body {
         page-break-inside: auto;
     }
 
+    thead {
+        display: table-header-group;
+    }
+
     tr {
         break-inside: avoid;
         page-break-inside: avoid;
-    }
-
-    thead {
-        display: table-header-group;
     }
 
     footer {
