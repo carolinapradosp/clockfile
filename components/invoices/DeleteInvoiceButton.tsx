@@ -1,3 +1,4 @@
+//components/invoices/DeleteInvoiceButton.tsx
 'use client';
 
 import { LoaderCircle, Trash2 } from 'lucide-react';

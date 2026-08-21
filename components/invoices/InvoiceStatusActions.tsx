@@ -1,3 +1,5 @@
+//components/invoices/InvoiceStatusActions.tsx
+
 'use client';
 
 import { Ban, CircleDollarSign, Clock3, LoaderCircle, Send } from 'lucide-react';
@@ -183,6 +185,11 @@ export default function InvoiceStatusActions({
     const isDangerAction =
         selectedAction?.status === 'cancelled' || selectedAction?.status === 'overdue';
 
+    const confirmLabel =
+        selectedAction?.status === 'cancelled'
+            ? 'Confirmar cancelamento'
+            : (selectedAction?.label ?? 'Confirmar');
+
     return (
         <>
             <div>
@@ -231,7 +238,7 @@ export default function InvoiceStatusActions({
                 open={selectedAction !== null}
                 title={selectedAction?.label ?? 'Confirmar alteração'}
                 description={selectedAction?.confirmation ?? ''}
-                confirmLabel={selectedAction?.label ?? 'Confirmar'}
+                confirmLabel={confirmLabel}
                 cancelLabel="Cancelar"
                 loading={pendingStatus !== null}
                 variant={isDangerAction ? 'danger' : 'default'}
