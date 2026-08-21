@@ -1,4 +1,33 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+
+async function selectOptionByLabel({
+    page,
+    select,
+    label,
+}: {
+    page: Page;
+    select: Locator;
+    label: string;
+}) {
+    await expect(select).toBeVisible();
+
+    const option = () =>
+        select.locator('option').filter({
+            hasText: label,
+        });
+
+    if (!(await option().count())) {
+        await page.reload();
+
+        await expect(option()).toBeAttached({
+            timeout: 15_000,
+        });
+    }
+
+    await select.selectOption({
+        label,
+    });
+}
 
 test.describe('Relatórios', () => {
     test('usuário consegue criar e editar um lançamento de horas', async ({ page }) => {
@@ -59,7 +88,9 @@ test.describe('Relatórios', () => {
 
         const projectSelect = page.locator('select[name="projectId"]');
 
-        await projectSelect.selectOption({
+        await selectOptionByLabel({
+            page,
+            select: projectSelect,
             label: projectName,
         });
 

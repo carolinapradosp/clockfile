@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test.use({
+    storageState: {
+        cookies: [],
+        origins: [],
+    },
+});
+
 async function waitForSignUpFormHydration(page: Page) {
     const passwordInput = page.locator('input[name="password"]');
 
