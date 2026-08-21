@@ -1861,43 +1861,29 @@ export async function saveInvoice(input: SaveInvoiceInput): Promise<SaveInvoiceR
             invoiceNumber: String(saved.invoice_number),
         };
     } catch (error) {
-        console.error('Erro ao salvar fatura:', error);
-
         const databaseError = error as {
             code?: string;
             constraint?: string;
         };
 
-        /*
-         * Proteção principal contra
-         * faturamento duplicado.
-         */
         if (
             databaseError.code === '23505' &&
             databaseError.constraint === 'invoice_report_entries_unique_entry'
         ) {
             return {
                 success: false,
-
                 code: 'REPORT_ENTRY_ALREADY_INVOICED',
-
                 message: 'Um ou mais lançamentos selecionados já pertencem a outra fatura.',
             };
         }
 
-        /*
-         * Mantém compatibilidade caso o
-         * banco retorne a constraint composta.
-         */
         if (
             databaseError.code === '23505' &&
             databaseError.constraint === 'invoice_report_entries_unique_relation'
         ) {
             return {
                 success: false,
-
                 code: 'REPORT_ENTRY_ALREADY_INVOICED',
-
                 message: 'Um ou mais lançamentos selecionados já pertencem a outra fatura.',
             };
         }
@@ -1908,17 +1894,20 @@ export async function saveInvoice(input: SaveInvoiceInput): Promise<SaveInvoiceR
         ) {
             return {
                 success: false,
-
                 code: 'PROJECT_INVOICE_MONTH_ALREADY_EXISTS',
-
                 message: 'Já existe uma fatura cadastrada para este projeto nesse mês.',
             };
         }
+
+        /*
+         * Somente erros realmente inesperados
+         * são enviados para o log.
+         */
+        console.error('Erro ao salvar fatura:', error);
+
         return {
             success: false,
-
             code: 'INVOICE_SAVE_FAILED',
-
             message: 'Não foi possível salvar a fatura.',
         };
     }
