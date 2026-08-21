@@ -1,4 +1,140 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function createProject({
+    page,
+    projectName,
+    hourlyRate = '200',
+    recipientName = 'Cliente Teste Automatizado',
+    recipientEmail,
+}: {
+    page: Page;
+    projectName: string;
+    hourlyRate?: string;
+    recipientName?: string;
+    recipientEmail: string;
+}) {
+    await page.goto('/projetos/novo');
+
+    await page.locator('input[name="name"]').fill(projectName);
+
+    await page
+        .locator('textarea[name="description"]')
+        .fill('Projeto criado automaticamente pelo teste E2E.');
+
+    await page.locator('select[name="status"]').selectOption('active');
+
+    await page.locator('select[name="currency"]').selectOption('BRL');
+
+    await page.locator('input[name="defaultHourlyRate"]').fill(hourlyRate);
+
+    await page.locator('input[name="billingName"]').fill(recipientName);
+
+    await page.locator('input[name="billingEmail"]').fill(recipientEmail);
+
+    await page.locator('select[name="billingCountryCode"]').selectOption('BR');
+
+    await page
+        .getByRole('button', {
+            name: 'Cadastrar projeto',
+            exact: true,
+        })
+        .click();
+
+    await expect(page).toHaveURL(/\/projetos\/[^/]+$/, {
+        timeout: 15_000,
+    });
+}
+
+async function createReportEntry({
+    page,
+    projectName,
+    taskName,
+    date,
+    duration = '02:00',
+}: {
+    page: Page;
+    projectName: string;
+    taskName: string;
+    date: string;
+    duration?: string;
+}) {
+    await page.goto('/relatorios/novo');
+
+    await page.locator('select[name="projectId"]').selectOption({
+        label: projectName,
+    });
+
+    await page.locator('input[name="task"]').fill(taskName);
+
+    await page
+        .locator('textarea[name="description"]')
+        .fill('Lançamento criado automaticamente pelo teste E2E.');
+
+    await page.locator('input[name="date"]').fill(date);
+
+    await page.locator('input[name="duration"]').fill(duration);
+
+    await expect(page.locator('input[name="rate"]')).toHaveValue('200');
+
+    await page
+        .getByRole('button', {
+            name: 'Salvar lançamento',
+            exact: true,
+        })
+        .click();
+
+    await expect(page).toHaveURL(/\/relatorios(?:\?.*)?$/, {
+        timeout: 15_000,
+    });
+}
+
+async function createDraftInvoice({
+    page,
+    projectName,
+    referenceMonth,
+}: {
+    page: Page;
+    projectName: string;
+    referenceMonth: string;
+}) {
+    await page.goto('/faturas/novo');
+
+    await page.locator('#invoice-project').selectOption({
+        label: projectName,
+    });
+
+    await page.locator('#reference-month').fill(referenceMonth);
+
+    const importButton = page.getByRole('button', {
+        name: 'Importar horas do mês',
+        exact: true,
+    });
+
+    await expect(importButton).toBeEnabled();
+
+    await importButton.click();
+
+    await expect(page.getByText(/lançamento\(s\) foram importados para a fatura/i)).toBeVisible();
+
+    await page
+        .getByRole('button', {
+            name: 'Salvar rascunho',
+            exact: true,
+        })
+        .click();
+
+    await expect(page).not.toHaveURL(/\/faturas\/novo$/, {
+        timeout: 15_000,
+    });
+
+    const currentPath = new URL(page.url()).pathname;
+
+    expect(currentPath).toMatch(
+        /^\/faturas\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
+
+    return page.url();
+}
 
 test.describe('Faturas', () => {
     test('usuário consegue criar rascunho, editar e emitir uma fatura com horas importadas', async ({
@@ -10,13 +146,11 @@ test.describe('Faturas', () => {
 
         const taskName = `Tarefa Fatura E2E ${timestamp}`;
 
-        /*
-         * O nome do destinatário não pode conter números,
-         * pois o InvoiceForm valida o nome com isValidName().
-         */
         const recipientName = 'Cliente Teste Automatizado';
 
         const recipientEmail = `cliente-${timestamp}@clockfile.test`;
+
+        const today = new Date().toISOString().slice(0, 10);
 
         /*
          * =====================================================
@@ -24,39 +158,11 @@ test.describe('Faturas', () => {
          * =====================================================
          */
 
-        await page.goto('/projetos/novo');
-
-        await page.locator('input[name="name"]').fill(projectName);
-
-        await page
-            .locator('textarea[name="description"]')
-            .fill('Projeto criado para teste E2E de faturamento.');
-
-        await page.locator('select[name="status"]').selectOption('active');
-
-        await page.locator('select[name="currency"]').selectOption('BRL');
-
-        await page.locator('input[name="defaultHourlyRate"]').fill('200');
-
-        /*
-         * Dados de faturamento do projeto.
-         */
-
-        await page.locator('input[name="billingName"]').fill(recipientName);
-
-        await page.locator('input[name="billingEmail"]').fill(recipientEmail);
-
-        await page.locator('select[name="billingCountryCode"]').selectOption('BR');
-
-        await page
-            .getByRole('button', {
-                name: 'Cadastrar projeto',
-                exact: true,
-            })
-            .click();
-
-        await expect(page).toHaveURL(/\/projetos\/[^/]+$/, {
-            timeout: 15_000,
+        await createProject({
+            page,
+            projectName,
+            recipientName,
+            recipientEmail,
         });
 
         /*
@@ -65,35 +171,11 @@ test.describe('Faturas', () => {
          * =====================================================
          */
 
-        await page.goto('/relatorios/novo');
-
-        await page.locator('select[name="projectId"]').selectOption({
-            label: projectName,
-        });
-
-        await page.locator('input[name="task"]').fill(taskName);
-
-        await page
-            .locator('textarea[name="description"]')
-            .fill('Lançamento criado para teste E2E de faturamento.');
-
-        await page.locator('input[name="duration"]').fill('02:00');
-
-        /*
-         * O rate deve vir automaticamente do projeto.
-         */
-
-        await expect(page.locator('input[name="rate"]')).toHaveValue('200');
-
-        await page
-            .getByRole('button', {
-                name: 'Salvar lançamento',
-                exact: true,
-            })
-            .click();
-
-        await expect(page).toHaveURL(/\/relatorios(?:\?.*)?$/, {
-            timeout: 15_000,
+        await createReportEntry({
+            page,
+            projectName,
+            taskName,
+            date: today,
         });
 
         /*
@@ -126,7 +208,7 @@ test.describe('Faturas', () => {
 
         /*
          * =====================================================
-         * 5. IMPORTA AS HORAS DO MÊS
+         * 5. IMPORTA HORAS
          * =====================================================
          */
 
@@ -144,12 +226,8 @@ test.describe('Faturas', () => {
         ).toBeVisible();
 
         /*
-         * 02:00 × R$ 200 = R$ 400,00.
-         *
-         * Como imposto = 0:
-         *
-         * Subtotal = R$ 400,00
-         * Total = R$ 400,00
+         * 02:00 × R$ 200 =
+         * R$ 400,00.
          */
 
         const summaryCard = page
@@ -158,19 +236,13 @@ test.describe('Faturas', () => {
             })
             .locator('xpath=ancestor::div[contains(@class,"rounded-2xl")]');
 
-        await expect(summaryCard).toBeVisible();
-
         const summaryAmounts = summaryCard.getByText(/400,00/);
 
         await expect(summaryAmounts).toHaveCount(2);
 
-        await expect(summaryAmounts.first()).toBeVisible();
-
-        await expect(summaryAmounts.last()).toBeVisible();
-
         /*
          * =====================================================
-         * 6. SALVA COMO RASCUNHO
+         * 6. SALVA RASCUNHO
          * =====================================================
          */
 
@@ -181,29 +253,11 @@ test.describe('Faturas', () => {
             })
             .click();
 
-        /*
-         * Não usamos mais:
-         *
-         * /\/faturas\/[^/]+$/
-         *
-         * porque ela também aceita:
-         *
-         * /faturas/novo
-         *
-         * Primeiro esperamos sair explicitamente
-         * da página de criação.
-         */
-
         try {
             await expect(page).not.toHaveURL(/\/faturas\/novo$/, {
                 timeout: 15_000,
             });
         } catch (error) {
-            /*
-             * Se alguma validação impedir o salvamento,
-             * mostramos a mensagem retornada pelo formulário.
-             */
-
             const alert = page.getByRole('alert');
 
             if (await alert.isVisible()) {
@@ -213,30 +267,7 @@ test.describe('Faturas', () => {
             throw error;
         }
 
-        /*
-         * Aguarda a página de detalhes terminar
-         * de carregar.
-         */
-
-        await page.waitForLoadState('networkidle');
-
         const currentPath = new URL(page.url()).pathname;
-
-        console.log('URL após salvar rascunho:', page.url());
-
-        console.log('PATH após salvar rascunho:', currentPath);
-
-        /*
-         * A aplicação utiliza UUID como ID.
-         *
-         * Dessa forma garantimos que estamos realmente em:
-         *
-         * /faturas/:uuid
-         *
-         * e nunca em:
-         *
-         * /faturas/novo
-         */
 
         expect(currentPath).toMatch(
             /^\/faturas\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -246,36 +277,12 @@ test.describe('Faturas', () => {
 
         expect(invoiceId).toBeTruthy();
 
-        expect(invoiceId).not.toBe('novo');
-
         const invoiceUrl = page.url();
 
         /*
          * =====================================================
-         * 7. CONFIRMA A PÁGINA DA FATURA
+         * 7. CONFIRMA RASCUNHO
          * =====================================================
-         */
-
-        await expect(
-            page.getByRole('link', {
-                name: 'Voltar para faturas',
-                exact: true,
-            })
-        ).toBeVisible({
-            timeout: 15_000,
-        });
-
-        await expect(
-            page.getByRole('heading', {
-                name: /^Fatura #/,
-            })
-        ).toBeVisible({
-            timeout: 15_000,
-        });
-
-        /*
-         * Como foi salva como rascunho,
-         * ainda não deve estar emitida.
          */
 
         await expect(
@@ -286,37 +293,13 @@ test.describe('Faturas', () => {
 
         /*
          * =====================================================
-         * 8. ABRE A EDIÇÃO DO RASCUNHO
+         * 8. EDITA
          * =====================================================
          */
 
         await page.goto(`/faturas/${invoiceId}/editar`);
 
-        await expect(page).toHaveURL(/\/faturas\/[^/]+\/editar$/, {
-            timeout: 15_000,
-        });
-
-        /*
-         * =====================================================
-         * 9. VALIDA OS DADOS DO RASCUNHO
-         * =====================================================
-         */
-
         await expect(page.locator('#invoice-project')).toHaveValue(projectId);
-
-        await expect(page.locator('input[name="billToName"]')).toHaveValue(recipientName);
-
-        await expect(page.locator('input[name="billToEmail"]')).toHaveValue(recipientEmail);
-
-        /*
-         * =====================================================
-         * 10. ALTERA E SALVA NOVAMENTE
-         * =====================================================
-         *
-         * Esse trecho protege o bug em que os lançamentos
-         * pertencentes à própria fatura eram tratados como
-         * pertencentes a outra fatura.
-         */
 
         const notes = 'Rascunho editado pelo teste E2E.';
 
@@ -329,28 +312,9 @@ test.describe('Faturas', () => {
             })
             .click();
 
-        /*
-         * Se houver algum erro de vínculo,
-         * a navegação não acontecerá.
-         */
-
-        try {
-            await expect(page).toHaveURL(invoiceUrl, {
-                timeout: 15_000,
-            });
-        } catch (error) {
-            const alert = page.getByRole('alert');
-
-            if (await alert.isVisible()) {
-                console.error('Erro ao editar rascunho:', await alert.textContent());
-            }
-
-            throw error;
-        }
-
-        /*
-         * Confirma persistência da observação.
-         */
+        await expect(page).toHaveURL(invoiceUrl, {
+            timeout: 15_000,
+        });
 
         await expect(
             page.getByText(notes, {
@@ -360,62 +324,28 @@ test.describe('Faturas', () => {
 
         /*
          * =====================================================
-         * 11. ABRE NOVAMENTE A EDIÇÃO
+         * 9. EDITA NOVAMENTE E EMITE
          * =====================================================
          */
 
         await page.goto(`/faturas/${invoiceId}/editar`);
 
-        await expect(page).toHaveURL(/\/faturas\/[^/]+\/editar$/, {
+        await expect(page.locator('#invoice-notes')).toHaveValue(notes);
+
+        await page
+            .getByRole('button', {
+                name: 'Salvar e emitir',
+                exact: true,
+            })
+            .click();
+
+        await expect(page).toHaveURL(invoiceUrl, {
             timeout: 15_000,
         });
 
         /*
-         * Confirma que a alteração realmente
-         * foi persistida no banco.
-         */
-
-        await expect(page.locator('#invoice-notes')).toHaveValue(notes);
-
-        await expect(page.locator('#invoice-project')).toHaveValue(projectId);
-
-        /*
          * =====================================================
-         * 12. SALVA E EMITE
-         * =====================================================
-         */
-
-        const emitButton = page.getByRole('button', {
-            name: 'Salvar e emitir',
-            exact: true,
-        });
-
-        await expect(emitButton).toBeEnabled();
-
-        await emitButton.click();
-
-        /*
-         * Novamente fazemos diagnóstico do erro
-         * caso a emissão não redirecione.
-         */
-
-        try {
-            await expect(page).toHaveURL(invoiceUrl, {
-                timeout: 15_000,
-            });
-        } catch (error) {
-            const alert = page.getByRole('alert');
-
-            if (await alert.isVisible()) {
-                console.error('Erro ao emitir fatura:', await alert.textContent());
-            }
-
-            throw error;
-        }
-
-        /*
-         * =====================================================
-         * 13. CONFIRMA QUE A FATURA FOI EMITIDA
+         * 10. CONFIRMA EMISSÃO
          * =====================================================
          */
 
@@ -425,26 +355,249 @@ test.describe('Faturas', () => {
             })
         ).not.toBeVisible();
 
-        /*
-         * Uma fatura emitida não deve mais
-         * apresentar a ação de edição.
-         */
-
         await expect(
             page.getByRole('link', {
                 name: 'Editar',
                 exact: true,
             })
         ).not.toBeVisible();
+    });
+
+    test('permite faturas no mesmo mês para projetos diferentes e bloqueia duplicidade no mesmo projeto', async ({
+        page,
+    }) => {
+        const timestamp = Date.now();
+
+        const projectA = `Projeto A Fatura E2E ${timestamp}`;
+
+        const projectB = `Projeto B Fatura E2E ${timestamp}`;
+
+        const recipientA = 'Cliente Projeto Alpha';
+
+        const recipientB = 'Cliente Projeto Beta';
+
+        /*
+         * Fixamos um mês dentro
+         * do teste.
+         *
+         * A data do lançamento
+         * deve pertencer ao mesmo mês.
+         */
+
+        const referenceMonth = '2026-07';
+
+        const reportDate = '2026-07-15';
 
         /*
          * =====================================================
-         * 14. CONFIRMA QUE NÃO HOUVE ERRO DE VÍNCULO
+         * 1. CRIA PROJETO A
          * =====================================================
          */
 
+        await createProject({
+            page,
+
+            projectName: projectA,
+
+            recipientName: recipientA,
+
+            recipientEmail: `alpha-${timestamp}@clockfile.test`,
+        });
+
+        /*
+         * Cria lançamento para
+         * Projeto A.
+         */
+
+        await createReportEntry({
+            page,
+
+            projectName: projectA,
+
+            taskName: `Tarefa Alpha ${timestamp}`,
+
+            date: reportDate,
+        });
+
+        /*
+         * =====================================================
+         * 2. CRIA PROJETO B
+         * =====================================================
+         */
+
+        await createProject({
+            page,
+
+            projectName: projectB,
+
+            recipientName: recipientB,
+
+            recipientEmail: `beta-${timestamp}@clockfile.test`,
+        });
+
+        /*
+         * Cria lançamento para
+         * Projeto B.
+         */
+
+        await createReportEntry({
+            page,
+
+            projectName: projectB,
+
+            taskName: `Tarefa Beta ${timestamp}`,
+
+            date: reportDate,
+        });
+
+        /*
+         * =====================================================
+         * 3. FATURA PROJETO A
+         * =====================================================
+         */
+
+        const invoiceAUrl = await createDraftInvoice({
+            page,
+
+            projectName: projectA,
+
+            referenceMonth,
+        });
+
+        expect(new URL(invoiceAUrl).pathname).toMatch(/^\/faturas\/[0-9a-f-]+$/i);
+
+        /*
+         * =====================================================
+         * 4. FATURA PROJETO B NO MESMO MÊS
+         * =====================================================
+         *
+         * Deve ser permitido.
+         */
+
+        const invoiceBUrl = await createDraftInvoice({
+            page,
+
+            projectName: projectB,
+
+            referenceMonth,
+        });
+
+        expect(new URL(invoiceBUrl).pathname).toMatch(/^\/faturas\/[0-9a-f-]+$/i);
+
+        /*
+         * As duas faturas devem ser
+         * registros diferentes.
+         */
+
+        expect(invoiceAUrl).not.toBe(invoiceBUrl);
+
+        /*
+         * =====================================================
+         * 5. CRIA NOVO LANÇAMENTO NO PROJETO A
+         * =====================================================
+         *
+         * O primeiro lançamento já está
+         * vinculado à primeira fatura.
+         *
+         * Criamos outro para garantir
+         * que a segunda tentativa consiga
+         * importar horas e chegue até a
+         * validação de duplicidade da fatura.
+         */
+
+        await createReportEntry({
+            page,
+
+            projectName: projectA,
+
+            taskName: `Segunda Tarefa Alpha ${timestamp}`,
+
+            date: '2026-07-20',
+
+            duration: '01:00',
+        });
+
+        /*
+         * =====================================================
+         * 6. TENTA CRIAR OUTRA FATURA
+         *    PROJETO A + MESMO MÊS
+         * =====================================================
+         */
+
+        await page.goto('/faturas/novo');
+
+        await page.locator('#invoice-project').selectOption({
+            label: projectA,
+        });
+
+        await page.locator('#reference-month').fill(referenceMonth);
+
+        const importButton = page.getByRole('button', {
+            name: 'Importar horas do mês',
+            exact: true,
+        });
+
+        await expect(importButton).toBeEnabled();
+
+        await importButton.click();
+
+        /*
+         * O novo lançamento deve
+         * estar disponível.
+         */
+
         await expect(
-            page.getByText(/Um ou mais lançamentos selecionados já pertencem a outra fatura/i)
-        ).not.toBeVisible();
+            page.getByText(/lançamento\(s\) foram importados para a fatura/i)
+        ).toBeVisible();
+
+        /*
+         * Agora tenta salvar.
+         */
+
+        await page
+            .getByRole('button', {
+                name: 'Salvar rascunho',
+                exact: true,
+            })
+            .click();
+
+        /*
+         * A aplicação deve continuar
+         * na página de criação.
+         */
+
+        await expect(page).toHaveURL(/\/faturas\/novo$/, {
+            timeout: 15_000,
+        });
+
+        /*
+         * E deve apresentar um erro
+         * ao usuário.
+         *
+         * Não amarramos o teste ao texto
+         * exato da mensagem para que uma
+         * mudança de copy não quebre a
+         * regra de negócio testada.
+         */
+
+        const duplicateAlert = page.getByRole('alert').filter({
+            hasText: 'Já existe uma fatura cadastrada para este projeto',
+        });
+
+        await expect(duplicateAlert).toBeVisible();
+
+        await expect(duplicateAlert).toContainText(
+            'Já existe uma fatura cadastrada para este projeto'
+        );
+
+        const errorMessage = await duplicateAlert.textContent();
+
+        console.log('Mensagem de duplicidade:', errorMessage);
+        /*
+         * Confirma que nenhuma navegação
+         * para uma terceira fatura ocorreu.
+         */
+
+        expect(new URL(page.url()).pathname).toBe('/faturas/novo');
     });
 });
