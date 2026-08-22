@@ -1,3 +1,5 @@
+//e2e/invoices/invoices.spec.ts
+
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
 async function selectOptionByLabel({
@@ -1052,6 +1054,262 @@ test.describe('Faturas', () => {
                 exact: true,
             })
         ).not.toBeVisible();
+
+        await expect(page).toHaveURL(invoiceUrl);
+    });
+
+    test('lançamento já faturado não fica disponível para importação em outra fatura', async ({
+        page,
+    }) => {
+        const timestamp = Date.now();
+
+        const projectName = `Projeto Importação Única Fatura E2E ${timestamp}`;
+        const taskName = `Tarefa Importação Única Fatura E2E ${timestamp}`;
+        const referenceMonth = '2026-12';
+        const reportDate = '2026-12-15';
+
+        await createProject({
+            page,
+            projectName,
+            recipientName: 'Cliente Importação Única Automatizado',
+            recipientEmail: `importacao-unica-${timestamp}@clockfile.test`,
+        });
+
+        await createReportEntry({
+            page,
+            projectName,
+            taskName,
+            date: reportDate,
+        });
+
+        const firstInvoiceUrl = await createDraftInvoice({
+            page,
+            projectName,
+            referenceMonth,
+        });
+
+        await expect(page).toHaveURL(firstInvoiceUrl);
+
+        await expect(
+            page.getByText('1 lançamento vinculado', {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await page.goto('/faturas/novo');
+
+        const projectSelect = page.locator('#invoice-project');
+
+        await selectOptionByLabel({
+            page,
+            select: projectSelect,
+            label: projectName,
+        });
+
+        await page.locator('#reference-month').fill(referenceMonth);
+
+        const importButton = page.getByRole('button', {
+            name: 'Importar horas do mês',
+            exact: true,
+        });
+
+        await expect(importButton).toBeEnabled();
+
+        await expect(
+            page.getByText(taskName, {
+                exact: true,
+            })
+        ).not.toBeVisible();
+
+        await importButton.click();
+
+        await expect(
+            page.getByText(taskName, {
+                exact: true,
+            })
+        ).not.toBeVisible();
+
+        await expect(
+            page.getByText(/lançamento\(s\) foram importados para a fatura/i)
+        ).not.toBeVisible();
+
+        await expect(page).toHaveURL(/\/faturas\/novo$/);
+    });
+
+    test('usuário consegue reenviar uma fatura vencida ao cliente', async ({ page }) => {
+        const timestamp = Date.now();
+
+        const projectName = `Projeto Reenvio Fatura E2E ${timestamp}`;
+        const taskName = `Tarefa Reenvio Fatura E2E ${timestamp}`;
+
+        const referenceMonth = '2027-06';
+        const reportDate = '2027-06-15';
+
+        await createProject({
+            page,
+            projectName,
+            recipientName: 'Cliente Reenvio Automatizado',
+            recipientEmail: `reenvio-${timestamp}@clockfile.test`,
+        });
+
+        await createReportEntry({
+            page,
+            projectName,
+            taskName,
+            date: reportDate,
+        });
+
+        const invoiceUrl = await createDraftInvoice({
+            page,
+            projectName,
+            referenceMonth,
+        });
+
+        await expect(page).toHaveURL(invoiceUrl);
+
+        const issueButton = page.getByRole('button', {
+            name: 'Emitir fatura',
+            exact: true,
+        });
+
+        await expect(issueButton).toBeVisible();
+
+        await issueButton.click();
+
+        const issueButtons = page.getByRole('button', {
+            name: 'Emitir fatura',
+            exact: true,
+        });
+
+        await expect(issueButtons).toHaveCount(2);
+
+        await issueButtons.last().click();
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Marcar como enviada',
+                exact: true,
+            })
+        ).toBeVisible({
+            timeout: 15_000,
+        });
+
+        const sendButton = page.getByRole('button', {
+            name: 'Marcar como enviada',
+            exact: true,
+        });
+
+        await sendButton.click();
+
+        const sendButtons = page.getByRole('button', {
+            name: 'Marcar como enviada',
+            exact: true,
+        });
+
+        await expect(sendButtons).toHaveCount(2);
+
+        await sendButtons.last().click();
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Marcar como vencida',
+                exact: true,
+            })
+        ).toBeVisible({
+            timeout: 15_000,
+        });
+
+        const overdueButton = page.getByRole('button', {
+            name: 'Marcar como vencida',
+            exact: true,
+        });
+
+        await overdueButton.click();
+
+        await expect(
+            page.getByText('Deseja marcar esta fatura como vencida?', {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        const overdueButtons = page.getByRole('button', {
+            name: 'Marcar como vencida',
+            exact: true,
+        });
+
+        await expect(overdueButtons).toHaveCount(2);
+
+        await overdueButtons.last().click();
+
+        const resendButton = page.getByRole('button', {
+            name: 'Reenviada ao cliente',
+            exact: true,
+        });
+
+        await expect(resendButton).toBeVisible({
+            timeout: 15_000,
+        });
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Marcar como paga',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Cancelar',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await resendButton.click();
+
+        await expect(
+            page.getByText('Deseja registrar esta fatura novamente como enviada?', {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        const resendButtons = page.getByRole('button', {
+            name: 'Reenviada ao cliente',
+            exact: true,
+        });
+
+        await expect(resendButtons).toHaveCount(2);
+
+        await resendButtons.last().click();
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Marcar como vencida',
+                exact: true,
+            })
+        ).toBeVisible({
+            timeout: 15_000,
+        });
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Reenviada ao cliente',
+                exact: true,
+            })
+        ).not.toBeVisible();
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Marcar como paga',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Cancelar',
+                exact: true,
+            })
+        ).toBeVisible();
 
         await expect(page).toHaveURL(invoiceUrl);
     });
