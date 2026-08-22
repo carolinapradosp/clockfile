@@ -1,8 +1,6 @@
-// app/(dashboard)/projetos/[id]/editar/page.tsx
-
 import Link from 'next/link';
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { ArrowLeft } from 'lucide-react';
 
@@ -23,6 +21,10 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
 
     if (!project) {
         notFound();
+    }
+
+    if (project.status === 'archived') {
+        redirect(`/projetos/${project.id}`);
     }
 
     return (
