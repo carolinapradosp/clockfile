@@ -643,4 +643,249 @@ test.describe('Gerenciamento de projetos', () => {
             })
         ).toBeVisible();
     });
+
+    test('usuário consegue arquivar e reativar um projeto', async ({ page }) => {
+        const timestamp = Date.now();
+
+        const projectName = `Projeto Arquivar E2E ${timestamp}`;
+
+        const projectId = await createProject({
+            page,
+            projectName,
+        });
+
+        await page.goto(`/projetos/${projectId}`, {
+            waitUntil: 'networkidle',
+        });
+
+        await expect(
+            page.getByRole('heading', {
+                name: projectName,
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            page.getByText('Ativo', {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        const archiveButton = page.getByRole('button', {
+            name: 'Arquivar',
+            exact: true,
+        });
+
+        await expect(archiveButton).toBeVisible();
+
+        await archiveButton.click();
+
+        const archiveDialog = page.getByRole('dialog');
+
+        await expect(archiveDialog).toBeVisible();
+
+        await expect(
+            archiveDialog.getByRole('heading', {
+                name: 'Arquivar projeto?',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await archiveDialog
+            .getByRole('button', {
+                name: 'Arquivar projeto',
+                exact: true,
+            })
+            .click();
+
+        await expect(
+            page.getByText('Arquivado', {
+                exact: true,
+            })
+        ).toBeVisible({
+            timeout: 20_000,
+        });
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Reativar',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            page.getByRole('link', {
+                name: 'Novo lançamento',
+                exact: true,
+            })
+        ).toHaveCount(0);
+
+        await expect(
+            page.getByRole('link', {
+                name: 'Editar',
+                exact: true,
+            })
+        ).toHaveCount(0);
+
+        await page.goto('/projetos', {
+            waitUntil: 'networkidle',
+        });
+
+        const archivedProjectLink = page.locator(`a[href="/projetos/${projectId}"]`);
+
+        await expect(archivedProjectLink).toBeVisible();
+
+        await expect(
+            archivedProjectLink.getByRole('heading', {
+                name: projectName,
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            archivedProjectLink.getByText('Arquivado', {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await page.goto('/relatorios/novo', {
+            waitUntil: 'networkidle',
+        });
+
+        const reportProjectSelect = page.locator('select[name="projectId"]');
+
+        await expect(reportProjectSelect).toBeVisible();
+
+        await expect(
+            reportProjectSelect.locator('option').filter({
+                hasText: projectName,
+            })
+        ).toHaveCount(0);
+
+        await page.goto('/faturas/novo', {
+            waitUntil: 'networkidle',
+        });
+
+        const invoiceProjectSelect = page.locator('#invoice-project');
+
+        await expect(invoiceProjectSelect).toBeVisible();
+
+        await expect(
+            invoiceProjectSelect.locator('option').filter({
+                hasText: projectName,
+            })
+        ).toHaveCount(0);
+
+        await page.goto(`/projetos/${projectId}/editar`, {
+            waitUntil: 'networkidle',
+        });
+
+        await expect(page).toHaveURL(`/projetos/${projectId}`, {
+            timeout: 20_000,
+        });
+
+        await expect(
+            page.getByText('Arquivado', {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        const reactivateButton = page.getByRole('button', {
+            name: 'Reativar',
+            exact: true,
+        });
+
+        await expect(reactivateButton).toBeVisible();
+
+        await reactivateButton.click();
+
+        const reactivateDialog = page.getByRole('dialog');
+
+        await expect(reactivateDialog).toBeVisible();
+
+        await expect(
+            reactivateDialog.getByRole('heading', {
+                name: 'Reativar projeto?',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await reactivateDialog
+            .getByRole('button', {
+                name: 'Reativar projeto',
+                exact: true,
+            })
+            .click();
+
+        await expect(
+            page.getByText('Ativo', {
+                exact: true,
+            })
+        ).toBeVisible({
+            timeout: 20_000,
+        });
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Arquivar',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            page.getByRole('link', {
+                name: 'Novo lançamento',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await expect(
+            page.getByRole('link', {
+                name: 'Editar',
+                exact: true,
+            })
+        ).toBeVisible();
+
+        await page.goto('/relatorios/novo', {
+            waitUntil: 'networkidle',
+        });
+
+        const reactivatedReportSelect = page.locator('select[name="projectId"]');
+
+        await expect(reactivatedReportSelect).toBeVisible();
+
+        await waitForProjectOption({
+            page,
+            select: reactivatedReportSelect,
+            projectName,
+        });
+
+        await page.goto('/faturas/novo', {
+            waitUntil: 'networkidle',
+        });
+
+        const reactivatedInvoiceSelect = page.locator('#invoice-project');
+
+        await expect(reactivatedInvoiceSelect).toBeVisible();
+
+        await waitForProjectOption({
+            page,
+            select: reactivatedInvoiceSelect,
+            projectName,
+        });
+
+        await page.goto('/projetos', {
+            waitUntil: 'networkidle',
+        });
+
+        const activeProjectLink = page.locator(`a[href="/projetos/${projectId}"]`);
+
+        await expect(activeProjectLink).toBeVisible();
+
+        await expect(
+            activeProjectLink.getByText('Ativo', {
+                exact: true,
+            })
+        ).toBeVisible();
+    });
 });

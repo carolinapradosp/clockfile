@@ -146,7 +146,19 @@ type InvoiceReportEntryRow = {
 
     currency: string | null;
 };
+const ALLOWED_STATUS_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
+    draft: ['issued'],
 
+    issued: ['sent', 'paid', 'cancelled'],
+
+    sent: ['paid', 'overdue', 'cancelled'],
+
+    overdue: ['paid', 'sent', 'cancelled'],
+
+    paid: [],
+
+    cancelled: [],
+};
 const VALID_STATUSES: InvoiceStatus[] = ['draft', 'issued', 'sent', 'paid', 'overdue', 'cancelled'];
 
 const VALID_ITEM_SOURCES: InvoiceItemSource[] = [
@@ -487,31 +499,6 @@ async function validateProject({
 
       AND status <>
         'archived'
-
-    LIMIT 1
-  `;
-
-    return Boolean(rows[0]);
-}
-
-async function invoiceBelongsToOwner({
-    invoiceId,
-    ownerId,
-}: {
-    invoiceId: string;
-    ownerId: string;
-}): Promise<boolean> {
-    const rows = await sql`
-    SELECT id
-
-    FROM public.invoices
-
-    WHERE
-      id =
-        ${invoiceId}::uuid
-
-      AND owner_id =
-        ${ownerId}::uuid
 
     LIMIT 1
   `;
@@ -1108,10 +1095,16 @@ export async function saveInvoice(input: SaveInvoiceInput): Promise<SaveInvoiceR
         if (!VALID_STATUSES.includes(input.status)) {
             return {
                 success: false,
-
                 code: 'INVALID_STATUS',
-
                 message: 'O status informado é inválido.',
+            };
+        }
+
+        if (!['draft', 'issued'].includes(input.status)) {
+            return {
+                success: false,
+                code: 'INVALID_STATUS',
+                message: 'O salvamento da fatura permite somente os status rascunho ou emitida.',
             };
         }
 
@@ -1175,23 +1168,41 @@ export async function saveInvoice(input: SaveInvoiceInput): Promise<SaveInvoiceR
             }
         }
 
-        /*
-         * Em uma edição, garante que
-         * a fatura pertence ao usuário.
-         */
         if (invoiceId) {
-            const allowed = await invoiceBelongsToOwner({
-                invoiceId,
-                ownerId,
-            });
+            const invoiceRows = await sql`
+        SELECT
+            id,
+            status
 
-            if (!allowed) {
+        FROM public.invoices
+
+        WHERE
+            id = ${invoiceId}::uuid
+            AND owner_id = ${ownerId}::uuid
+
+        LIMIT 1
+    `;
+
+            const existingInvoice = invoiceRows[0] as
+                | {
+                      id: string;
+                      status: InvoiceStatus;
+                  }
+                | undefined;
+
+            if (!existingInvoice) {
                 return {
                     success: false,
-
                     code: 'INVOICE_NOT_FOUND',
-
                     message: 'A fatura não foi encontrada.',
+                };
+            }
+
+            if (existingInvoice.status !== 'draft') {
+                return {
+                    success: false,
+                    code: 'INVOICE_NOT_EDITABLE',
+                    message: 'Somente faturas em rascunho podem ser editadas.',
                 };
             }
         }
@@ -1387,135 +1398,85 @@ export async function saveInvoice(input: SaveInvoiceInput): Promise<SaveInvoiceR
 
         ON CONFLICT (id)
 
-        DO UPDATE SET
-          owner_id =
-            EXCLUDED.owner_id,
+DO UPDATE SET
+  owner_id =
+    EXCLUDED.owner_id,
 
-          project_id =
-            EXCLUDED.project_id,
+  project_id =
+    EXCLUDED.project_id,
 
-          reference_month =
-            EXCLUDED.reference_month,
+  reference_month =
+    EXCLUDED.reference_month,
 
-          invoice_date =
-            EXCLUDED.invoice_date,
+  invoice_date =
+    EXCLUDED.invoice_date,
 
-          due_date =
-            EXCLUDED.due_date,
+  due_date =
+    EXCLUDED.due_date,
 
-          currency =
-            EXCLUDED.currency,
+  currency =
+    EXCLUDED.currency,
 
-          tax_percentage =
-            EXCLUDED.tax_percentage,
+  tax_percentage =
+    EXCLUDED.tax_percentage,
 
-          subtotal =
-            EXCLUDED.subtotal,
+  subtotal =
+    EXCLUDED.subtotal,
 
-          tax_amount =
-            EXCLUDED.tax_amount,
+  tax_amount =
+    EXCLUDED.tax_amount,
 
-          total_amount =
-            EXCLUDED.total_amount,
+  total_amount =
+    EXCLUDED.total_amount,
 
-          status =
-            EXCLUDED.status,
+    status =
+    EXCLUDED.status,
 
-          notes =
-            EXCLUDED.notes,
+  notes =
+    EXCLUDED.notes,
 
-          bill_to_name =
-            EXCLUDED.bill_to_name,
+  bill_to_name =
+    EXCLUDED.bill_to_name,
 
-          bill_to_company =
-            EXCLUDED.bill_to_company,
+  bill_to_company =
+    EXCLUDED.bill_to_company,
 
-          bill_to_email =
-            EXCLUDED.bill_to_email,
+  bill_to_email =
+    EXCLUDED.bill_to_email,
 
-          bill_to_phone =
-            EXCLUDED.bill_to_phone,
+  bill_to_phone =
+    EXCLUDED.bill_to_phone,
 
-          bill_to_address_line_1 =
-            EXCLUDED.bill_to_address_line_1,
+  bill_to_address_line_1 =
+    EXCLUDED.bill_to_address_line_1,
 
-          bill_to_address_line_2 =
-            EXCLUDED.bill_to_address_line_2,
+  bill_to_address_line_2 =
+    EXCLUDED.bill_to_address_line_2,
 
-          bill_to_city =
-            EXCLUDED.bill_to_city,
+  bill_to_city =
+    EXCLUDED.bill_to_city,
 
-          bill_to_state =
-            EXCLUDED.bill_to_state,
+  bill_to_state =
+    EXCLUDED.bill_to_state,
 
-          bill_to_postal_code =
-            EXCLUDED.bill_to_postal_code,
+  bill_to_postal_code =
+    EXCLUDED.bill_to_postal_code,
 
-          bill_to_country_code =
-            EXCLUDED.bill_to_country_code,
+  bill_to_country_code =
+    EXCLUDED.bill_to_country_code,
 
-          issued_at =
-            CASE
-              WHEN EXCLUDED.status
-                IN (
-                  'issued',
-                  'sent',
-                  'paid',
-                  'overdue'
-                )
-              THEN COALESCE(
-                invoices.issued_at,
-                NOW()
-              )
+  issued_at =
+    CASE
+      WHEN EXCLUDED.status = 'issued'
+      THEN COALESCE(
+        invoices.issued_at,
+        NOW()
+      )
+      ELSE invoices.issued_at
+    END,
 
-              ELSE
-                invoices.issued_at
-            END,
-
-          sent_at =
-            CASE
-              WHEN
-                EXCLUDED.status =
-                'sent'
-              THEN COALESCE(
-                invoices.sent_at,
-                NOW()
-              )
-
-              ELSE
-                invoices.sent_at
-            END,
-
-          paid_at =
-            CASE
-              WHEN
-                EXCLUDED.status =
-                'paid'
-              THEN COALESCE(
-                invoices.paid_at,
-                NOW()
-              )
-
-              ELSE
-                invoices.paid_at
-            END,
-
-          cancelled_at =
-            CASE
-              WHEN
-                EXCLUDED.status =
-                'cancelled'
-              THEN COALESCE(
-                invoices.cancelled_at,
-                NOW()
-              )
-
-              ELSE
-                invoices.cancelled_at
-            END,
-
-          updated_at =
-            NOW()
+  updated_at =
+    NOW()
 
         RETURNING
           id,
@@ -1924,98 +1885,129 @@ export async function updateInvoiceStatus({
         if (!isValidUuid(invoiceId) || !VALID_STATUSES.includes(status)) {
             return {
                 success: false,
-
                 message: 'Os dados informados são inválidos.',
             };
         }
 
         const ownerId = await getCurrentUserId();
 
-        const rows = await sql`
-      UPDATE public.invoices
+        const invoiceRows = await sql`
+            SELECT
+                id,
+                status
 
-      SET
-        status =
-          ${status},
+            FROM public.invoices
 
-        issued_at =
-          CASE
-            WHEN ${status} IN (
-              'issued',
-              'sent',
-              'paid',
-              'overdue'
-            )
-            THEN COALESCE(
-              issued_at,
-              NOW()
-            )
-            ELSE issued_at
-          END,
+            WHERE
+                id = ${invoiceId}::uuid
+                AND owner_id = ${ownerId}::uuid
 
-        sent_at =
-          CASE
-            WHEN ${status} =
-              'sent'
-            THEN COALESCE(
-              sent_at,
-              NOW()
-            )
-            ELSE sent_at
-          END,
+            LIMIT 1
+        `;
 
-        paid_at =
-          CASE
-            WHEN ${status} =
-              'paid'
-            THEN COALESCE(
-              paid_at,
-              NOW()
-            )
-            ELSE paid_at
-          END,
+        const invoice = invoiceRows[0] as
+            | {
+                  id: string;
+                  status: InvoiceStatus;
+              }
+            | undefined;
 
-        cancelled_at =
-          CASE
-            WHEN ${status} =
-              'cancelled'
-            THEN COALESCE(
-              cancelled_at,
-              NOW()
-            )
-            ELSE cancelled_at
-          END,
-
-        updated_at =
-          NOW()
-
-      WHERE
-        id =
-          ${invoiceId}::uuid
-
-        AND owner_id =
-          ${ownerId}::uuid
-
-      RETURNING id
-    `;
-
-        if (!rows[0]) {
+        if (!invoice) {
             return {
                 success: false,
-
                 message: 'A fatura não foi encontrada.',
             };
         }
 
+        const allowedStatuses = ALLOWED_STATUS_TRANSITIONS[invoice.status] ?? [];
+
+        if (!allowedStatuses.includes(status)) {
+            return {
+                success: false,
+                message: `Não é possível alterar a fatura de ${invoice.status} para ${status}.`,
+            };
+        }
+
+        const rows = await sql`
+            UPDATE public.invoices
+
+            SET
+                status = ${status},
+
+                issued_at =
+                    CASE
+                        WHEN ${status} IN (
+                            'issued',
+                            'sent',
+                            'paid',
+                            'overdue'
+                        )
+                        THEN COALESCE(
+                            issued_at,
+                            NOW()
+                        )
+
+                        ELSE issued_at
+                    END,
+
+                sent_at =
+                    CASE
+                        WHEN ${status} = 'sent'
+                        THEN COALESCE(
+                            sent_at,
+                            NOW()
+                        )
+
+                        ELSE sent_at
+                    END,
+
+                paid_at =
+                    CASE
+                        WHEN ${status} = 'paid'
+                        THEN COALESCE(
+                            paid_at,
+                            NOW()
+                        )
+
+                        ELSE paid_at
+                    END,
+
+                cancelled_at =
+                    CASE
+                        WHEN ${status} = 'cancelled'
+                        THEN COALESCE(
+                            cancelled_at,
+                            NOW()
+                        )
+
+                        ELSE cancelled_at
+                    END,
+
+
+                updated_at = NOW()
+
+            WHERE
+                id = ${invoiceId}::uuid
+                AND owner_id = ${ownerId}::uuid
+                AND status = ${invoice.status}
+
+            RETURNING id
+        `;
+
+        if (!rows[0]) {
+            return {
+                success: false,
+                message:
+                    'O status da fatura foi alterado por outra operação. Atualize a página e tente novamente.',
+            };
+        }
+
         revalidatePath('/dashboard');
-
         revalidatePath('/faturas');
-
         revalidatePath(`/faturas/${invoiceId}`);
 
         return {
             success: true,
-
             message: 'Status atualizado com sucesso.',
         };
     } catch (error) {
@@ -2023,7 +2015,6 @@ export async function updateInvoiceStatus({
 
         return {
             success: false,
-
             message: 'Não foi possível atualizar o status.',
         };
     }
