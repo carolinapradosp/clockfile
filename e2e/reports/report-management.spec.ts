@@ -1,271 +1,13 @@
-//e2e/reports/report-management.spec.ts
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+
+import {
+    createDraftInvoice,
+    createProject,
+    createReportEntry,
+    getReportEntryUrl,
+} from '../helpers/e2e-helpers';
 
 test.setTimeout(60_000);
-
-const PROJECT_DETAILS_URL =
-    /\/projetos\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-const REPORT_DETAILS_URL =
-    /^\/relatorios\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-const INVOICE_DETAILS_URL =
-    /^\/faturas\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-async function createProject({
-    page,
-    projectName,
-    recipientName = 'Cliente Relatorio',
-    recipientEmail,
-}: {
-    page: Page;
-    projectName: string;
-    recipientName?: string;
-    recipientEmail: string;
-}) {
-    await page.goto('/projetos/novo', {
-        waitUntil: 'networkidle',
-    });
-
-    await page.locator('input[name="name"]').fill(projectName);
-
-    await page
-        .locator('textarea[name="description"]')
-        .fill('Projeto criado pelo teste E2E de lançamentos.');
-
-    await page.locator('select[name="status"]').selectOption('active');
-
-    await page.locator('select[name="currency"]').selectOption('BRL');
-
-    await page.locator('input[name="defaultHourlyRate"]').fill('200');
-
-    await page.locator('input[name="billingName"]').fill(recipientName);
-
-    await page.locator('input[name="billingEmail"]').fill(recipientEmail);
-
-    await page.locator('select[name="billingCountryCode"]').selectOption('BR');
-
-    const submitButton = page.getByRole('button', {
-        name: 'Cadastrar projeto',
-        exact: true,
-    });
-
-    await expect(submitButton).toBeEnabled();
-
-    await submitButton.click();
-
-    await expect(page).toHaveURL(PROJECT_DETAILS_URL, {
-        timeout: 30_000,
-    });
-}
-
-async function createReportEntry({
-    page,
-    projectName,
-    taskName,
-    date,
-    duration = '02:00',
-}: {
-    page: Page;
-    projectName: string;
-    taskName: string;
-    date: string;
-    duration?: string;
-}) {
-    await page.goto('/relatorios/novo', {
-        waitUntil: 'networkidle',
-    });
-
-    const projectSelect = page.locator('select[name="projectId"]');
-
-    await expect(projectSelect).toBeVisible();
-
-    const projectOption = () =>
-        projectSelect.locator('option').filter({
-            hasText: projectName,
-        });
-
-    if (!(await projectOption().count())) {
-        await page.reload({
-            waitUntil: 'networkidle',
-        });
-    }
-
-    await expect(projectOption()).toBeAttached({
-        timeout: 20_000,
-    });
-
-    await projectSelect.selectOption({
-        label: projectName,
-    });
-
-    await page.locator('input[name="task"]').fill(taskName);
-
-    await page
-        .locator('textarea[name="description"]')
-        .fill('Descrição original do lançamento E2E.');
-
-    await page.locator('input[name="date"]').fill(date);
-
-    await page.locator('input[name="duration"]').fill(duration);
-
-    await expect(page.locator('input[name="rate"]')).toHaveValue('200');
-
-    const saveButton = page.getByRole('button', {
-        name: 'Salvar lançamento',
-        exact: true,
-    });
-
-    await expect(saveButton).toBeEnabled();
-
-    await saveButton.click();
-
-    await expect(page).toHaveURL(/\/relatorios(?:\?.*)?$/, {
-        timeout: 20_000,
-    });
-
-    const month = date.slice(0, 7);
-
-    await page.goto(`/relatorios?month=${month}`, {
-        waitUntil: 'networkidle',
-    });
-
-    const entryLink = page.getByRole('link', {
-        name: taskName,
-        exact: true,
-    });
-
-    await expect(entryLink).toBeVisible({
-        timeout: 15_000,
-    });
-
-    const href = await entryLink.getAttribute('href');
-
-    expect(href).not.toBeNull();
-
-    expect(href).toMatch(REPORT_DETAILS_URL);
-
-    return href!;
-}
-
-async function createDraftInvoice({
-    page,
-    projectName,
-    referenceMonth,
-}: {
-    page: Page;
-    projectName: string;
-    referenceMonth: string;
-}) {
-    await page.goto('/faturas/novo', {
-        waitUntil: 'networkidle',
-    });
-
-    const projectSelect = page.locator('#invoice-project');
-
-    await expect(projectSelect).toBeVisible();
-
-    const projectOption = () =>
-        projectSelect.locator('option').filter({
-            hasText: projectName,
-        });
-
-    if (!(await projectOption().count())) {
-        await page.reload({
-            waitUntil: 'networkidle',
-        });
-    }
-
-    await expect(projectOption()).toBeAttached({
-        timeout: 20_000,
-    });
-
-    await projectSelect.selectOption({
-        label: projectName,
-    });
-
-    await page.locator('#reference-month').fill(referenceMonth);
-
-    const importButton = page.getByRole('button', {
-        name: 'Importar horas do mês',
-        exact: true,
-    });
-
-    await expect(importButton).toBeEnabled();
-
-    await importButton.click();
-
-    await expect(page.getByText(/lançamento\(s\) foram importados para a fatura/i)).toBeVisible();
-
-    const saveButton = page.getByRole('button', {
-        name: 'Salvar rascunho',
-        exact: true,
-    });
-
-    await expect(saveButton).toBeEnabled();
-
-    await saveButton.click();
-
-    try {
-        await expect(page).not.toHaveURL(/\/faturas\/novo$/, {
-            timeout: 20_000,
-        });
-    } catch (error) {
-        const alert = page.getByRole('alert').filter({
-            hasText: /.+/,
-        });
-
-        if (
-            await alert
-                .first()
-                .isVisible()
-                .catch(() => false)
-        ) {
-            console.error('Erro ao salvar fatura:', await alert.first().textContent());
-        }
-
-        console.error('URL após tentativa de salvar fatura:', page.url());
-
-        throw error;
-    }
-
-    const invoicePath = new URL(page.url()).pathname;
-
-    expect(invoicePath).toMatch(INVOICE_DETAILS_URL);
-
-    return page.url();
-}
-
-async function getReportEntryUrl({
-    page,
-    taskName,
-    month,
-}: {
-    page: Page;
-    taskName: string;
-    month: string;
-}) {
-    await page.goto(`/relatorios?month=${month}`, {
-        waitUntil: 'networkidle',
-    });
-
-    const entryLink = page.getByRole('link', {
-        name: taskName,
-        exact: true,
-    });
-
-    await expect(entryLink).toBeVisible({
-        timeout: 15_000,
-    });
-
-    const href = await entryLink.getAttribute('href');
-
-    expect(href).not.toBeNull();
-
-    expect(href).toMatch(REPORT_DETAILS_URL);
-
-    return href!;
-}
 
 test.describe('Gerenciamento de lançamentos', () => {
     test('usuário consegue editar lançamento e recalcular o valor', async ({ page }) => {
@@ -284,12 +26,19 @@ test.describe('Gerenciamento de lançamentos', () => {
             recipientEmail: `editar-${timestamp}@clockfile.test`,
         });
 
-        const entryUrl = await createReportEntry({
+        await createReportEntry({
             page,
             projectName,
             taskName,
             date: '2027-03-10',
             duration: '02:00',
+            description: 'Descrição original do lançamento E2E.',
+        });
+
+        const entryUrl = await getReportEntryUrl({
+            page,
+            taskName,
+            month: '2027-03',
         });
 
         await page.goto(entryUrl, {
@@ -385,12 +134,19 @@ test.describe('Gerenciamento de lançamentos', () => {
             recipientEmail: `excluir-${timestamp}@clockfile.test`,
         });
 
-        const entryUrl = await createReportEntry({
+        await createReportEntry({
             page,
             projectName,
             taskName,
             date: '2027-03-15',
             duration: '01:30',
+            description: 'Descrição original do lançamento E2E.',
+        });
+
+        const entryUrl = await getReportEntryUrl({
+            page,
+            taskName,
+            month: '2027-03',
         });
 
         await page.goto(entryUrl, {

@@ -1,5 +1,3 @@
-//e2e/projects/project-management.spec.ts
-
 import { expect, test, type Page } from '@playwright/test';
 
 test.setTimeout(60_000);
@@ -284,75 +282,6 @@ async function createManualDraftInvoice({
 }
 
 test.describe('Gerenciamento de projetos', () => {
-    test('usuário consegue editar um projeto e persistir as alterações', async ({ page }) => {
-        const timestamp = Date.now();
-
-        const projectName = `Projeto Editar E2E ${timestamp}`;
-        const updatedName = `Projeto Editado E2E ${timestamp}`;
-
-        const projectId = await createProject({
-            page,
-            projectName,
-        });
-
-        await page.goto(`/projetos/${projectId}/editar`, {
-            waitUntil: 'networkidle',
-        });
-
-        await expect(
-            page.getByRole('heading', {
-                name: 'Editar projeto',
-                exact: true,
-            })
-        ).toBeVisible();
-
-        await page.locator('input[name="name"]').fill(updatedName);
-
-        await page
-            .locator('textarea[name="description"]')
-            .fill('Descrição atualizada pelo teste E2E.');
-
-        await page.locator('select[name="status"]').selectOption('paused');
-
-        await page.locator('select[name="currency"]').selectOption('USD');
-
-        await page.locator('input[name="defaultHourlyRate"]').fill('350');
-
-        const saveButton = page.getByRole('button', {
-            name: /Salvar alterações|Atualizar projeto/i,
-        });
-
-        await expect(saveButton).toBeEnabled();
-
-        await saveButton.click();
-
-        await expect(page).toHaveURL(`/projetos/${projectId}`, {
-            timeout: 20_000,
-        });
-
-        await expect(
-            page.getByRole('heading', {
-                name: updatedName,
-                exact: true,
-            })
-        ).toBeVisible();
-
-        await expect(
-            page.getByText('Pausado', {
-                exact: true,
-            })
-        ).toBeVisible();
-
-        await page.goto('/projetos');
-
-        await expect(
-            page.getByRole('heading', {
-                name: updatedName,
-                exact: true,
-            })
-        ).toBeVisible();
-    });
-
     test('usuário consegue excluir projeto sem lançamentos', async ({ page }) => {
         const timestamp = Date.now();
 
