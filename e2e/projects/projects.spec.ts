@@ -1,3 +1,5 @@
+//e2e/projects/projects.spec.ts
+
 import { expect, test } from '@playwright/test';
 
 test.describe('Projetos', () => {

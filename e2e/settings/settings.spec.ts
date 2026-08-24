@@ -1,3 +1,5 @@
+//e2e/settings/settings.spec.ts
+
 import { expect, test } from '@playwright/test';
 
 test.describe('Configurações', () => {

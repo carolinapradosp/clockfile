@@ -1,3 +1,4 @@
+//e2e/auth/signup.spec.ts
 import { expect, test, type Page } from '@playwright/test';
 
 test.use({

@@ -1,3 +1,5 @@
+//e2e/projects/project-management.spec.ts
+
 import { expect, test, type Page } from '@playwright/test';
 
 test.setTimeout(60_000);

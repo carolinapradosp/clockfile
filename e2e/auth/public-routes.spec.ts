@@ -1,3 +1,4 @@
+//e2e/auth/public-routes.spec.ts
 import { expect, test } from '@playwright/test';
 
 test.describe('Rotas públicas com usuário autenticado', () => {

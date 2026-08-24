@@ -1,3 +1,4 @@
+//e2e/auth/protected-routes.spec.ts
 import { expect, test } from '@playwright/test';
 
 test.use({

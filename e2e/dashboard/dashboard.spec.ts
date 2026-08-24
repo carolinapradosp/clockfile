@@ -1,3 +1,4 @@
+//e2e/dashboard/dashboard.spec.ts
 import { expect, test } from '@playwright/test';
 
 test.describe('Dashboard', () => {

@@ -1,3 +1,4 @@
+//e2e/smoke.spec.ts
 import { expect, test } from '@playwright/test';
 
 test('a aplicação abre', async ({ page }) => {
