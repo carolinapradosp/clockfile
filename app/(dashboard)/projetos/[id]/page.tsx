@@ -25,6 +25,7 @@ import { getProjectReportSummary } from '@/app/actions/report';
 
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
 import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
+import ArchiveProjectButton from '@/components/projects/ArchiveProjectButton';
 
 type ProjectDetailsPageProps = {
     params: Promise<{
@@ -112,24 +113,30 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
 
                 <div className="flex flex-wrap gap-3">
                     {project.status !== 'archived' && (
-                        <Link
-                            href={newEntryUrl}
-                            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-                        >
-                            <Plus size={17} />
-                            Novo lançamento
-                        </Link>
+                        <>
+                            <Link
+                                href={newEntryUrl}
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                            >
+                                <Plus size={17} />
+                                Novo lançamento
+                            </Link>
+
+                            <Link
+                                href={`/projetos/${project.id}/editar`}
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            >
+                                <Edit3 size={17} />
+                                Editar
+                            </Link>
+                        </>
                     )}
 
-                    {project.status !== 'archived' && (
-                        <Link
-                            href={`/projetos/${project.id}/editar`}
-                            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-                        >
-                            <Edit3 size={17} />
-                            Editar
-                        </Link>
-                    )}
+                    <ArchiveProjectButton
+                        projectId={project.id}
+                        projectName={project.name}
+                        isArchived={project.status === 'archived'}
+                    />
 
                     <DeleteProjectButton projectId={project.id} projectName={project.name} />
                 </div>

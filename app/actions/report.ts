@@ -545,16 +545,13 @@ export async function createReportEntry(
 
 export async function updateReportEntry(
     entryId: string,
-
     _previousState: ReportEntryActionState,
-
     formData: FormData
 ): Promise<ReportEntryActionState> {
     try {
         if (!isValidUuid(entryId)) {
             return {
                 success: false,
-
                 message: 'Identificador do lançamento inválido.',
             };
         }
@@ -567,18 +564,42 @@ export async function updateReportEntry(
 
         const ownerId = await getCurrentUserId();
 
+        const linkedInvoiceRows = await sql`
+            SELECT
+                relation.invoice_id
+
+            FROM public.invoice_report_entries relation
+
+            INNER JOIN public.report_entries entry
+                ON entry.id = relation.report_entry_id
+
+            INNER JOIN public.projects project
+                ON project.id = entry.project_id
+
+            WHERE
+                relation.report_entry_id = ${entryId}::uuid
+                AND project.owner_id = ${ownerId}::uuid
+
+            LIMIT 1
+        `;
+
+        if (linkedInvoiceRows.length > 0) {
+            return {
+                success: false,
+                message:
+                    'Este lançamento não pode ser editado porque já está vinculado a uma fatura.',
+            };
+        }
+
         const project = await getOwnedProject({
             projectId: parsed.data.projectId,
-
             ownerId,
         });
 
         if (!project) {
             return {
                 success: false,
-
                 message: 'O projeto selecionado não foi encontrado.',
-
                 fieldErrors: {
                     projectId: 'Selecione um projeto válido.',
                 },
@@ -587,65 +608,41 @@ export async function updateReportEntry(
 
         const amount = calculateAmount({
             durationMinutes: parsed.durationMinutes,
-
             rate: parsed.rate,
         });
 
         const rows = await sql`
-      UPDATE public.report_entries entry
+            UPDATE public.report_entries entry
 
-      SET
-        project_id =
-          ${parsed.data.projectId}::uuid,
+            SET
+                project_id = ${parsed.data.projectId}::uuid,
+                task = ${parsed.data.task},
+                description = ${parsed.data.description},
+                date = ${parsed.data.date}::date,
+                duration = ${parsed.data.duration},
+                duration_minutes = ${parsed.durationMinutes},
+                rate = ${parsed.rate},
+                amount = ${amount},
+                currency = ${project.currency},
+                updated_at = NOW()
 
-        task =
-          ${parsed.data.task},
+            WHERE
+                entry.id = ${entryId}::uuid
 
-        description =
-          ${parsed.data.description},
+                AND EXISTS (
+                    SELECT 1
 
-        date =
-          ${parsed.data.date}::date,
+                    FROM public.projects current_project
 
-        duration =
-          ${parsed.data.duration},
+                    WHERE
+                        current_project.id = entry.project_id
+                        AND current_project.owner_id = ${ownerId}::uuid
+                )
 
-        duration_minutes =
-          ${parsed.durationMinutes},
-
-        rate =
-          ${parsed.rate},
-
-        amount =
-          ${amount},
-
-        currency =
-          ${project.currency},
-
-        updated_at = NOW()
-
-      WHERE
-        entry.id =
-          ${entryId}::uuid
-
-        AND EXISTS (
-          SELECT 1
-
-          FROM public.projects
-            current_project
-
-          WHERE
-            current_project.id =
-              entry.project_id
-
-            AND current_project.owner_id =
-              ${ownerId}::uuid
-        )
-
-      RETURNING
-        entry.id,
-        entry.project_id
-    `;
+            RETURNING
+                entry.id,
+                entry.project_id
+        `;
 
         const updated = rows[0] as
             | {
@@ -657,29 +654,19 @@ export async function updateReportEntry(
         if (!updated) {
             return {
                 success: false,
-
                 message: 'Lançamento não encontrado.',
             };
         }
 
         revalidatePath('/dashboard');
         revalidatePath('/relatorios');
-
         revalidatePath(`/relatorios/${entryId}`);
-
         revalidatePath(`/relatorios/${entryId}/editar`);
-
-        revalidatePath(`/projetos/${parsed.data.projectId}`);
-
-        if (updated.project_id !== parsed.data.projectId) {
-            revalidatePath(`/projetos/${updated.project_id}`);
-        }
+        revalidatePath(`/projetos/${updated.project_id}`);
 
         return {
             success: true,
-
             message: 'Lançamento atualizado com sucesso.',
-
             entryId,
         };
     } catch (error) {
@@ -687,7 +674,6 @@ export async function updateReportEntry(
 
         return {
             success: false,
-
             message: 'Não foi possível atualizar o lançamento.',
         };
     }
@@ -701,38 +687,59 @@ export async function deleteReportEntry(entryId: string): Promise<{
         if (!isValidUuid(entryId)) {
             return {
                 success: false,
-
                 message: 'Identificador do lançamento inválido.',
             };
         }
 
         const ownerId = await getCurrentUserId();
 
+        const linkedInvoiceRows = await sql`
+            SELECT
+                relation.invoice_id
+            FROM public.invoice_report_entries relation
+
+            INNER JOIN public.report_entries entry
+                ON entry.id = relation.report_entry_id
+
+            INNER JOIN public.projects project
+                ON project.id = entry.project_id
+
+            WHERE
+                relation.report_entry_id = ${entryId}::uuid
+                AND project.owner_id = ${ownerId}::uuid
+
+            LIMIT 1
+        `;
+
+        if (linkedInvoiceRows.length > 0) {
+            return {
+                success: false,
+                message:
+                    'Este lançamento não pode ser excluído porque já está vinculado a uma fatura.',
+            };
+        }
+
         const rows = await sql`
-      DELETE FROM public.report_entries
-        AS entry
+            DELETE FROM public.report_entries
+                AS entry
 
-      WHERE
-        entry.id =
-          ${entryId}::uuid
+            WHERE
+                entry.id = ${entryId}::uuid
 
-        AND EXISTS (
-          SELECT 1
+                AND EXISTS (
+                    SELECT 1
 
-          FROM public.projects project
+                    FROM public.projects project
 
-          WHERE
-            project.id =
-              entry.project_id
+                    WHERE
+                        project.id = entry.project_id
+                        AND project.owner_id = ${ownerId}::uuid
+                )
 
-            AND project.owner_id =
-              ${ownerId}::uuid
-        )
-
-      RETURNING
-        entry.id,
-        entry.project_id
-    `;
+            RETURNING
+                entry.id,
+                entry.project_id
+        `;
 
         const deleted = rows[0] as
             | {
@@ -744,7 +751,6 @@ export async function deleteReportEntry(entryId: string): Promise<{
         if (!deleted) {
             return {
                 success: false,
-
                 message: 'Lançamento não encontrado.',
             };
         }
@@ -756,15 +762,29 @@ export async function deleteReportEntry(entryId: string): Promise<{
 
         return {
             success: true,
-
             message: 'Lançamento excluído com sucesso.',
         };
     } catch (error) {
+        const databaseError = error as {
+            code?: string;
+            constraint?: string;
+        };
+
+        if (
+            databaseError.code === '23503' &&
+            databaseError.constraint === 'invoice_report_entries_report_entry_id_fkey'
+        ) {
+            return {
+                success: false,
+                message:
+                    'Este lançamento não pode ser excluído porque já está vinculado a uma fatura.',
+            };
+        }
+
         console.error('Erro ao excluir lançamento:', error);
 
         return {
             success: false,
-
             message: 'Não foi possível excluir o lançamento.',
         };
     }

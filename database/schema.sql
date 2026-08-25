@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-\restrict 4NJOYhRLjDz9yBbKFXLePvlvn9jJjstYqHCM0OvX1Ke0gnbqpnL1szvEz1DRag9
 
 -- Dumped from database version 17.11 (df1f1a3)
 -- Dumped by pg_dump version 17.10
@@ -1232,5 +1231,4 @@ ALTER TABLE ONLY public.report_entries
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 4NJOYhRLjDz9yBbKFXLePvlvn9jJjstYqHCM0OvX1Ke0gnbqpnL1szvEz1DRag9
 

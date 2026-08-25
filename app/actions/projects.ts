@@ -584,11 +584,10 @@ billing_country_code =
 
         updated_at = NOW()
 
-      WHERE
-        id = ${projectId}::uuid
-
-        AND owner_id =
-          ${ownerId}::uuid
+   WHERE
+    id = ${projectId}::uuid
+    AND owner_id = ${ownerId}::uuid
+    AND status <> 'archived'
 
       RETURNING id
     `;
@@ -641,6 +640,84 @@ billing_country_code =
             success: false,
 
             message: 'Não foi possível atualizar o projeto.',
+        };
+    }
+}
+
+export async function updateProjectArchiveStatus({
+    projectId,
+    archived,
+}: {
+    projectId: string;
+    archived: boolean;
+}): Promise<{
+    success: boolean;
+    message: string;
+}> {
+    try {
+        if (!isValidUuid(projectId)) {
+            return {
+                success: false,
+                message: 'Identificador do projeto inválido.',
+            };
+        }
+
+        const ownerId = await getCurrentUserId();
+
+        const nextStatus: ProjectStatus = archived ? 'archived' : 'active';
+
+        const rows = await sql`
+            UPDATE public.projects
+
+            SET
+                status = ${nextStatus},
+                updated_at = NOW()
+
+            WHERE
+                id = ${projectId}::uuid
+                AND owner_id = ${ownerId}::uuid
+                AND (
+                    (${archived} AND status <> 'archived')
+                    OR
+                    (NOT ${archived} AND status = 'archived')
+                )
+
+            RETURNING id
+        `;
+
+        if (!rows[0]) {
+            return {
+                success: false,
+                message: archived
+                    ? 'Projeto não encontrado ou já arquivado.'
+                    : 'Projeto não encontrado ou não está arquivado.',
+            };
+        }
+
+        revalidatePath('/dashboard');
+        revalidatePath('/projetos');
+
+        revalidatePath(`/projetos/${projectId}`);
+        revalidatePath(`/projetos/${projectId}/editar`);
+
+        revalidatePath('/relatorios');
+        revalidatePath('/relatorios/novo');
+
+        revalidatePath('/faturas');
+        revalidatePath('/faturas/novo');
+
+        return {
+            success: true,
+            message: archived ? 'Projeto arquivado com sucesso.' : 'Projeto reativado com sucesso.',
+        };
+    } catch (error) {
+        console.error(archived ? 'Erro ao arquivar projeto:' : 'Erro ao reativar projeto:', error);
+
+        return {
+            success: false,
+            message: archived
+                ? 'Não foi possível arquivar o projeto.'
+                : 'Não foi possível reativar o projeto.',
         };
     }
 }

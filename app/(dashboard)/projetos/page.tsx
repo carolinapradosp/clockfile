@@ -34,7 +34,9 @@ const STATUS_CONFIG = {
 } as const;
 
 export default async function ProjectsPage() {
-    const projects = await getProjects();
+    const projects = await getProjects({
+        includeArchived: true,
+    });
 
     return (
         <div>
