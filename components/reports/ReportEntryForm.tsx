@@ -80,6 +80,10 @@ export default function ReportEntryForm({
         [projects, selectedProjectId]
     );
 
+    const hasProjectDefaultRate =
+        selectedProject?.defaultHourlyRate !== null &&
+        selectedProject?.defaultHourlyRate !== undefined;
+
     const durationMinutes = durationToMinutes(duration);
 
     const numericRate = Number(rate);
@@ -302,14 +306,26 @@ export default function ReportEntryForm({
                             type="number"
                             min="0"
                             step="0.01"
+                            required
                             value={rate}
-                            readOnly
-                            tabIndex={-1}
+                            onChange={(event) => {
+                                setRate(event.target.value);
+                            }}
+                            readOnly={hasProjectDefaultRate}
+                            tabIndex={hasProjectDefaultRate ? -1 : undefined}
                             placeholder="0.00"
-                            className={`${inputClassNameNoIcon} cursor-not-allowed bg-slate-100 text-slate-500`}
+                            className={`${inputClassNameNoIcon} ${
+                                hasProjectDefaultRate
+                                    ? 'cursor-not-allowed bg-slate-100 text-slate-500'
+                                    : 'bg-white'
+                            }`}
                         />
 
-                        <p className="mt-2 text-xs text-slate-500">Moeda: {currency}</p>
+                        <p className="mt-2 text-xs text-slate-500">
+                            {hasProjectDefaultRate
+                                ? `Valor definido no projeto. Moeda: ${currency}`
+                                : `Informe o valor por hora deste lançamento. Moeda: ${currency}`}
+                        </p>
 
                         <FieldError
                             message={!state?.success ? state?.fieldErrors?.rate : undefined}
