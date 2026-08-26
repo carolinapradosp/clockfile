@@ -9,9 +9,7 @@ type InvoiceDetailsPageProps = {
     }>;
 };
 
-export default async function InvoiceDetailsPage({
-    params,
-}: InvoiceDetailsPageProps) {
+export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageProps) {
     const { id } = await params;
 
     return (

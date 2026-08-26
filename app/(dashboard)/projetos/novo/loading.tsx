@@ -1,20 +1,11 @@
 import Skeleton from '@/components/ui/Skeleton';
 
-function FieldSkeleton({
-    full = false,
-    tall = false,
-}: {
-    full?: boolean;
-    tall?: boolean;
-}) {
+function FieldSkeleton({ full = false, tall = false }: { full?: boolean; tall?: boolean }) {
     return (
         <div className={full ? 'md:col-span-2' : ''}>
             <Skeleton className="h-4 w-24" />
 
-            <Skeleton
-                className={`mt-2 w-full rounded-xl ${tall ? 'h-36' : 'h-12'
-                    }`}
-            />
+            <Skeleton className={`mt-2 w-full rounded-xl ${tall ? 'h-36' : 'h-12'}`} />
         </div>
     );
 }
@@ -30,20 +21,14 @@ function SectionHeaderSkeleton({
         <div className="mb-6">
             <Skeleton className={`h-6 ${titleWidth}`} />
 
-            <Skeleton
-                className={`mt-3 h-4 max-w-full ${descriptionWidth}`}
-            />
+            <Skeleton className={`mt-3 h-4 max-w-full ${descriptionWidth}`} />
         </div>
     );
 }
 
 export default function NewProjectLoading() {
     return (
-        <div
-            className="mx-auto max-w-4xl"
-            aria-busy="true"
-            aria-label="Carregando novo projeto"
-        >
+        <div className="mx-auto max-w-4xl" aria-busy="true" aria-label="Carregando novo projeto">
             <Skeleton className="mb-6 h-5 w-36" />
 
             <header className="mb-8">
@@ -54,10 +39,7 @@ export default function NewProjectLoading() {
 
             <div className="space-y-8">
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <SectionHeaderSkeleton
-                        titleWidth="w-48"
-                        descriptionWidth="w-64"
-                    />
+                    <SectionHeaderSkeleton titleWidth="w-48" descriptionWidth="w-64" />
 
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <FieldSkeleton full />
@@ -71,19 +53,13 @@ export default function NewProjectLoading() {
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <SectionHeaderSkeleton
-                        titleWidth="w-24"
-                        descriptionWidth="w-80"
-                    />
+                    <SectionHeaderSkeleton titleWidth="w-24" descriptionWidth="w-80" />
 
                     <FieldSkeleton />
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <SectionHeaderSkeleton
-                        titleWidth="w-44"
-                        descriptionWidth="w-96"
-                    />
+                    <SectionHeaderSkeleton titleWidth="w-44" descriptionWidth="w-96" />
 
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <FieldSkeleton />
@@ -104,10 +80,7 @@ export default function NewProjectLoading() {
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <SectionHeaderSkeleton
-                        titleWidth="w-20"
-                        descriptionWidth="w-96"
-                    />
+                    <SectionHeaderSkeleton titleWidth="w-20" descriptionWidth="w-96" />
 
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <FieldSkeleton />

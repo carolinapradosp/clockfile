@@ -1,20 +1,11 @@
-import {
-    CircleDollarSign,
-    Clock3,
-    FileClock,
-} from 'lucide-react';
+import { CircleDollarSign, Clock3, FileClock } from 'lucide-react';
 
-import {
-    getReportEntries,
-    getReportProjectOptions,
-} from '@/app/actions/report';
+import { getReportEntries, getReportProjectOptions } from '@/app/actions/report';
 
 import ReportEntriesTable from '@/components/reports/ReportEntriesTable';
 import ReportFilters from '@/components/reports/ReportFilters';
 
-import formatCurrency, {
-    formatDuration,
-} from '@/lib/utils';
+import formatCurrency, { formatDuration } from '@/lib/utils';
 
 type ReportsListContentProps = {
     selectedMonth: string;
@@ -34,20 +25,13 @@ export default async function ReportsListContent({
         getReportProjectOptions(),
     ]);
 
-    const totalMinutes = entries.reduce(
-        (total, entry) => total + entry.durationMinutes,
-        0
-    );
+    const totalMinutes = entries.reduce((total, entry) => total + entry.durationMinutes, 0);
 
-    const totalsByCurrency = entries.reduce<Record<string, number>>(
-        (totals, entry) => {
-            totals[entry.currency] =
-                (totals[entry.currency] ?? 0) + entry.amount;
+    const totalsByCurrency = entries.reduce<Record<string, number>>((totals, entry) => {
+        totals[entry.currency] = (totals[entry.currency] ?? 0) + entry.amount;
 
-            return totals;
-        },
-        {}
-    );
+        return totals;
+    }, {});
 
     const currencyEntries = Object.entries(totalsByCurrency);
 
@@ -63,9 +47,7 @@ export default async function ReportsListContent({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Lançamentos
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Lançamentos</p>
 
                             <p className="mt-2 text-2xl font-bold text-slate-900">
                                 {entries.length}
@@ -81,9 +63,7 @@ export default async function ReportsListContent({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Total de horas
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Total de horas</p>
 
                             <p className="mt-2 text-2xl font-bold text-slate-900">
                                 {formatDuration(totalMinutes)}
@@ -99,29 +79,23 @@ export default async function ReportsListContent({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Valor gerado
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Valor gerado</p>
 
                             {currencyEntries.length === 0 ? (
-                                <p className="mt-2 text-2xl font-bold text-slate-900">
-                                    $0.00
-                                </p>
+                                <p className="mt-2 text-2xl font-bold text-slate-900">$0.00</p>
                             ) : (
                                 <div className="mt-2 space-y-1">
-                                    {currencyEntries.map(
-                                        ([currency, value]) => (
-                                            <p
-                                                key={currency}
-                                                className="text-xl font-bold text-slate-900"
-                                            >
-                                                {formatCurrency({
-                                                    value,
-                                                    currency,
-                                                })}
-                                            </p>
-                                        )
-                                    )}
+                                    {currencyEntries.map(([currency, value]) => (
+                                        <p
+                                            key={currency}
+                                            className="text-xl font-bold text-slate-900"
+                                        >
+                                            {formatCurrency({
+                                                value,
+                                                currency,
+                                            })}
+                                        </p>
+                                    ))}
                                 </div>
                             )}
                         </div>

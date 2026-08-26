@@ -9,9 +9,7 @@ type ReportEntryDetailsPageProps = {
     }>;
 };
 
-export default async function ReportEntryDetailsPage({
-    params,
-}: ReportEntryDetailsPageProps) {
+export default async function ReportEntryDetailsPage({ params }: ReportEntryDetailsPageProps) {
     const { id } = await params;
 
     return (

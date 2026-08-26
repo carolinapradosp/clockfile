@@ -1,9 +1,6 @@
 import Link from 'next/link';
 
-import {
-    Plus,
-    Printer,
-} from 'lucide-react';
+import { Plus, Printer } from 'lucide-react';
 
 import { Suspense } from 'react';
 
@@ -19,25 +16,19 @@ type ReportsPageProps = {
     }>;
 };
 
-export default async function ReportsPage({
-    searchParams,
-}: ReportsPageProps) {
+export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     const params = await searchParams;
 
     const selectedMonth = isValidMonth(params.month)
         ? params.month!
         : new Date().toISOString().slice(0, 7);
 
-    const selectedProjectId =
-        params.projectId || undefined;
+    const selectedProjectId = params.projectId || undefined;
 
     const newEntryQuery = new URLSearchParams();
 
     if (selectedProjectId) {
-        newEntryQuery.set(
-            'projectId',
-            selectedProjectId
-        );
+        newEntryQuery.set('projectId', selectedProjectId);
     }
 
     const newEntryHref =
@@ -47,28 +38,19 @@ export default async function ReportsPage({
 
     const printQuery = new URLSearchParams();
 
-    printQuery.set(
-        'month',
-        selectedMonth
-    );
+    printQuery.set('month', selectedMonth);
 
     if (selectedProjectId) {
-        printQuery.set(
-            'projectId',
-            selectedProjectId
-        );
+        printQuery.set('projectId', selectedProjectId);
     }
 
-    const printHref =
-        `/relatorios/imprimir?${printQuery.toString()}`;
+    const printHref = `/relatorios/imprimir?${printQuery.toString()}`;
 
     return (
         <div>
             <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                        Relatórios
-                    </h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Relatórios</h1>
 
                     <p className="mt-2 text-sm text-slate-500">
                         Registre atividades e acompanhe as horas trabalhadas.

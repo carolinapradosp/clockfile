@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -24,7 +23,6 @@ import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge';
 import DeleteInvoiceButton from '@/components/invoices/DeleteInvoiceButton';
 import formatCurrency, { formatDate, formatDateTime, formatReferenceMonth } from '@/lib/utils';
 
-
 type InvoiceDetailsContentProps = {
     id: string;
 };
@@ -37,9 +35,7 @@ function normalizeExternalLink(value: string) {
     return `https://${value}`;
 }
 
-export default async function InvoiceDetailsContent({
-    id,
-}: InvoiceDetailsContentProps) {
+export default async function InvoiceDetailsContent({ id }: InvoiceDetailsContentProps) {
     const invoice = await getInvoiceById(id);
 
     if (!invoice) {
@@ -322,9 +318,9 @@ export default async function InvoiceDetailsContent({
                                         <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
                                             {item.rate !== null
                                                 ? formatCurrency({
-                                                    value: item.rate,
-                                                    currency: invoice.currency,
-                                                })
+                                                      value: item.rate,
+                                                      currency: invoice.currency,
+                                                  })
                                                 : '—'}
                                         </td>
 

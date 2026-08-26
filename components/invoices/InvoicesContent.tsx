@@ -19,19 +19,10 @@ type InvoicesContentProps = {
     }>;
 };
 
-const VALID_STATUSES: InvoiceStatus[] = [
-    'draft',
-    'issued',
-    'sent',
-    'paid',
-    'overdue',
-    'cancelled',
-];
+const VALID_STATUSES: InvoiceStatus[] = ['draft', 'issued', 'sent', 'paid', 'overdue', 'cancelled'];
 
 function normalizeStatus(value?: string): InvoiceStatus | undefined {
-    return VALID_STATUSES.includes(value as InvoiceStatus)
-        ? (value as InvoiceStatus)
-        : undefined;
+    return VALID_STATUSES.includes(value as InvoiceStatus) ? (value as InvoiceStatus) : undefined;
 }
 
 function groupTotalsByCurrency(
@@ -93,9 +84,7 @@ export default async function InvoicesContent({ searchParams }: InvoicesContentP
 
     const pendingInvoices = invoices.filter(
         (invoice) =>
-            invoice.status === 'issued' ||
-            invoice.status === 'sent' ||
-            invoice.status === 'overdue'
+            invoice.status === 'issued' || invoice.status === 'sent' || invoice.status === 'overdue'
     );
 
     const paidInvoices = invoices.filter((invoice) => invoice.status === 'paid');
@@ -125,9 +114,7 @@ export default async function InvoicesContent({ searchParams }: InvoicesContentP
         <>
             <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                        Faturas
-                    </h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Faturas</h1>
 
                     <p className="mt-2 text-sm text-slate-500">
                         Crie, acompanhe e gerencie as cobranças dos seus clientes.
@@ -170,9 +157,7 @@ export default async function InvoicesContent({ searchParams }: InvoicesContentP
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Total emitido
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Total emitido</p>
 
                             <TotalsList totals={issuedTotals} />
                         </div>
@@ -186,9 +171,7 @@ export default async function InvoicesContent({ searchParams }: InvoicesContentP
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                A receber
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">A receber</p>
 
                             <TotalsList totals={pendingTotals} />
                         </div>
@@ -202,9 +185,7 @@ export default async function InvoicesContent({ searchParams }: InvoicesContentP
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Recebido
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Recebido</p>
 
                             <TotalsList totals={paidTotals} />
                         </div>

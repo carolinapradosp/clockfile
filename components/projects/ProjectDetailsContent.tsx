@@ -23,10 +23,7 @@ import { getProjectReportSummary } from '@/app/actions/report';
 import ArchiveProjectButton from '@/components/projects/ArchiveProjectButton';
 import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
 
-import formatCurrency, {
-    formatDate,
-    formatDuration,
-} from '@/lib/utils';
+import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
 
 const STATUS_CONFIG = {
     draft: {
@@ -59,9 +56,7 @@ type ProjectDetailsContentProps = {
     projectId: string;
 };
 
-export default async function ProjectDetailsContent({
-    projectId,
-}: ProjectDetailsContentProps) {
+export default async function ProjectDetailsContent({ projectId }: ProjectDetailsContentProps) {
     const [project, reportSummary] = await Promise.all([
         getProjectById(projectId),
         getProjectReportSummary(projectId),
@@ -137,10 +132,7 @@ export default async function ProjectDetailsContent({
                         isArchived={project.status === 'archived'}
                     />
 
-                    <DeleteProjectButton
-                        projectId={project.id}
-                        projectName={project.name}
-                    />
+                    <DeleteProjectButton projectId={project.id} projectName={project.name} />
                 </div>
             </header>
 
@@ -148,9 +140,7 @@ export default async function ProjectDetailsContent({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Lançamentos
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Lançamentos</p>
 
                             <p className="mt-3 text-2xl font-bold text-slate-900">
                                 {summary.entriesCount}
@@ -166,9 +156,7 @@ export default async function ProjectDetailsContent({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Horas registradas
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Horas registradas</p>
 
                             <p className="mt-3 text-2xl font-bold text-slate-900">
                                 {formatDuration(summary.totalMinutes)}
@@ -184,9 +172,7 @@ export default async function ProjectDetailsContent({
                 <article className="rounded-2xl border border-slate-200 bg-white p-5 sm:col-span-2 xl:col-span-1">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">
-                                Valor gerado
-                            </p>
+                            <p className="text-sm font-medium text-slate-500">Valor gerado</p>
 
                             <p className="mt-3 text-2xl font-bold text-slate-900">
                                 {formatCurrency({
@@ -205,9 +191,7 @@ export default async function ProjectDetailsContent({
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Informações do projeto
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Informações do projeto</h2>
 
                     <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
@@ -220,9 +204,9 @@ export default async function ProjectDetailsContent({
 
                                 {project.defaultHourlyRate !== null
                                     ? `${formatCurrency({
-                                        value: project.defaultHourlyRate,
-                                        currency: project.currency,
-                                    })} / hora`
+                                          value: project.defaultHourlyRate,
+                                          currency: project.currency,
+                                      })} / hora`
                                     : 'Não definido'}
                             </p>
                         </div>
@@ -289,10 +273,7 @@ export default async function ProjectDetailsContent({
                                 </p>
 
                                 <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-                                    <UserRound
-                                        size={16}
-                                        className="shrink-0 text-slate-400"
-                                    />
+                                    <UserRound size={16} className="shrink-0 text-slate-400" />
 
                                     {project.billing.name || 'Não informado'}
                                 </p>
@@ -304,10 +285,7 @@ export default async function ProjectDetailsContent({
                                 </p>
 
                                 <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-                                    <Building2
-                                        size={16}
-                                        className="shrink-0 text-slate-400"
-                                    />
+                                    <Building2 size={16} className="shrink-0 text-slate-400" />
 
                                     {project.billing.company || 'Não informado'}
                                 </p>
@@ -319,10 +297,7 @@ export default async function ProjectDetailsContent({
                                 </p>
 
                                 <p className="mt-2 flex items-center gap-2 break-all text-sm font-medium text-slate-700">
-                                    <Mail
-                                        size={16}
-                                        className="shrink-0 text-slate-400"
-                                    />
+                                    <Mail size={16} className="shrink-0 text-slate-400" />
 
                                     {project.billing.email || 'Não informado'}
                                 </p>
@@ -334,10 +309,7 @@ export default async function ProjectDetailsContent({
                                 </p>
 
                                 <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
-                                    <Phone
-                                        size={16}
-                                        className="shrink-0 text-slate-400"
-                                    />
+                                    <Phone size={16} className="shrink-0 text-slate-400" />
 
                                     {project.billing.phone || 'Não informado'}
                                 </p>
@@ -356,11 +328,11 @@ export default async function ProjectDetailsContent({
                                     </p>
 
                                     {project.billing.addressLine1 ||
-                                        project.billing.addressLine2 ||
-                                        project.billing.city ||
-                                        project.billing.state ||
-                                        project.billing.postalCode ||
-                                        project.billing.countryCode ? (
+                                    project.billing.addressLine2 ||
+                                    project.billing.city ||
+                                    project.billing.state ||
+                                    project.billing.postalCode ||
+                                    project.billing.countryCode ? (
                                         <div className="mt-2 space-y-1 text-sm leading-relaxed text-slate-700">
                                             {project.billing.addressLine1 && (
                                                 <p>{project.billing.addressLine1}</p>
@@ -370,29 +342,25 @@ export default async function ProjectDetailsContent({
                                                 <p>{project.billing.addressLine2}</p>
                                             )}
 
-                                            {(project.billing.city ||
-                                                project.billing.state) && (
-                                                    <p>
-                                                        {[
-                                                            project.billing.city,
-                                                            project.billing.state,
-                                                        ]
-                                                            .filter(Boolean)
-                                                            .join(' — ')}
-                                                    </p>
-                                                )}
+                                            {(project.billing.city || project.billing.state) && (
+                                                <p>
+                                                    {[project.billing.city, project.billing.state]
+                                                        .filter(Boolean)
+                                                        .join(' — ')}
+                                                </p>
+                                            )}
 
                                             {(project.billing.postalCode ||
                                                 project.billing.countryCode) && (
-                                                    <p>
-                                                        {[
-                                                            project.billing.postalCode,
-                                                            project.billing.countryCode,
-                                                        ]
-                                                            .filter(Boolean)
-                                                            .join(' · ')}
-                                                    </p>
-                                                )}
+                                                <p>
+                                                    {[
+                                                        project.billing.postalCode,
+                                                        project.billing.countryCode,
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(' · ')}
+                                                </p>
+                                            )}
                                         </div>
                                     ) : (
                                         <p className="mt-2 text-sm text-slate-500">
@@ -502,9 +470,7 @@ export default async function ProjectDetailsContent({
 
                                     <div className="flex shrink-0 items-center gap-5 text-sm">
                                         <div>
-                                            <p className="text-xs text-slate-400">
-                                                Data
-                                            </p>
+                                            <p className="text-xs text-slate-400">Data</p>
 
                                             <p className="mt-1 font-medium text-slate-700">
                                                 {formatDate(entry.date)}
@@ -512,9 +478,7 @@ export default async function ProjectDetailsContent({
                                         </div>
 
                                         <div>
-                                            <p className="text-xs text-slate-400">
-                                                Duração
-                                            </p>
+                                            <p className="text-xs text-slate-400">Duração</p>
 
                                             <p className="mt-1 font-medium text-slate-700">
                                                 {entry.duration}
@@ -522,9 +486,7 @@ export default async function ProjectDetailsContent({
                                         </div>
 
                                         <div className="text-right">
-                                            <p className="text-xs text-slate-400">
-                                                Valor
-                                            </p>
+                                            <p className="text-xs text-slate-400">Valor</p>
 
                                             <p className="mt-1 font-bold text-slate-900">
                                                 {formatCurrency({

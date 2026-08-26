@@ -31,9 +31,7 @@ function formatDecimalHours(durationMinutes: number): string {
     });
 }
 
-export default async function ReportDetailsContent({
-    reportId,
-}: ReportDetailsContentProps) {
+export default async function ReportDetailsContent({ reportId }: ReportDetailsContentProps) {
     const entry = await getReportEntryById(reportId);
 
     if (!entry) {
@@ -47,7 +45,6 @@ export default async function ReportDetailsContent({
                 className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900"
             >
                 <ArrowLeft size={17} />
-
                 Voltar para relatórios
             </Link>
 
@@ -70,7 +67,6 @@ export default async function ReportDetailsContent({
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                     >
                         <Edit3 size={17} />
-
                         Editar
                     </Link>
 
@@ -126,9 +122,7 @@ export default async function ReportDetailsContent({
                             Tarefa
                         </p>
 
-                        <p className="mt-2 text-base font-semibold text-slate-900">
-                            {entry.task}
-                        </p>
+                        <p className="mt-2 text-base font-semibold text-slate-900">{entry.task}</p>
                     </div>
 
                     <div className="mt-6 border-t border-slate-100 pt-6">
@@ -149,13 +143,9 @@ export default async function ReportDetailsContent({
                         </div>
 
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">
-                                Projeto
-                            </h2>
+                            <h2 className="text-lg font-bold text-slate-900">Projeto</h2>
 
-                            <p className="text-sm text-slate-500">
-                                Origem do lançamento.
-                            </p>
+                            <p className="text-sm text-slate-500">Origem do lançamento.</p>
                         </div>
                     </div>
 
@@ -176,9 +166,7 @@ export default async function ReportDetailsContent({
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        Resumo financeiro
-                    </h2>
+                    <h2 className="text-lg font-bold text-slate-900">Resumo financeiro</h2>
 
                     <p className="mt-1 text-sm text-slate-500">
                         Duração e valores utilizados no cálculo deste lançamento.
@@ -229,16 +217,14 @@ export default async function ReportDetailsContent({
                             <p className="mt-2 text-base font-bold text-slate-900">
                                 {entry.rate !== null
                                     ? formatCurrency({
-                                        value: entry.rate,
-                                        currency: entry.currency,
-                                    })
+                                          value: entry.rate,
+                                          currency: entry.currency,
+                                      })
                                     : 'Não informado'}
                             </p>
 
                             {entry.rate !== null && (
-                                <p className="mt-1 text-xs text-slate-500">
-                                    por hora
-                                </p>
+                                <p className="mt-1 text-xs text-slate-500">por hora</p>
                             )}
                         </article>
 
@@ -258,9 +244,7 @@ export default async function ReportDetailsContent({
                                 })}
                             </p>
 
-                            <p className="mt-1 text-xs text-emerald-700/70">
-                                {entry.currency}
-                            </p>
+                            <p className="mt-1 text-xs text-emerald-700/70">{entry.currency}</p>
                         </article>
                     </div>
                 </section>

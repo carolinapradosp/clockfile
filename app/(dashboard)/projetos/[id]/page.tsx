@@ -9,9 +9,7 @@ type ProjectDetailsPageProps = {
     }>;
 };
 
-export default async function ProjectDetailsPage({
-    params,
-}: ProjectDetailsPageProps) {
+export default async function ProjectDetailsPage({ params }: ProjectDetailsPageProps) {
     const { id } = await params;
 
     return (

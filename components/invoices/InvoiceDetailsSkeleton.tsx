@@ -11,11 +11,7 @@ function InformationItemSkeleton() {
 
 export default function InvoiceDetailsSkeleton() {
     return (
-        <div
-            className="mx-auto max-w-6xl"
-            aria-busy="true"
-            aria-label="Carregando fatura"
-        >
+        <div className="mx-auto max-w-6xl" aria-busy="true" aria-label="Carregando fatura">
             <Skeleton className="mb-6 h-5 w-32" />
 
             <header className="mb-8 flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
