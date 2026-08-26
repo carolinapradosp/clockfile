@@ -3,13 +3,13 @@ import Skeleton from '@/components/ui/Skeleton';
 function SummaryCardSkeleton() {
     return (
         <article className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
                     <Skeleton className="h-4 w-24" />
-                    <Skeleton className="mt-4 h-7 w-24" />
+                    <Skeleton className="mt-3 h-8 w-24" />
                 </div>
 
-                <Skeleton className="h-11 w-11 shrink-0 rounded-xl" />
+                <Skeleton className="h-11 w-11 rounded-xl" />
             </div>
         </article>
     );
@@ -78,23 +78,9 @@ function MobileReportSkeleton() {
     );
 }
 
-export default function ReportsLoading() {
+export default function ReportsListSkeleton() {
     return (
         <div aria-busy="true" aria-label="Carregando relatórios">
-            <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                <div>
-                    <Skeleton className="h-9 w-40" />
-
-                    <Skeleton className="mt-3 h-4 w-80 max-w-full" />
-                </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row">
-                    <Skeleton className="h-12 w-full rounded-xl sm:w-32" />
-
-                    <Skeleton className="h-12 w-full rounded-xl sm:w-44" />
-                </div>
-            </header>
-
             <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-[44px_1fr_1fr_auto] lg:items-end">
                     <Skeleton className="h-11 w-11 rounded-xl" />
@@ -113,10 +99,10 @@ export default function ReportsLoading() {
                 </div>
             </section>
 
-            <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                    <SummaryCardSkeleton key={index} />
-                ))}
+            <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <SummaryCardSkeleton />
+                <SummaryCardSkeleton />
+                <SummaryCardSkeleton />
             </section>
 
             <section className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white lg:block">
