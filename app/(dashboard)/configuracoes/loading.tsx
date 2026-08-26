@@ -25,9 +25,7 @@ function CardHeaderSkeleton({
             <div className="min-w-0 flex-1">
                 <Skeleton className={`h-5 ${titleWidth}`} />
 
-                <Skeleton
-                    className={`mt-2 h-4 max-w-full ${descriptionWidth}`}
-                />
+                <Skeleton className={`mt-2 h-4 max-w-full ${descriptionWidth}`} />
             </div>
         </div>
     );
@@ -35,11 +33,7 @@ function CardHeaderSkeleton({
 
 export default function SettingsLoading() {
     return (
-        <div
-            className="mx-auto max-w-5xl"
-            aria-busy="true"
-            aria-label="Carregando configurações"
-        >
+        <div className="mx-auto max-w-5xl" aria-busy="true" aria-label="Carregando configurações">
             <header className="mb-8">
                 <div className="flex items-center gap-3">
                     <Skeleton className="h-11 w-11 shrink-0 rounded-xl" />
@@ -54,10 +48,7 @@ export default function SettingsLoading() {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <CardHeaderSkeleton
-                        titleWidth="w-32"
-                        descriptionWidth="w-72"
-                    />
+                    <CardHeaderSkeleton titleWidth="w-32" descriptionWidth="w-72" />
 
                     <div className="mt-6 space-y-5">
                         <FieldSkeleton />
@@ -71,10 +62,7 @@ export default function SettingsLoading() {
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <CardHeaderSkeleton
-                        titleWidth="w-28"
-                        descriptionWidth="w-72"
-                    />
+                    <CardHeaderSkeleton titleWidth="w-28" descriptionWidth="w-72" />
 
                     <div className="mt-6 space-y-5">
                         <div>
@@ -122,10 +110,7 @@ export default function SettingsLoading() {
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <CardHeaderSkeleton
-                        titleWidth="w-40"
-                        descriptionWidth="w-72"
-                    />
+                    <CardHeaderSkeleton titleWidth="w-40" descriptionWidth="w-72" />
 
                     <div className="mt-6 rounded-xl bg-slate-50 p-4">
                         <Skeleton className="h-4 w-40" />

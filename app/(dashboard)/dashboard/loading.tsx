@@ -64,10 +64,7 @@ function RecentActivitySkeleton() {
 
 export default function DashboardLoading() {
     return (
-        <div
-            aria-busy="true"
-            aria-label="Carregando dashboard"
-        >
+        <div aria-busy="true" aria-label="Carregando dashboard">
             <header className="mb-8">
                 <Skeleton className="h-4 w-20" />
 

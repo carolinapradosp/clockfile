@@ -1,21 +1,11 @@
-
 import Skeleton from '@/components/ui/Skeleton';
 
-function FieldSkeleton({
-    full = false,
-    tall = false,
-}: {
-    full?: boolean;
-    tall?: boolean;
-}) {
+function FieldSkeleton({ full = false, tall = false }: { full?: boolean; tall?: boolean }) {
     return (
         <div className={full ? 'md:col-span-2' : ''}>
             <Skeleton className="h-4 w-24" />
 
-            <Skeleton
-                className={`mt-2 w-full rounded-xl ${tall ? 'h-36' : 'h-12'
-                    }`}
-            />
+            <Skeleton className={`mt-2 w-full rounded-xl ${tall ? 'h-36' : 'h-12'}`} />
         </div>
     );
 }

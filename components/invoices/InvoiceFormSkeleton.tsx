@@ -2,11 +2,7 @@
 
 import Skeleton from '@/components/ui/Skeleton';
 
-function FieldSkeleton({
-    full = false,
-}: {
-    full?: boolean;
-}) {
+function FieldSkeleton({ full = false }: { full?: boolean }) {
     return (
         <div className={full ? 'md:col-span-2' : ''}>
             <Skeleton className="h-4 w-24" />
@@ -17,11 +13,7 @@ function FieldSkeleton({
 
 export default function InvoiceFormSkeleton() {
     return (
-        <div
-            aria-busy="true"
-            aria-label="Carregando formulário de fatura"
-            className="space-y-6"
-        >
+        <div aria-busy="true" aria-label="Carregando formulário de fatura" className="space-y-6">
             <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                 <div>
                     <Skeleton className="h-6 w-44" />

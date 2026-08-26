@@ -34,24 +34,16 @@ function ProjectCardSkeleton() {
     );
 }
 
-export default function ProjectsLoading() {
+export default function ProjectsListSkeleton() {
     return (
-        <div aria-busy="true" aria-label="Carregando projetos">
-            <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                <div>
-                    <Skeleton className="h-9 w-36" />
-
-                    <Skeleton className="mt-3 h-4 w-72 max-w-full" />
-                </div>
-
-                <Skeleton className="h-12 w-36 rounded-xl" />
-            </header>
-
-            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, index) => (
-                    <ProjectCardSkeleton key={index} />
-                ))}
-            </section>
-        </div>
+        <section
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+            aria-busy="true"
+            aria-label="Carregando projetos"
+        >
+            {Array.from({ length: 6 }).map((_, index) => (
+                <ProjectCardSkeleton key={index} />
+            ))}
+        </section>
     );
 }

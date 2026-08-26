@@ -12,11 +12,7 @@ function InfoItemSkeleton() {
 
 export default function ReportDetailsLoading() {
     return (
-        <div
-            className="mx-auto max-w-5xl"
-            aria-busy="true"
-            aria-label="Carregando lançamento"
-        >
+        <div className="mx-auto max-w-5xl" aria-busy="true" aria-label="Carregando lançamento">
             <Skeleton className="mb-6 h-5 w-40" />
 
             <header className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-start">

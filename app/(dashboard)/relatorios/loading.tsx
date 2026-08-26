@@ -80,10 +80,7 @@ function MobileReportSkeleton() {
 
 export default function ReportsLoading() {
     return (
-        <div
-            aria-busy="true"
-            aria-label="Carregando relatórios"
-        >
+        <div aria-busy="true" aria-label="Carregando relatórios">
             <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                 <div>
                     <Skeleton className="h-9 w-40" />
