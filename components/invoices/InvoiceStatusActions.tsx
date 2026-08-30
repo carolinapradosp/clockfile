@@ -1,11 +1,9 @@
-//components/invoices/InvoiceStatusActions.tsx
-
 'use client';
 
 import { Ban, CircleDollarSign, Clock3, LoaderCircle, Send } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 import { updateInvoiceStatus } from '@/app/actions/invoice';
 
@@ -124,6 +122,8 @@ export default function InvoiceStatusActions({
 }: InvoiceStatusActionsProps) {
     const router = useRouter();
 
+    const [isRefreshing, startRefreshTransition] = useTransition();
+
     const [pendingStatus, setPendingStatus] = useState<InvoiceStatus | null>(null);
 
     const [selectedAction, setSelectedAction] = useState<StatusAction | null>(null);
@@ -132,13 +132,15 @@ export default function InvoiceStatusActions({
 
     const actions = STATUS_ACTIONS[currentStatus] ?? [];
 
+    const isPending = pendingStatus !== null || isRefreshing;
+
     function handleOpenConfirmation(action: StatusAction) {
         setError('');
         setSelectedAction(action);
     }
 
     function handleCancelConfirmation() {
-        if (pendingStatus) {
+        if (isPending) {
             return;
         }
 
@@ -146,29 +148,33 @@ export default function InvoiceStatusActions({
     }
 
     async function handleConfirmStatusChange() {
-        if (!selectedAction) {
+        if (!selectedAction || isPending) {
             return;
         }
 
-        try {
-            setPendingStatus(selectedAction.status);
+        const nextStatus = selectedAction.status;
 
+        try {
+            setPendingStatus(nextStatus);
             setError('');
 
             const result = await updateInvoiceStatus({
                 invoiceId,
-                status: selectedAction.status,
+                status: nextStatus,
             });
 
             if (!result.success) {
                 setError(result.message);
+                setPendingStatus(null);
 
                 return;
             }
 
             setSelectedAction(null);
 
-            router.refresh();
+            startRefreshTransition(() => {
+                router.refresh();
+            });
         } catch (statusError) {
             console.error('Erro ao atualizar status da fatura:', statusError);
 
@@ -195,43 +201,49 @@ export default function InvoiceStatusActions({
             <div>
                 <div className="flex flex-wrap gap-3">
                     {actions.map((action) => {
-                        const isPending = pendingStatus === action.status;
+                        const actionIsPending =
+                            pendingStatus === action.status ||
+                            (isRefreshing && selectedAction?.status === action.status);
 
                         return (
                             <button
                                 key={action.status}
                                 type="button"
                                 onClick={() => handleOpenConfirmation(action)}
-                                disabled={pendingStatus !== null}
+                                disabled={isPending}
                                 className={`
-                                        inline-flex
-                                        h-11
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        rounded-xl
-                                        px-4
-                                        text-sm
-                                        font-semibold
-                                        transition-colors
-                                        disabled:cursor-wait
-                                        disabled:opacity-50
-                                        ${action.className}
-                                    `}
+                                    inline-flex
+                                    h-11
+                                    items-center
+                                    justify-center
+                                    gap-2
+                                    rounded-xl
+                                    px-4
+                                    text-sm
+                                    font-semibold
+                                    transition-colors
+                                    disabled:cursor-wait
+                                    disabled:opacity-50
+                                    ${action.className}
+                                `}
                             >
-                                {isPending ? (
+                                {actionIsPending ? (
                                     <LoaderCircle size={17} className="animate-spin" />
                                 ) : (
                                     action.icon
                                 )}
 
-                                {isPending ? 'Atualizando...' : action.label}
+                                {actionIsPending ? 'Atualizando...' : action.label}
                             </button>
                         );
                     })}
                 </div>
 
-                {error && <p className="mt-3 text-sm font-medium text-red-600">{error}</p>}
+                {error && (
+                    <p role="alert" className="mt-3 text-sm font-medium text-red-600">
+                        {error}
+                    </p>
+                )}
             </div>
 
             <ConfirmModal
@@ -240,7 +252,7 @@ export default function InvoiceStatusActions({
                 description={selectedAction?.confirmation ?? ''}
                 confirmLabel={confirmLabel}
                 cancelLabel="Cancelar"
-                loading={pendingStatus !== null}
+                loading={isPending}
                 variant={isDangerAction ? 'danger' : 'default'}
                 onConfirm={handleConfirmStatusChange}
                 onCancel={handleCancelConfirmation}

@@ -1,3 +1,4 @@
+//components/projects/ProjectDetailsContent.tsx
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -204,9 +205,9 @@ export default async function ProjectDetailsContent({ projectId }: ProjectDetail
 
                                 {project.defaultHourlyRate !== null
                                     ? `${formatCurrency({
-                                          value: project.defaultHourlyRate,
-                                          currency: project.currency,
-                                      })} / hora`
+                                        value: project.defaultHourlyRate,
+                                        currency: project.currency,
+                                    })} / hora`
                                     : 'Não definido'}
                             </p>
                         </div>
@@ -328,11 +329,11 @@ export default async function ProjectDetailsContent({ projectId }: ProjectDetail
                                     </p>
 
                                     {project.billing.addressLine1 ||
-                                    project.billing.addressLine2 ||
-                                    project.billing.city ||
-                                    project.billing.state ||
-                                    project.billing.postalCode ||
-                                    project.billing.countryCode ? (
+                                        project.billing.addressLine2 ||
+                                        project.billing.city ||
+                                        project.billing.state ||
+                                        project.billing.postalCode ||
+                                        project.billing.countryCode ? (
                                         <div className="mt-2 space-y-1 text-sm leading-relaxed text-slate-700">
                                             {project.billing.addressLine1 && (
                                                 <p>{project.billing.addressLine1}</p>
@@ -352,15 +353,15 @@ export default async function ProjectDetailsContent({ projectId }: ProjectDetail
 
                                             {(project.billing.postalCode ||
                                                 project.billing.countryCode) && (
-                                                <p>
-                                                    {[
-                                                        project.billing.postalCode,
-                                                        project.billing.countryCode,
-                                                    ]
-                                                        .filter(Boolean)
-                                                        .join(' · ')}
-                                                </p>
-                                            )}
+                                                    <p>
+                                                        {[
+                                                            project.billing.postalCode,
+                                                            project.billing.countryCode,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(' · ')}
+                                                    </p>
+                                                )}
                                         </div>
                                     ) : (
                                         <p className="mt-2 text-sm text-slate-500">

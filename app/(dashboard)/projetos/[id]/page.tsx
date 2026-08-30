@@ -1,3 +1,4 @@
+//app/(dashboard)/projetos/[id]/page.tsx
 import { Suspense } from 'react';
 
 import ProjectDetailsContent from '@/components/projects/ProjectDetailsContent';

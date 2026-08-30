@@ -1,3 +1,4 @@
+//app/(dashboard)/faturas/[id]/page.tsx
 import { Suspense } from 'react';
 
 import InvoiceDetailsContent from '@/components/invoices/InvoiceDetailsContent';

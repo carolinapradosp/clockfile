@@ -3,7 +3,7 @@
 import { Archive, ArchiveRestore, LoaderCircle } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 import { updateProjectArchiveStatus } from '@/app/actions/projects';
 
@@ -22,9 +22,15 @@ export default function ArchiveProjectButton({
 }: ArchiveProjectButtonProps) {
     const router = useRouter();
 
-    const [isPending, setIsPending] = useState(false);
+    const [isActionPending, setIsActionPending] = useState(false);
+
+    const [isRefreshing, startRefreshTransition] = useTransition();
+
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
     const [error, setError] = useState('');
+
+    const isPending = isActionPending || isRefreshing;
 
     const isReactivating = isArchived;
 
@@ -54,8 +60,12 @@ export default function ArchiveProjectButton({
     }
 
     async function handleConfirmArchiveStatus() {
+        if (isPending) {
+            return;
+        }
+
         try {
-            setIsPending(true);
+            setIsActionPending(true);
             setError('');
 
             const result = await updateProjectArchiveStatus({
@@ -70,7 +80,9 @@ export default function ArchiveProjectButton({
 
             setIsConfirmOpen(false);
 
-            router.refresh();
+            startRefreshTransition(() => {
+                router.refresh();
+            });
         } catch (archiveError) {
             console.error(
                 isReactivating ? 'Erro ao reativar projeto:' : 'Erro ao arquivar projeto:',
@@ -83,7 +95,7 @@ export default function ArchiveProjectButton({
                     : 'Não foi possível arquivar o projeto.'
             );
         } finally {
-            setIsPending(false);
+            setIsActionPending(false);
         }
     }
 

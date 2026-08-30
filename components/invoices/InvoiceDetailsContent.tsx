@@ -1,3 +1,4 @@
+//components/invoices/InvoiceDetailsContent.tsx
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -318,9 +319,9 @@ export default async function InvoiceDetailsContent({ id }: InvoiceDetailsConten
                                         <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
                                             {item.rate !== null
                                                 ? formatCurrency({
-                                                      value: item.rate,
-                                                      currency: invoice.currency,
-                                                  })
+                                                    value: item.rate,
+                                                    currency: invoice.currency,
+                                                })
                                                 : '—'}
                                         </td>
 
