@@ -265,3 +265,40 @@ export async function createDraftInvoice({
 
     return page.url();
 }
+
+export async function confirmModalAction({
+    page,
+    confirmButtonName,
+    timeout = 15_000,
+}: {
+    page: Page;
+    confirmButtonName: string;
+    timeout?: number;
+}) {
+    const dialog = page.getByRole('dialog');
+
+    await expect(dialog).toBeVisible();
+
+    const confirmButton = dialog.getByRole('button', {
+        name: confirmButtonName,
+        exact: true,
+    });
+
+    await expect(confirmButton).toBeEnabled();
+
+    await confirmButton.click();
+
+    /*
+     * Essencial:
+     *
+     * click() não espera um async onClick React
+     * terminar.
+     *
+     * O desaparecimento do modal representa
+     * que a Server Action terminou e o estado
+     * local foi limpo.
+     */
+    await expect(dialog).toBeHidden({
+        timeout,
+    });
+}

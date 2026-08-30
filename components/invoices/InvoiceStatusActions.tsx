@@ -2,8 +2,7 @@
 
 import { Ban, CircleDollarSign, Clock3, LoaderCircle, Send } from 'lucide-react';
 
-import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 
 import { updateInvoiceStatus } from '@/app/actions/invoice';
 
@@ -44,7 +43,6 @@ const STATUS_ACTIONS: Partial<Record<InvoiceStatus, StatusAction[]>> = {
             icon: <Send size={17} />,
             className: 'bg-violet-600 text-white hover:bg-violet-700',
         },
-
         {
             status: 'paid',
             label: 'Marcar como paga',
@@ -52,7 +50,6 @@ const STATUS_ACTIONS: Partial<Record<InvoiceStatus, StatusAction[]>> = {
             icon: <CircleDollarSign size={17} />,
             className: 'bg-emerald-600 text-white hover:bg-emerald-700',
         },
-
         {
             status: 'cancelled',
             label: 'Cancelar',
@@ -71,7 +68,6 @@ const STATUS_ACTIONS: Partial<Record<InvoiceStatus, StatusAction[]>> = {
             icon: <CircleDollarSign size={17} />,
             className: 'bg-emerald-600 text-white hover:bg-emerald-700',
         },
-
         {
             status: 'overdue',
             label: 'Marcar como vencida',
@@ -79,7 +75,6 @@ const STATUS_ACTIONS: Partial<Record<InvoiceStatus, StatusAction[]>> = {
             icon: <Clock3 size={17} />,
             className: 'border border-red-200 bg-white text-red-600 hover:bg-red-50',
         },
-
         {
             status: 'cancelled',
             label: 'Cancelar',
@@ -97,7 +92,6 @@ const STATUS_ACTIONS: Partial<Record<InvoiceStatus, StatusAction[]>> = {
             icon: <CircleDollarSign size={17} />,
             className: 'bg-emerald-600 text-white hover:bg-emerald-700',
         },
-
         {
             status: 'sent',
             label: 'Reenviada ao cliente',
@@ -105,7 +99,6 @@ const STATUS_ACTIONS: Partial<Record<InvoiceStatus, StatusAction[]>> = {
             icon: <Send size={17} />,
             className: 'bg-violet-600 text-white hover:bg-violet-700',
         },
-
         {
             status: 'cancelled',
             label: 'Cancelar',
@@ -120,10 +113,6 @@ export default function InvoiceStatusActions({
     invoiceId,
     currentStatus,
 }: InvoiceStatusActionsProps) {
-    const router = useRouter();
-
-    const [isRefreshing, startRefreshTransition] = useTransition();
-
     const [pendingStatus, setPendingStatus] = useState<InvoiceStatus | null>(null);
 
     const [selectedAction, setSelectedAction] = useState<StatusAction | null>(null);
@@ -132,9 +121,13 @@ export default function InvoiceStatusActions({
 
     const actions = STATUS_ACTIONS[currentStatus] ?? [];
 
-    const isPending = pendingStatus !== null || isRefreshing;
+    const isPending = pendingStatus !== null;
 
     function handleOpenConfirmation(action: StatusAction) {
+        if (isPending) {
+            return;
+        }
+
         setError('');
         setSelectedAction(action);
     }
@@ -154,10 +147,10 @@ export default function InvoiceStatusActions({
 
         const nextStatus = selectedAction.status;
 
-        try {
-            setPendingStatus(nextStatus);
-            setError('');
+        setPendingStatus(nextStatus);
+        setError('');
 
+        try {
             const result = await updateInvoiceStatus({
                 invoiceId,
                 status: nextStatus,
@@ -170,16 +163,21 @@ export default function InvoiceStatusActions({
                 return;
             }
 
+            /*
+             * Fecha o estado local.
+             *
+             * Em seguida fazemos um reload real para
+             * reconstruir toda a árvore Server Component
+             * diretamente a partir do banco.
+             */
             setSelectedAction(null);
 
-            startRefreshTransition(() => {
-                router.refresh();
-            });
+            window.location.reload();
         } catch (statusError) {
             console.error('Erro ao atualizar status da fatura:', statusError);
 
             setError('Não foi possível atualizar o status da fatura.');
-        } finally {
+
             setPendingStatus(null);
         }
     }
@@ -201,9 +199,7 @@ export default function InvoiceStatusActions({
             <div>
                 <div className="flex flex-wrap gap-3">
                     {actions.map((action) => {
-                        const actionIsPending =
-                            pendingStatus === action.status ||
-                            (isRefreshing && selectedAction?.status === action.status);
+                        const actionIsPending = pendingStatus === action.status;
 
                         return (
                             <button

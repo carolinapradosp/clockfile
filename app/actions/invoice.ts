@@ -2,10 +2,10 @@
 
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
 import { sql } from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth/current-user';
+
+import { revalidatePath } from 'next/cache';
 
 import type {
     Invoice,
@@ -1895,13 +1895,10 @@ export async function updateInvoiceStatus({
             SELECT
                 id,
                 status
-
             FROM public.invoices
-
             WHERE
                 id = ${invoiceId}::uuid
                 AND owner_id = ${ownerId}::uuid
-
             LIMIT 1
         `;
 
@@ -1930,7 +1927,6 @@ export async function updateInvoiceStatus({
 
         const rows = await sql`
             UPDATE public.invoices
-
             SET
                 status = ${status},
 
@@ -1946,7 +1942,6 @@ export async function updateInvoiceStatus({
                             issued_at,
                             NOW()
                         )
-
                         ELSE issued_at
                     END,
 
@@ -1957,7 +1952,6 @@ export async function updateInvoiceStatus({
                             sent_at,
                             NOW()
                         )
-
                         ELSE sent_at
                     END,
 
@@ -1968,7 +1962,6 @@ export async function updateInvoiceStatus({
                             paid_at,
                             NOW()
                         )
-
                         ELSE paid_at
                     END,
 
@@ -1979,10 +1972,8 @@ export async function updateInvoiceStatus({
                             cancelled_at,
                             NOW()
                         )
-
                         ELSE cancelled_at
                     END,
-
 
                 updated_at = NOW()
 
@@ -2019,7 +2010,6 @@ export async function updateInvoiceStatus({
         };
     }
 }
-
 export async function deleteInvoice(invoiceId: string): Promise<InvoiceStatusResult> {
     try {
         if (!isValidUuid(invoiceId)) {

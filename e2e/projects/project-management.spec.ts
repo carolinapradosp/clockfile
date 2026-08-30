@@ -1,5 +1,32 @@
 import { expect, test, type Page } from '@playwright/test';
 
+async function confirmModalAction({
+    page,
+    confirmButtonName,
+    timeout = 15_000,
+}: {
+    page: Page;
+    confirmButtonName: string;
+    timeout?: number;
+}) {
+    const dialog = page.getByRole('dialog');
+
+    await expect(dialog).toBeVisible();
+
+    const confirmButton = dialog.getByRole('button', {
+        name: confirmButtonName,
+        exact: true,
+    });
+
+    await expect(confirmButton).toBeEnabled();
+
+    await confirmButton.click();
+
+    await expect(dialog).toBeHidden({
+        timeout,
+    });
+}
+
 test.setTimeout(60_000);
 
 const PROJECT_DETAILS_URL =
@@ -622,12 +649,11 @@ test.describe('Gerenciamento de projetos', () => {
             })
         ).toBeVisible();
 
-        await archiveDialog
-            .getByRole('button', {
-                name: 'Arquivar projeto',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Arquivar projeto',
+            timeout: 20_000,
+        });
 
         await expect(
             page.getByText('Arquivado', {
@@ -741,12 +767,11 @@ test.describe('Gerenciamento de projetos', () => {
             })
         ).toBeVisible();
 
-        await reactivateDialog
-            .getByRole('button', {
-                name: 'Reativar projeto',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Reativar projeto',
+            timeout: 20_000,
+        });
 
         await expect(
             page.getByText('Ativo', {

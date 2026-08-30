@@ -2,8 +2,6 @@
 
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
 import { sql } from '@/lib/db';
 
 import { getCurrentUserId } from '@/lib/auth/current-user';
@@ -15,6 +13,8 @@ import type {
     ProjectStatus,
 } from '@/interfaces/Project';
 import { isValidCurrency, isValidUuid } from '@/lib/utils';
+
+import { revalidatePath } from 'next/cache';
 
 type ProjectRow = {
     id: string;
@@ -668,20 +668,23 @@ export async function updateProjectArchiveStatus({
 
         const rows = await sql`
             UPDATE public.projects
-
             SET
                 status = ${nextStatus},
                 updated_at = NOW()
-
             WHERE
                 id = ${projectId}::uuid
                 AND owner_id = ${ownerId}::uuid
                 AND (
-                    (${archived} AND status <> 'archived')
+                    (
+                        ${archived}
+                        AND status <> 'archived'
+                    )
                     OR
-                    (NOT ${archived} AND status = 'archived')
+                    (
+                        NOT ${archived}
+                        AND status = 'archived'
+                    )
                 )
-
             RETURNING id
         `;
 
@@ -695,8 +698,8 @@ export async function updateProjectArchiveStatus({
         }
 
         revalidatePath('/dashboard');
-        revalidatePath('/projetos');
 
+        revalidatePath('/projetos');
         revalidatePath(`/projetos/${projectId}`);
         revalidatePath(`/projetos/${projectId}/editar`);
 
