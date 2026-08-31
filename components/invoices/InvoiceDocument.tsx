@@ -7,12 +7,29 @@ import logoPV from '@/public/logo-300.png';
 import type { CurrentUser } from '@/lib/auth/current-user';
 
 import type { Invoice } from '@/interfaces/Invoice';
-import formatCurrency, { formatDate, formatReferenceMonth, invoiceStatusLabels } from '@/lib/utils';
+import formatCurrency from '@/lib/utils';
 
 type InvoiceDocumentProps = {
     invoice: Invoice;
     user: CurrentUser;
 };
+
+
+function formatDate(value: string) {
+    return new Date(`${value}T00:00:00Z`).toLocaleDateString('en', {
+        timeZone: 'UTC',
+    });
+}
+
+function formatMonth(value: string) {
+    const [year, month] = value.split('-').map(Number);
+
+    return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    });
+}
 
 function normalizeExternalLink(value: string) {
     if (value.startsWith('http://') || value.startsWith('https://')) {
@@ -73,10 +90,6 @@ export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps)
                     <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950">
                         #{invoice.invoiceNumber}
                     </h1>
-
-                    <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                        {invoiceStatusLabels[invoice.status]}
-                    </span>
                 </div>
             </header>
 
@@ -110,25 +123,13 @@ export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps)
                 </div>
 
                 <div className="space-y-4 sm:text-right">
-                    {/* <div>
-                        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                            Invoice date
-                        </p>
-
-                        <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {formatDate(
-                                invoice.invoiceDate
-                            )}
-                        </p>
-                    </div> */}
-
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
                             Due date
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {formatDate(invoice.dueDate)}
+                            {invoice.dueDate ? formatDate(invoice.dueDate) : "—"}
                         </p>
                     </div>
 
@@ -138,7 +139,7 @@ export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps)
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {formatReferenceMonth(invoice.referenceMonth)}
+                            {formatMonth(invoice.referenceMonth)}
                         </p>
                     </div>
 
@@ -216,10 +217,10 @@ export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps)
                                     <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
                                         {item.rate !== null
                                             ? formatCurrency({
-                                                  value: item.rate,
+                                                value: item.rate,
 
-                                                  currency: invoice.currency,
-                                              })
+                                                currency: invoice.currency,
+                                            })
                                             : '—'}
                                     </td>
 
