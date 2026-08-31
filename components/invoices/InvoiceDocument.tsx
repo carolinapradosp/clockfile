@@ -14,7 +14,6 @@ type InvoiceDocumentProps = {
     user: CurrentUser;
 };
 
-
 function formatDate(value: string) {
     return new Date(`${value}T00:00:00Z`).toLocaleDateString('en', {
         timeZone: 'UTC',
@@ -129,7 +128,7 @@ export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps)
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {invoice.dueDate ? formatDate(invoice.dueDate) : "—"}
+                            {invoice.dueDate ? formatDate(invoice.dueDate) : '—'}
                         </p>
                     </div>
 
@@ -217,10 +216,10 @@ export default function InvoiceDocument({ invoice, user }: InvoiceDocumentProps)
                                     <td className="px-4 py-4 text-right align-top text-sm text-slate-600">
                                         {item.rate !== null
                                             ? formatCurrency({
-                                                value: item.rate,
+                                                  value: item.rate,
 
-                                                currency: invoice.currency,
-                                            })
+                                                  currency: invoice.currency,
+                                              })
                                             : '—'}
                                     </td>
 
