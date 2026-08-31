@@ -117,6 +117,7 @@ test.describe('Filtros e impressão de relatórios', () => {
         const timestamp = Date.now();
 
         const projectName = `Projeto Limpar Filtro E2E ${timestamp}`;
+
         const month = '2026-12';
 
         const projectId = await createProject({
@@ -155,9 +156,11 @@ test.describe('Filtros e impressão de relatórios', () => {
         const timestamp = Date.now();
 
         const projectA = `Projeto Impressão A E2E ${timestamp}`;
+
         const projectB = `Projeto Impressão B E2E ${timestamp}`;
 
         const taskA = `Atividade Impressão A ${timestamp}`;
+
         const taskB = `Atividade Impressão B ${timestamp}`;
 
         const month = '2026-12';
@@ -192,25 +195,51 @@ test.describe('Filtros e impressão de relatórios', () => {
 
         await page.goto(`/relatorios/imprimir?month=${month}&projectId=${projectAId}`);
 
+        /*
+         * O documento de impressão é exibido
+         * em inglês.
+         */
         await expect(
             page.getByRole('heading', {
-                name: 'Relatório de horas',
+                name: 'Hours Report',
                 exact: true,
             })
         ).toBeVisible();
 
+        /*
+         * Confirma que o mês está sendo
+         * formatado em inglês.
+         */
         await expect(
-            page.getByText(`Projeto: ${projectA}`, {
+            page.getByText('December 2026', {
                 exact: true,
             })
         ).toBeVisible();
 
+        /*
+         * Confirma que o projeto recebido
+         * pelo filtro é o projeto A.
+         */
+        await expect(
+            page.getByText(`Project: ${projectA}`, {
+                exact: true,
+            })
+        ).toBeVisible();
+
+        /*
+         * O lançamento do projeto A
+         * deve aparecer.
+         */
         await expect(
             page.getByText(taskA, {
                 exact: true,
             })
         ).toBeVisible();
 
+        /*
+         * O lançamento do projeto B
+         * não pode aparecer.
+         */
         await expect(
             page.getByText(taskB, {
                 exact: true,
@@ -223,6 +252,10 @@ test.describe('Filtros e impressão de relatórios', () => {
             })
         ).not.toBeVisible();
 
+        /*
+         * Confirma que apenas as 2 horas
+         * do projeto filtrado aparecem.
+         */
         await expect(
             page.getByRole('cell', {
                 name: '02:00',
@@ -230,6 +263,10 @@ test.describe('Filtros e impressão de relatórios', () => {
             })
         ).toBeVisible();
 
+        /*
+         * A navegação de volta deve
+         * preservar os filtros.
+         */
         const backLink = page.getByRole('link', {
             name: 'Voltar para relatórios',
             exact: true,
