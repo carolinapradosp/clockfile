@@ -19,7 +19,7 @@ type ReportDocumentProps = {
 };
 
 function formatDate(value: string) {
-    return new Date(`${value}T00:00:00Z`).toLocaleDateString('pt-BR', {
+    return new Date(`${value}T00:00:00Z`).toLocaleDateString('en', {
         timeZone: 'UTC',
     });
 }
@@ -27,7 +27,7 @@ function formatDate(value: string) {
 function formatMonth(value: string) {
     const [year, month] = value.split('-').map(Number);
 
-    return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('pt-BR', {
+    return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {
         month: 'long',
         year: 'numeric',
         timeZone: 'UTC',
@@ -71,11 +71,11 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
 
                 <div className="sm:text-right">
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
-                        Relatório
+                        Report
                     </p>
 
                     <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
-                        Relatório de horas
+                        Hours Report
                     </h1>
 
                     <p className="mt-3 text-sm font-semibold capitalize text-slate-600">
@@ -83,7 +83,7 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
                     </p>
 
                     <p className="mt-1 text-sm text-slate-500">
-                        {projectName ? `Projeto: ${projectName}` : 'Todos os projetos'}
+                        {projectName ? `Project: ${projectName}` : 'All projects'}
                     </p>
                 </div>
             </header>
@@ -93,7 +93,7 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
             <section className="grid grid-cols-1 gap-4 py-8 sm:grid-cols-3">
                 <div className="rounded-xl bg-slate-100 px-5 py-4">
                     <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                        Lançamentos
+                        Reports
                     </p>
 
                     <p className="mt-2 text-2xl font-bold text-slate-950">{entries.length}</p>
@@ -101,7 +101,7 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
 
                 <div className="rounded-xl bg-slate-100 px-5 py-4">
                     <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                        Total de horas
+                        Total hours
                     </p>
 
                     <p className="mt-2 text-2xl font-bold text-slate-950">
@@ -111,7 +111,7 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
 
                 <div className="rounded-xl bg-slate-100 px-5 py-4">
                     <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                        Valor gerado
+                        Value generated
                     </p>
 
                     {currencyEntries.length === 0 ? (
@@ -138,17 +138,17 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
                     <table className="w-full border-collapse text-left">
                         <thead>
                             <tr className="bg-slate-950 text-xs font-semibold uppercase tracking-wide text-white">
-                                <th className="px-3 py-3">Data</th>
+                                <th className="px-3 py-3">Date</th>
 
-                                <th className="px-3 py-3">Projeto</th>
+                                <th className="px-3 py-3">Project</th>
 
-                                <th className="px-3 py-3">Atividade</th>
+                                <th className="px-3 py-3">Activity</th>
 
-                                <th className="px-3 py-3 text-right">Duração</th>
+                                <th className="px-3 py-3 text-right">Duration</th>
 
                                 <th className="px-3 py-3 text-right">Rate</th>
 
-                                <th className="px-3 py-3 text-right">Valor</th>
+                                <th className="px-3 py-3 text-right">Value</th>
                             </tr>
                         </thead>
 
@@ -200,16 +200,10 @@ export default function ReportDocument({ entries, user, month, projectName }: Re
 
                 {entries.length === 0 && (
                     <div className="py-16 text-center text-sm text-slate-500">
-                        Nenhum lançamento encontrado para este período.
+                        No releases found for this period.
                     </div>
                 )}
             </section>
-
-            {/* RODAPÉ */}
-
-            <footer className="mt-10 border-slate-200 pt-6 text-center">
-                <p className="text-xs text-slate-400">Relatório gerado pelo Clockfile.</p>
-            </footer>
         </article>
     );
 }

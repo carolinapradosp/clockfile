@@ -1,5 +1,4 @@
-// app/(dashboard)/faturas/[id]/page.tsx
-
+//components/invoices/InvoiceDetailsContent.tsx
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -25,10 +24,8 @@ import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge';
 import DeleteInvoiceButton from '@/components/invoices/DeleteInvoiceButton';
 import formatCurrency, { formatDate, formatDateTime, formatReferenceMonth } from '@/lib/utils';
 
-type InvoiceDetailsPageProps = {
-    params: Promise<{
-        id: string;
-    }>;
+type InvoiceDetailsContentProps = {
+    id: string;
 };
 
 function normalizeExternalLink(value: string) {
@@ -39,9 +36,7 @@ function normalizeExternalLink(value: string) {
     return `https://${value}`;
 }
 
-export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageProps) {
-    const { id } = await params;
-
+export default async function InvoiceDetailsContent({ id }: InvoiceDetailsContentProps) {
     const invoice = await getInvoiceById(id);
 
     if (!invoice) {

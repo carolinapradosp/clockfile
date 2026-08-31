@@ -1,5 +1,4 @@
-// app/(dashboard)/projetos/[id]/page.tsx
-
+//components/projects/ProjectDetailsContent.tsx
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -20,18 +19,12 @@ import {
 } from 'lucide-react';
 
 import { getProjectById } from '@/app/actions/projects';
-
 import { getProjectReportSummary } from '@/app/actions/report';
 
-import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
-import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
 import ArchiveProjectButton from '@/components/projects/ArchiveProjectButton';
+import DeleteProjectButton from '@/components/projects/DeleteProjectButton';
 
-type ProjectDetailsPageProps = {
-    params: Promise<{
-        id: string;
-    }>;
-};
+import formatCurrency, { formatDate, formatDuration } from '@/lib/utils';
 
 const STATUS_CONFIG = {
     draft: {
@@ -60,12 +53,14 @@ const STATUS_CONFIG = {
     },
 } as const;
 
-export default async function ProjectDetailsPage({ params }: ProjectDetailsPageProps) {
-    const { id } = await params;
+type ProjectDetailsContentProps = {
+    projectId: string;
+};
 
+export default async function ProjectDetailsContent({ projectId }: ProjectDetailsContentProps) {
     const [project, reportSummary] = await Promise.all([
-        getProjectById(id),
-        getProjectReportSummary(id),
+        getProjectById(projectId),
+        getProjectReportSummary(projectId),
     ]);
 
     if (!project) {
@@ -142,7 +137,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                 </div>
             </header>
 
-            {/* RESUMO */}
             <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <article className="rounded-2xl border border-slate-200 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
@@ -184,7 +178,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                             <p className="mt-3 text-2xl font-bold text-slate-900">
                                 {formatCurrency({
                                     value: summary.totalAmount,
-
                                     currency: summary.currency,
                                 })}
                             </p>
@@ -198,7 +191,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
             </section>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* INFORMAÇÕES */}
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
                     <h2 className="text-lg font-bold text-slate-900">Informações do projeto</h2>
 
@@ -214,7 +206,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                                 {project.defaultHourlyRate !== null
                                     ? `${formatCurrency({
                                           value: project.defaultHourlyRate,
-
                                           currency: project.currency,
                                       })} / hora`
                                     : 'Não definido'}
@@ -238,7 +229,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
 
                             <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
                                 <CalendarDays size={16} />
-
                                 {formatDate(project.startDate)}
                             </p>
                         </div>
@@ -250,7 +240,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
 
                             <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-700">
                                 <CalendarDays size={16} />
-
                                 {formatDate(project.endDate)}
                             </p>
                         </div>
@@ -266,8 +255,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                         </p>
                     </div>
 
-                    {/* DADOS DE FATURAMENTO */}
-
                     <div className="mt-7 border-t border-slate-100 pt-6">
                         <div>
                             <h3 className="text-base font-bold text-slate-900">
@@ -281,8 +268,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                         </div>
 
                         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            {/* NOME */}
-
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                                     Destinatário
@@ -294,8 +279,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                                     {project.billing.name || 'Não informado'}
                                 </p>
                             </div>
-
-                            {/* EMPRESA */}
 
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -309,8 +292,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                                 </p>
                             </div>
 
-                            {/* E-MAIL */}
-
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                                     E-mail
@@ -322,8 +303,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                                     {project.billing.email || 'Não informado'}
                                 </p>
                             </div>
-
-                            {/* TELEFONE */}
 
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -338,7 +317,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                             </div>
                         </div>
 
-                        {/* ENDEREÇO */}
                         <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
                             <div className="flex items-start gap-3">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
@@ -396,7 +374,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                     </div>
                 </section>
 
-                {/* ACESSOS RÁPIDOS */}
                 <section className="space-y-4">
                     <Link
                         href={reportListUrl}
@@ -435,7 +412,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                     )}
                 </section>
 
-                {/* ÚLTIMOS LANÇAMENTOS */}
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-3">
                     <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                         <div>
@@ -516,7 +492,6 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsPageP
                                             <p className="mt-1 font-bold text-slate-900">
                                                 {formatCurrency({
                                                     value: entry.amount,
-
                                                     currency: entry.currency,
                                                 })}
                                             </p>

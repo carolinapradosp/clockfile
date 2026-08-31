@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import {
     createDraftInvoice,
@@ -6,6 +6,33 @@ import {
     createReportEntry,
     selectOptionByLabel,
 } from '../helpers/e2e-helpers';
+
+async function confirmModalAction({
+    page,
+    confirmButtonName,
+    timeout = 15_000,
+}: {
+    page: Page;
+    confirmButtonName: string;
+    timeout?: number;
+}) {
+    const dialog = page.getByRole('dialog');
+
+    await expect(dialog).toBeVisible();
+
+    const confirmButton = dialog.getByRole('button', {
+        name: confirmButtonName,
+        exact: true,
+    });
+
+    await expect(confirmButton).toBeEnabled();
+
+    await confirmButton.click();
+
+    await expect(dialog).toBeHidden({
+        timeout,
+    });
+}
 
 test.describe('Faturas', () => {
     test('fatura cancelada é terminal e não pode voltar para um status anterior', async ({
@@ -58,12 +85,10 @@ test.describe('Faturas', () => {
 
         await expect(issueDialog).toBeVisible();
 
-        await issueDialog
-            .getByRole('button', {
-                name: 'Emitir fatura',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Emitir fatura',
+        });
 
         await expect(
             page.getByRole('button', {
@@ -91,12 +116,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        await cancelDialog
-            .getByRole('button', {
-                name: 'Confirmar cancelamento',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Confirmar cancelamento',
+        });
 
         await expect(
             page.getByRole('button', {
@@ -273,12 +296,10 @@ test.describe('Faturas', () => {
 
         await expect(issueDialog).toBeVisible();
 
-        await issueDialog
-            .getByRole('button', {
-                name: 'Emitir fatura',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Emitir fatura',
+        });
 
         await expect(
             page.getByRole('button', {
@@ -306,12 +327,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        await paidDialog
-            .getByRole('button', {
-                name: 'Marcar como paga',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como paga',
+        });
 
         await expect(
             page.getByRole('button', {
@@ -933,14 +952,10 @@ test.describe('Faturas', () => {
             )
         ).toBeVisible();
 
-        const issueButtons = page.getByRole('button', {
-            name: 'Emitir fatura',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Emitir fatura',
         });
-
-        await expect(issueButtons).toHaveCount(2);
-
-        await issueButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -977,14 +992,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        const sendButtons = page.getByRole('button', {
-            name: 'Marcar como enviada',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como enviada',
         });
-
-        await expect(sendButtons).toHaveCount(2);
-
-        await sendButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1014,14 +1025,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        const paidButtons = page.getByRole('button', {
-            name: 'Marcar como paga',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como paga',
         });
-
-        await expect(paidButtons).toHaveCount(2);
-
-        await paidButtons.last().click();
 
         await expect(
             page.getByText('Pagamento pendente', {
@@ -1093,14 +1100,10 @@ test.describe('Faturas', () => {
 
         await issueButton.click();
 
-        const issueButtons = page.getByRole('button', {
-            name: 'Emitir fatura',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Emitir fatura',
         });
-
-        await expect(issueButtons).toHaveCount(2);
-
-        await issueButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1118,14 +1121,10 @@ test.describe('Faturas', () => {
 
         await sendButton.click();
 
-        const sendButtons = page.getByRole('button', {
-            name: 'Marcar como enviada',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como enviada',
         });
-
-        await expect(sendButtons).toHaveCount(2);
-
-        await sendButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1149,14 +1148,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        const overdueButtons = page.getByRole('button', {
-            name: 'Marcar como vencida',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como vencida',
         });
-
-        await expect(overdueButtons).toHaveCount(2);
-
-        await overdueButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1194,14 +1189,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        const paidButtons = page.getByRole('button', {
-            name: 'Marcar como paga',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como paga',
         });
-
-        await expect(paidButtons).toHaveCount(2);
-
-        await paidButtons.last().click();
 
         await expect(
             page.getByText('Pagamento pendente', {
@@ -1352,14 +1343,10 @@ test.describe('Faturas', () => {
 
         await issueButton.click();
 
-        const issueButtons = page.getByRole('button', {
-            name: 'Emitir fatura',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Emitir fatura',
         });
-
-        await expect(issueButtons).toHaveCount(2);
-
-        await issueButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1377,14 +1364,10 @@ test.describe('Faturas', () => {
 
         await sendButton.click();
 
-        const sendButtons = page.getByRole('button', {
-            name: 'Marcar como enviada',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como enviada',
         });
-
-        await expect(sendButtons).toHaveCount(2);
-
-        await sendButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1408,14 +1391,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        const overdueButtons = page.getByRole('button', {
-            name: 'Marcar como vencida',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Marcar como vencida',
         });
-
-        await expect(overdueButtons).toHaveCount(2);
-
-        await overdueButtons.last().click();
 
         const resendButton = page.getByRole('button', {
             name: 'Reenviada ao cliente',
@@ -1448,14 +1427,10 @@ test.describe('Faturas', () => {
             })
         ).toBeVisible();
 
-        const resendButtons = page.getByRole('button', {
-            name: 'Reenviada ao cliente',
-            exact: true,
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Reenviada ao cliente',
         });
-
-        await expect(resendButtons).toHaveCount(2);
-
-        await resendButtons.last().click();
 
         await expect(
             page.getByRole('button', {
@@ -1538,12 +1513,10 @@ test.describe('Faturas', () => {
 
         await expect(issueDialog).toBeVisible();
 
-        await issueDialog
-            .getByRole('button', {
-                name: 'Emitir fatura',
-                exact: true,
-            })
-            .click();
+        await confirmModalAction({
+            page,
+            confirmButtonName: 'Emitir fatura',
+        });
 
         await expect(
             page.getByRole('button', {
@@ -1569,41 +1542,17 @@ test.describe('Faturas', () => {
 
         await page.goto(`/faturas/${invoiceId}/editar`);
 
-        if (
-            await page
-                .getByRole('button', {
-                    name: 'Salvar rascunho',
-                    exact: true,
-                })
-                .isVisible()
-        ) {
-            const notesInput = page.locator('#invoice-notes');
+        await expect(page).toHaveURL(invoiceUrl, {
+            timeout: 20_000,
+        });
 
-            await expect(notesInput).toBeVisible();
-
-            await notesInput.fill('Tentativa indevida de editar uma fatura já emitida.');
-
-            await page
-                .getByRole('button', {
-                    name: 'Salvar rascunho',
-                    exact: true,
-                })
-                .click();
-
-            const errorAlert = page.getByRole('alert').filter({
-                hasText: 'Somente faturas em rascunho podem ser editadas.',
-            });
-
-            await expect(errorAlert).toBeVisible({
-                timeout: 15_000,
-            });
-
-            await page.goto(invoiceUrl);
-        } else {
-            await page.goto(invoiceUrl);
-        }
-
-        await expect(page).toHaveURL(invoiceUrl);
+        /*
+         * A rota de edição deve redirecionar automaticamente
+         * para o detalhe quando a fatura não está mais em rascunho.
+         *
+         * Não fazemos outro page.goto(invoiceUrl), porque isso
+         * criaria duas navegações concorrentes para a mesma página.
+         */
 
         await expect(
             page.getByText('Ainda não emitida', {
